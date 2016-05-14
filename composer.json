@@ -15,7 +15,8 @@
         "laravel/framework": "5.1.*",
         "oneafricamedia/core": "dev-master@dev",
         "chumper/datatable": "dev-develop@dev",
-        "symfony/yaml": "^3.0"
+        "symfony/yaml": "^3.0",
+        "laravelcollective/html": "5.1.*"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",
@@ -28,7 +29,8 @@
             "database"
         ],
         "psr-4": {
-            "App\\": "app/"
+            "App\\": "app/",
+            "Oneafricamedia\\Horizon\\": "packages/oneafricamedia/horizon/src/"
         }
     },
     "autoload-dev": {
