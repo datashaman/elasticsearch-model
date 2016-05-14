@@ -17,6 +17,12 @@ class ListingRequest extends Request
         return true;
     }
 
+    protected function schema(ParserContract $parser)
+    {
+        $schema = $parser->parseSchema($this['type']);
+        return $schema;
+    }
+
     /**
      * Get the validation rules that apply to the request.
      *
@@ -27,10 +33,10 @@ class ListingRequest extends Request
         // $routeName = $this->route()->getName();
 
         $rules = [
-            'schema' => 'required',
+            'type' => 'required',
         ];
 
-        $schema = $parser->parseSchema($this['schema']);
+        $schema = $this->schema($parser);
 
         foreach ($schema['properties'] as $property) {
             $property_rules = [];
@@ -45,5 +51,9 @@ class ListingRequest extends Request
         }
 
         return $rules;
+    }
+
+    public function properties()
+    {
     }
 }

@@ -1,7 +1,7 @@
 @extends('crud')
 
 @section('crud')
-{!! Form::open([ 'route' => [ 'listing.store' ], 'class' => 'pure-form pure-form-stacked' ]) !!}
+{!! Form::model($listing, [ 'method' => 'PUT', 'route' => [ 'listing.update', 'id' => $listing->id ], 'class' => 'pure-form pure-form-stacked' ]) !!}
 {!! Form::hidden('type', $listing->type['id']) !!}
 
 @include('horizon::_form')

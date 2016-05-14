@@ -21,6 +21,10 @@ class HorizonServiceProvider extends ServiceProvider
             __DIR__.'/../config/horizon.php' => config_path('horizon.php'),
         ]);
 
+        $this->app->singleton('Oneafricamedia\Horizon\IndexerContract', function ($app) {
+            return new Indexer($app['config']['horizon'], $app['config']['elasticsearch']);
+        });
+
         $this->app->singleton('Oneafricamedia\Horizon\ParserContract', function ($app) {
             return new Parser($app['config']['horizon']);
         });
