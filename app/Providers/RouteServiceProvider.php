@@ -24,9 +24,16 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot(Router $router)
     {
-        //
-
         parent::boot($router);
+
+        $parser = $this->app['Oneafricamedia\Horizon\ParserContract'];
+        $indexer = $this->app['Oneafricamedia\Horizon\IndexerContract'];
+
+        $router->bind('listing', function ($id) use ($parser, $indexer) {
+            $response = $indexer->get($id);
+            $listing = $response['_source'];
+            return $listing;
+        });
     }
 
     /**

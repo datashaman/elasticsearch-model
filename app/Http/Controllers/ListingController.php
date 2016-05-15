@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Listing;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
+use Guzzle\Ring\Future\FutureArray;
 use Oneafricamedia\Horizon\IndexerContract;
 use Oneafricamedia\Horizon\ParserContract;
 
@@ -37,24 +38,28 @@ class ListingController extends Controller
      */
     public function create()
     {
-        $listing = new Listing;
-        $listing->type = 'generic';
-        return view('horizon::create', compact('listing'));
+        $type = $this->parser->parseSchema('generic');
+        $new = new Listing;
+        $listing = $new->toArray();
+        return view('horizon::create', compact('listing', 'type'));
     }
 
     protected function _update(Requests\ListingRequest $request, Listing $listing)
     {
-        $listing->type = $request->input('type');
+        $listing->type = $request['type'];
+        $type = $this->parser->parseSchema($listing->type);
+
         $properties = [];
-        foreach ($listing->type['properties'] as $property) {
+        foreach ($type['properties'] as $property) {
             $id = $property['id'];
-            $properties[$id] = $request->input($id);
+            $properties[$id] = $request[$id];
         }
         $listing->properties = $properties;
-        $saved =$listing->save();
+        $saved = $listing->save();
 
         if ($saved) {
-            $this->indexer->index($listing);
+            $future = $this->indexer->index($listing);
+            $future->wait();
             sleep(1);
         }
 
@@ -71,61 +76,65 @@ class ListingController extends Controller
     {
         $listing = new Listing;
         $listing->status = 'new';
-        $result = $this->_update($request, $listing);
+        $updated = $this->_update($request, $listing);
         return redirect()->route('listing.index');
     }
 
     /**
      * Display the specified listing.
      *
-     * @param  int  $id
+     * @param \App\Listing $listing
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show($listing)
     {
-        $listing = Listing::findOrFail($id);
         return view('horizon::show', compact('listing'));
     }
 
     /**
      * Show the form for editing the specified listing.
      *
-     * @param  int  $id
+     * @param \App\Listing $listing
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit($listing)
     {
-        $listing = Listing::findOrFail($id);
-        return view('horizon::edit', compact('listing'));
+        $type = $this->parser->parseSchema('generic');
+        return view('horizon::edit', compact('listing', 'type'));
     }
 
     /**
      * Update the specified listing in storage.
      *
      * @param  \App\Http\Requests\ListingRequest  $request
-     * @param  int  $id
+     * @param  \App\Listing  $listing
      * @return \Illuminate\Http\Response
      */
-    public function update(Requests\ListingRequest $request, $id)
+    public function update(Requests\ListingRequest $request, $listing)
     {
-        $listing = Listing::findOrFail($id);
-        $result = $this->_update($request, $listing);
+        $listing = Listing::findOrFail($listing['id']);
+        $updated = $this->_update($request, $listing);
         return redirect()->route('listing.index');
     }
 
     /**
      * Remove the specified listing from storage.
      *
-     * @param  int  $id
+     * @param  \App\Listing  $listing
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy($listing)
     {
-        $listing = Listing::findOrFail($id);
-        $deleted = $listing->delete();
-        if ($deleted) {
-            $this->indexer->delete($id);
-            sleep(1);
+        $id = $listing['id'];
+        $listing = Listing::find($id);
+
+        if (!is_null($listing)) {
+            $deleted = $listing->delete();
+        }
+
+        if (is_null($listing) || $deleted) {
+            $future = $this->indexer->delete($id);
+            $future->wait();
         }
         return redirect()->route('listing.index');
     }

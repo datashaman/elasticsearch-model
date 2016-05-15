@@ -2,7 +2,7 @@
 
 @section('crud')
 {!! Form::open([ 'route' => [ 'listing.store' ], 'class' => 'pure-form pure-form-stacked' ]) !!}
-{!! Form::hidden('type', $listing->type['id']) !!}
+{!! Form::hidden('type', $type['id']) !!}
 
 @include('horizon::_form')
 

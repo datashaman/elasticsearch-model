@@ -20,6 +20,9 @@ class Indexer implements IndexerContract
             'index' => 'listings',
             'type' => 'listing',
             'id' => $id,
+            'client' => [
+                'future' => 'lazy',
+            ],
         ], $params);
         return $params;
     }
@@ -51,6 +54,9 @@ class Indexer implements IndexerContract
         $params = [
             'index' => 'listings',
             'type' => 'listing',
+            'client' => [
+                'future' => 'lazy',
+            ],
         ];
         $response = $this->client->search($params);
         return $response;

@@ -1,11 +1,11 @@
 <fieldset>
 
-@foreach($listing->type['properties'] as $property)
+@foreach($type['properties'] as $property)
 <?php $id = $property['id']; ?>
 <?php $type = $property['type']; ?>
-<?php $properties = $listing->properties; ?>
+<?php $properties = array_get($listing, 'properties', []); ?>
 {!! Form::label($id, $property['title']) !!}
-{!! Form::$type($id, Input::old($id, property_exists($properties, $id) ? $properties->$id : null), [
+{!! Form::$type($id, Input::old($id, array_key_exists($id, $properties) ? $properties[$id] : null), [
     'class' => 'form-control',
     'required' => $property['required'] ? true : null,
     'placeholder' => $property['placeholder'],
