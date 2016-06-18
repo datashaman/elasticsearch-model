@@ -17,6 +17,82 @@ class IndexingTest extends TestCase
         $this->assertEquals($changedAttributes, $thing->_dirty);
     }
 
+    public function testCreateIndex()
+    {
+        $mock = \Mockery::mock()
+            ->shouldReceive([
+                'create' => '',
+                'exists' => false,
+            ])
+            ->mock();
+
+        $expectations = [
+            'indices' => $mock,
+        ];
+
+        $this->setClient($expectations);
+
+        Models\Thing::settings([ 'number_of_shards' => 2 ]);
+        Models\Thing::mappings([ 'foo' => 'boo' ]);
+
+        Models\Thing::createIndex();
+    }
+
+    public function testCreateIndexThatExists()
+    {
+        $mock = \Mockery::mock()
+            ->shouldReceive([
+                'exists' => true
+            ])
+            ->mock();
+
+        $expectations = [
+            'indices' => $mock,
+        ];
+
+        $this->setClient($expectations);
+
+        Models\Thing::createIndex();
+    }
+
+    public function testCreateIndexWithForce()
+    {
+        $mock = \Mockery::mock()
+            ->shouldReceive([
+                'exists' => false,
+                'delete' => '',
+                'create' => '',
+            ])
+            ->mock();
+
+        $expectations = [
+            'indices' => $mock,
+        ];
+
+        $this->setClient($expectations);
+
+        Models\Thing::createIndex([ 'force' => true ]);
+    }
+
+    public function testCreateIndexWithForceThatExists()
+    {
+        $mock = \Mockery::mock()
+            ->shouldReceive([
+                'exists' => true,
+                'delete' => '',
+                'create' => '',
+            ])
+            ->mock();
+
+        $expectations = [
+            'indices' => $mock,
+        ];
+
+        $this->setClient($expectations);
+
+        Models\Thing::createIndex([ 'force' => true ]);
+    }
+
     public function testIndexExists()
     {
         $mock = \Mockery::mock()
@@ -124,27 +200,6 @@ class IndexingTest extends TestCase
         $this->assertEquals($expectations['get'], $result);
     }
 
-    public function testGetDocumentSource()
-    {
-        $thing = Models\Thing::first();
-
-        $expectations = [
-            'get' => [
-                '_index' => Models\Thing::indexName(),
-                '_type' => Models\Thing::documentType(),
-                '_id' => 1,
-                '_version' => 1,
-                'found' => true,
-                '_source' => $thing->toIndexedArray(),
-            ],
-        ];
-
-        $this->setClient($expectations);
-
-        $result = Models\Thing::getDocumentSource($thing->id);
-        $this->assertEquals($expectations['get']['_source'], $result);
-    }
-
     public function testUpdateDocument()
     {
         $expectations = [
@@ -233,7 +288,7 @@ class IndexingTest extends TestCase
         $this->assertEquals('string', array_get($mappings->toArray(), 'thing.properties.bar.type'));
     }
 
-    public function testDefineMultipleFields()
+    public function testMappingsDefineMultipleFields()
     {
         $mappings = new Mappings('thing');
 
@@ -258,7 +313,7 @@ class IndexingTest extends TestCase
         $this->assertNull(array_get($array, 'thing.properties.foo_2.properties'));
     }
 
-    public function testDefineEmbeddedProperties()
+    public function testMappingsDefineEmbeddedProperties()
     {
         $mappings = new Mappings('thing');
 
@@ -287,5 +342,31 @@ class IndexingTest extends TestCase
         $this->assertEquals('nested', array_get($array, 'thing.properties.foo_nested.type'));
         $this->assertEquals('string', array_get($array, 'thing.properties.foo_nested.properties.bar.type'));
         $this->assertNull(array_get($array, 'thing.properties.foo_object.fields'));
+    }
+
+    public function testMappingsToArray()
+    {
+        $mappings = new Mappings('thing');
+
+        $this->assertEquals([], $mappings->toArray());
+
+        $mappings->indexes('foo', [], function ($m, $parent) {
+            $m->indexes("$parent.bar");
+        });
+
+        $this->assertEquals([
+            "thing" => [
+                "properties" => [
+                    "foo" => [
+                        "type" => "object",
+                        "properties" => [
+                            "bar" => [
+                                "type" => "string",
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ], $mappings->toArray());
     }
 }

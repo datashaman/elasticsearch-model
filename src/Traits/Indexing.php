@@ -52,6 +52,11 @@ class Mappings
             return [ $this->type => array_merge($this->options, compact('properties')) ];
         }
     }
+
+    public function merge($options)
+    {
+        $this->mapping = array_merge($this->mapping, $options);
+    }
 }
 
 class Settings
@@ -118,7 +123,7 @@ trait Indexing
         }
 
         if (!empty($options)) {
-            static::$mapping = array_merge(static::$mapping, $options);
+            static::$mapping->merge($options);
         }
 
         return static::$mapping;
@@ -152,7 +157,7 @@ trait Indexing
         }
 
         if (static::indexExists(compact('index'))) {
-            return False;
+            return false;
         } else {
             $body = [];
 
@@ -184,15 +189,6 @@ trait Indexing
     {
         $args = static::_instanceArgs($id, $options);
         return static::client()->get($args);
-    }
-
-    public static function getDocumentSource($id, $options=[])
-    {
-        $response = static::getDocument($id, $options);
-
-        if ($response['found']) {
-            return $response['_source'];
-        }
     }
 
     public function deleteDocument($options=[])
