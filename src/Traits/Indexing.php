@@ -16,6 +16,17 @@ class Mappings
         $this->mapping = [];
     }
 
+    public function indexes($name, $options=[])
+    {
+        $this->mapping[$name] = $options;
+
+        if (!isset($this->mapping[$name]['type'])) {
+            $this->mapping[$name]['type'] = 'string';
+        }
+
+        return $this;
+    }
+
     public function toArray()
     {
         $properties = $this->mapping;

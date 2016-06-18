@@ -1,5 +1,6 @@
 <?php namespace Datashaman\ElasticModel\Tests;
 
+use Datashaman\ElasticModel\Traits\Mappings;
 use Elasticsearch\Common\Exceptions\Missing404Exception;
 use Log;
 
@@ -169,7 +170,7 @@ class IndexingTest extends TestCase
     public function testUpdateUnchangedDocument()
     {
         $expectations = [
-            'update' => [
+            'index' => [
                 '_index' => Models\Thing::indexName(),
                 '_type' => Models\Thing::documentType(),
                 '_id' => 1,
@@ -180,12 +181,10 @@ class IndexingTest extends TestCase
         $this->setClient($expectations);
 
         $thing = Models\Thing::first();
-        $thing->update([
-            'title' => 'Changed the title',
-        ]);
+        $thing->update([]);
 
         $result = $thing->updateDocument();
-        $this->assertEquals($expectations['update'], $result);
+        $this->assertEquals($expectations['index'], $result);
     }
 
     public function testDeleteDocument()
@@ -206,5 +205,31 @@ class IndexingTest extends TestCase
 
         $result = $thing->deleteDocument();
         $this->assertEquals($expectations['delete'], $result);
+    }
+
+    public function testMappingsClass()
+    {
+        $mappings = Models\Thing::mappings();
+        $this->assertInstanceOf(Mappings::class, $mappings);
+    }
+
+    public function testMappingsDefineProperties()
+    {
+        $mappings = new Mappings('thing');
+
+        $mappings->indexes('foo', [
+            'type' => 'boolean',
+            'include_in_all' => false,
+        ]);
+
+        $this->assertEquals('boolean', array_get($mappings->toArray(), 'thing.properties.foo.type'));
+    }
+
+    public function testMappingsDefineTypeAsStringByDefault()
+    {
+        $mappings = new Mappings('thing');
+        $mappings->indexes('bar', []);
+
+        $this->assertEquals('string', array_get($mappings->toArray(), 'thing.properties.bar.type'));
     }
 }
