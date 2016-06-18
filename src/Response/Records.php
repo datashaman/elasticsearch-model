@@ -27,7 +27,8 @@ class Records extends Base implements ArrayAccess
             return $this->response->results;
         case 'records':
             /** TODO: Abstract this so more than Eloquent can be used */
-            $records = $this->class::whereIn('id', $this->ids)->get();
+            $class = $this->class;
+            $records = $class::whereIn('id', $this->ids)->get();
 
             $ordered = [];
 
