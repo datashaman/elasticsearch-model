@@ -13,10 +13,7 @@ class TestCase extends Orchestra_Testbench_TestCase
     {
         parent::setUp();
 
-        Models\Thing::client(null);
-        Models\Thing::indexName(null);
-        Models\Thing::documentType(null);
-
+        Models\Thing::resetElasticModel();
         Models\Thing::bootIndexing();
 
         $this->createDatabase();

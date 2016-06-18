@@ -33,6 +33,8 @@ class IndexingTest extends TestCase
         $this->setClient($expectations);
 
         Models\Thing::settings([ 'number_of_shards' => 2 ]);
+        Models\Thing::settings([ 'number_of_replicas' => 0 ]);
+
         Models\Thing::mappings([ 'foo' => 'boo' ]);
 
         Models\Thing::createIndex();
@@ -368,5 +370,36 @@ class IndexingTest extends TestCase
                 ],
             ],
         ], $mappings->toArray());
+    }
+
+    public function testMappingsUpdateAndReturn()
+    {
+        Models\Thing::mapping([ 'foo' => 'boo' ]);
+        Models\Thing::mapping([ 'bar' => 'bam' ]);
+
+        $this->assertEquals([
+            'thing' => [
+                'foo' => 'boo',
+                'bar' => 'bam',
+                'properties' => [],
+            ],
+        ], Models\Thing::mappings()->toArray());
+    }
+
+    public function testMappingsClosure()
+    {
+        Models\Thing::mapping([], function ($m) {
+            $m->indexes('foo');
+        });
+
+        $this->assertEquals([
+            'thing' => [
+                'properties' => [
+                    'foo' => [
+                        'type' => 'string',
+                    ],
+                ],
+            ],
+        ], Models\Thing::mapping()->toArray());
     }
 }

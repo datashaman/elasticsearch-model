@@ -44,18 +44,18 @@ class Mappings
 
     public function toArray()
     {
-        $properties = $this->mapping;
-
-        if (empty($properties)) {
+        if (empty($this->options) && empty($this->mapping)) {
             return [];
         } else {
-            return [ $this->type => array_merge($this->options, compact('properties')) ];
+            $properties = $this->mapping;
+            $type = array_merge($this->options, compact('properties'));
+            return [ $this->type => $type ];
         }
     }
 
-    public function merge($options)
+    public function mergeOptions($options)
     {
-        $this->mapping = array_merge($this->mapping, $options);
+        $this->options = array_merge($this->options, $options);
     }
 }
 
@@ -116,17 +116,23 @@ trait Indexing
         }
     }
 
-    public static function mapping($options=[])
+    public static function mapping($options=[], Closure $closure=null)
     {
-        if (!isset(static::$mapping)) {
-            static::$mapping = new Mappings(static::$documentType, $options);
+        if (empty(static::$mapping)) {
+            static::$mapping = new Mappings(static::documentType());
         }
 
         if (!empty($options)) {
-            static::$mapping->merge($options);
+            static::$mapping->mergeOptions($options);
         }
 
-        return static::$mapping;
+        if (is_null($closure)) {
+            return static::$mapping;
+        } else {
+            call_user_func($closure, static::$mapping);
+            return static::class;
+        }
+
     }
 
     public static function mappings($options=[])
@@ -136,12 +142,12 @@ trait Indexing
 
     public static function settings($settings=[])
     {
-        if (isset(static::$settings)) {
+        if (empty(static::$settings)) {
+            static::$settings = new Settings($settings);
+        } else {
             if (!empty($settings)) {
                 static::$settings->merge($settings);
             }
-        } else {
-            static::$settings = new Settings($settings);
         }
 
         return static::$settings;
@@ -149,7 +155,7 @@ trait Indexing
 
     public static function createIndex($options=[])
     {
-        $index = array_get($options, 'index', static::$indexName);
+        $index = array_get($options, 'index', static::indexName());
 
         if (array_get($options, 'force')) {
             $options['index'] = $index;
