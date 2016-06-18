@@ -31,7 +31,7 @@ class SearchRequest
     public function execute()
     {
         $klass = $this->klass;
-        return $klass::client()->search($this->definition);
+        return $klass->client()->search($this->definition);
     }
 }
 
