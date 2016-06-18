@@ -34,7 +34,7 @@ class Mappings
 
             $this->mapping = array_add($this->mapping, "$name.$properties", []);
 
-            $closure->call($this, $this, "$name.$properties");
+            call_user_func($closure, $this, "$name.$properties");
         }
 
         $this->mapping = array_add($this->mapping, "$name.type", 'string');
