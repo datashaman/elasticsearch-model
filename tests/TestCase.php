@@ -13,7 +13,10 @@ class TestCase extends Orchestra_Testbench_TestCase
     {
         parent::setUp();
 
-        Models\Thing::indexName(substr(md5(rand()), 0, 7));
+        Models\Thing::client(null);
+        Models\Thing::indexName(null);
+        Models\Thing::documentType(null);
+
         Models\Thing::bootIndexing();
 
         $this->createDatabase();
@@ -55,12 +58,12 @@ class TestCase extends Orchestra_Testbench_TestCase
         Models\Category::create([ 'title' => 'Category #1' ]);
         Models\Category::create([ 'title' => 'Category #2' ]);
 
-        $thing = new Models\Thing;
-        $thing->category()->associate(Models\Category::first());
-        $thing->title = 'Existing Thing';
-        $thing->description = 'This is the best thing.';
-        $thing->status = 'online';
-        $thing->save();
+        Models\Thing::create([
+            'category_id' => Models\Category::first()->id,
+            'title' => 'Existing Thing',
+            'description' => 'This is the best thing.',
+            'status' => 'online',
+        ]);
     }
 
     public function tearDown()
@@ -71,6 +74,17 @@ class TestCase extends Orchestra_Testbench_TestCase
         $this->schema()->drop('categories');
 
         parent::tearDown();
+    }
+
+    protected function setClient($expectations)
+    {
+        $client = Mockery::mock('Elasticsearch\Client')
+            ->shouldReceive($expectations)
+            ->mock();
+
+        Models\Thing::client($client);
+
+        return $client;
     }
 
     /**

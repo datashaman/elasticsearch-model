@@ -12,7 +12,7 @@ trait Client
     public static function client()
     {
         if (func_num_args() == 0) {
-            if (!isset(static::$client)) {
+            if (empty(static::$client)) {
                 static::$client = ClientBuilder::create()->build();
             }
 

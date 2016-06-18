@@ -1,17 +1,85 @@
 <?php namespace Datashaman\ElasticModel\Tests;
 
 use Elasticsearch\Common\Exceptions\Missing404Exception;
-use Mockery;
+use Log;
 
 class IndexingTest extends TestCase
 {
     public function testBootIndexing()
     {
-        $thing = Models\Thing::first();
-        $thing->title = 'Changed the title';
-        $thing->save();
+        $changedAttributes = [
+            'title' => 'Changed the title',
+        ];
 
-        $this->assertEquals([ 'title' => 'Changed the title' ], $thing->_dirty);
+        $thing = Models\Thing::first();
+        $thing->update($changedAttributes);
+        $this->assertEquals($changedAttributes, $thing->_dirty);
+    }
+
+    public function testIndexExists()
+    {
+        $mock = \Mockery::mock()
+            ->shouldReceive('exists')
+            ->mock();
+
+        $expectations = [
+            'indices' => $mock,
+        ];
+
+        $this->setClient($expectations);
+
+        Models\Thing::indexExists();
+    }
+
+    public function testDeleteIndex()
+    {
+        $mock = \Mockery::mock()
+            ->shouldReceive('delete')
+            ->mock();
+
+        $expectations = [
+            'indices' => $mock,
+        ];
+
+        $this->setClient($expectations);
+
+        Models\Thing::deleteIndex();
+    }
+
+    public function testDeleteMissingIndex()
+    {
+        $mock = \Mockery::mock()
+            ->shouldReceive('delete')
+            ->andThrow(Missing404Exception::class, 'Index not found')
+            ->mock();
+
+        $expectations = [
+            'indices' => $mock,
+        ];
+
+        $this->setClient($expectations);
+
+        Models\Thing::deleteIndex();
+    }
+
+    public function testDeleteMissingIndexWithForce()
+    {
+        $mock = \Mockery::mock()
+            ->shouldReceive('delete')
+            ->andThrow(Missing404Exception::class, 'Index does not exist')
+            ->mock();
+
+        $expectations = [
+            'indices' => $mock,
+        ];
+
+        $this->setClient($expectations);
+
+        Log::shouldReceive('error', 'Index does not exist', [ 'index' => Models\Thing::indexName() ]);
+
+        Models\Thing::deleteIndex([
+            'force' => true,
+        ]);
     }
 
     public function testIndexDocument()
@@ -26,11 +94,7 @@ class IndexingTest extends TestCase
             ],
         ];
 
-        $client = Mockery::mock('Elasticsearch\Client')
-            ->shouldReceive($expectations)
-            ->mock();
-
-        Models\Thing::client($client);
+        $client = $this->setClient($expectations);
 
         $thing = Models\Thing::first();
         $result = $thing->indexDocument();
@@ -53,14 +117,31 @@ class IndexingTest extends TestCase
             ],
         ];
 
-        $client = Mockery::mock('Elasticsearch\Client')
-            ->shouldReceive($expectations)
-            ->mock();
-
-        Models\Thing::client($client);
+        $this->setClient($expectations);
 
         $result = Models\Thing::getDocument($thing->id);
         $this->assertEquals($expectations['get'], $result);
+    }
+
+    public function testGetDocumentSource()
+    {
+        $thing = Models\Thing::first();
+
+        $expectations = [
+            'get' => [
+                '_index' => Models\Thing::indexName(),
+                '_type' => Models\Thing::documentType(),
+                '_id' => 1,
+                '_version' => 1,
+                'found' => true,
+                '_source' => $thing->toIndexedArray(),
+            ],
+        ];
+
+        $this->setClient($expectations);
+
+        $result = Models\Thing::getDocumentSource($thing->id);
+        $this->assertEquals($expectations['get']['_source'], $result);
     }
 
     public function testUpdateDocument()
@@ -74,15 +155,34 @@ class IndexingTest extends TestCase
             ],
         ];
 
-        $client = Mockery::mock('Elasticsearch\Client')
-            ->shouldReceive($expectations)
-            ->mock();
-
-        Models\Thing::client($client);
+        $this->setClient($expectations);
 
         $thing = Models\Thing::first();
-        $thing->title = 'Changed the title';
-        $thing->save();
+        $thing->update([
+            'title' => 'Changed the title',
+        ]);
+
+        $result = $thing->updateDocument();
+        $this->assertEquals($expectations['update'], $result);
+    }
+
+    public function testUpdateUnchangedDocument()
+    {
+        $expectations = [
+            'update' => [
+                '_index' => Models\Thing::indexName(),
+                '_type' => Models\Thing::documentType(),
+                '_id' => 1,
+                '_version' => 2,
+            ],
+        ];
+
+        $this->setClient($expectations);
+
+        $thing = Models\Thing::first();
+        $thing->update([
+            'title' => 'Changed the title',
+        ]);
 
         $result = $thing->updateDocument();
         $this->assertEquals($expectations['update'], $result);
@@ -102,11 +202,7 @@ class IndexingTest extends TestCase
             ],
         ];
 
-        $client = Mockery::mock('Elasticsearch\Client')
-            ->shouldReceive($expectations)
-            ->mock();
-
-        Models\Thing::client($client);
+        $this->setClient($expectations);
 
         $result = $thing->deleteDocument();
         $this->assertEquals($expectations['delete'], $result);

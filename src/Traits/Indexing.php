@@ -1,6 +1,7 @@
 <?php namespace Datashaman\ElasticModel\Traits;
 
 use Elasticsearch\Common\Exceptions\Missing404Exception;
+use Log;
 
 class Mappings
 {
@@ -79,7 +80,7 @@ trait Indexing
             return static::client()->indices()->delete(compact('index'));
         } catch (Missing404Exception $e) {
             if (array_get($options, 'force')) {
-                Log::error('Index does not exist', compact('index'));
+                Log::error($e->getMessage(), compact('index'));
             }
         }
     }

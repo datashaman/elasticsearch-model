@@ -1,4 +1,4 @@
-# elasticsearch-model
+# elastic-model
 
 Laravel-oriented implementation of [elasticsearch-model](https://github.com/elastic/elasticsearch-rails/tree/master/elasticsearch-model).
 

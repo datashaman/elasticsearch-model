@@ -11,7 +11,7 @@ trait Naming
     public static function documentType()
     {
         if (func_num_args() == 0) {
-            if (!isset(static::$documentType)) {
+            if (empty(static::$documentType)) {
                 static::$documentType = strtolower(last(explode('\\', static::class)));
             }
 
@@ -27,7 +27,7 @@ trait Naming
     public static function indexName()
     {
         if (func_num_args() == 0) {
-            if (!isset(static::$indexName)) {
+            if (empty(static::$indexName)) {
                 static::$indexName = str_plural(static::documentType());
             }
 
