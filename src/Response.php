@@ -41,7 +41,7 @@ class Response implements ArrayAccess
         switch ($name) {
         case 'response':
             return setOrCreate($this->_response, function () {
-                return new ArrayObject($this->search->execute());
+                return new ArrayObject($this->search->execute(), ArrayObject::ARRAY_AS_PROPS);
             });
         case 'results':
             return setOrCreate($this->_results, function () {
@@ -56,11 +56,11 @@ class Response implements ArrayAccess
         case 'timedOut':
             return $this->response['timed_out'];
         case 'shards':
-            return new ArrayObject($this->response['_shards']);
+            return new ArrayObject($this->response['_shards'], ArrayObject::ARRAY_AS_PROPS);
         case 'aggregations':
-            return array_has($this->response, 'aggregations') ? new ArrayObject(array_get($this->response, 'aggregations')) : null;
+            return array_has($this->response, 'aggregations') ? new ArrayObject(array_get($this->response, 'aggregations'), ArrayObject::ARRAY_AS_PROPS) : null;
         case 'suggestions':
-            return array_has($this->response, 'suggest') ? new Response\Suggestions($this->response['suggest'], ArrayObject::STD_PROP_LIST) : null;
+            return array_has($this->response, 'suggest') ? new Response\Suggestions($this->response['suggest']) : null;
         }
     }
 }

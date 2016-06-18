@@ -15,7 +15,6 @@ class Base
     {
         switch ($name) {
         case 'results':
-        case 'response':
             throw new Exception('Implement this method in '.$this->class);
         case 'total':
             return $this->response->response['hits']['total'];

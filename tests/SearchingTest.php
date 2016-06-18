@@ -97,4 +97,21 @@ class SearchingTest extends TestCase
         $s = new SearchRequest(Models\Thing::class, $body);
         $s->execute();
     }
+
+    public function testPassOptionsToClient()
+    {
+        $client = Mockery::mock('Elasticsearch\Client')
+            ->shouldReceive('search')
+            ->with([
+                'index' => 'things',
+                'type' => 'thing',
+                'q' => 'foo',
+                'size' => 15,
+            ])
+            ->mock();
+
+        Models\Thing::client($client);
+        $s = new SearchRequest(Models\Thing::class, 'foo', [ 'size' => 15 ]);
+        $s->execute();
+    }
 }
