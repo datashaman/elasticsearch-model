@@ -5,17 +5,17 @@ use Datashaman\ElasticModel\Response;
 
 class SearchRequest
 {
-    protected $klass;
-    protected $options;
-    protected $definition;
+    public $class;
+    public $definition;
+    public $options;
 
-    public function __construct($klass, $query, $options=[])
+    public function __construct($class, $query, $options=[])
     {
-        $this->klass = $klass;
+        $this->class = $class;
         $this->options = $options;
 
-        $index = array_get($options, 'index', $klass::indexName());
-        $type = array_get($options, 'type', $klass::documentType());
+        $index = array_get($options, 'index', $class::indexName());
+        $type = array_get($options, 'type', $class::documentType());
 
         if (method_exists($query, 'toArray')) {
             $body = $query->toArray();
@@ -30,8 +30,8 @@ class SearchRequest
 
     public function execute()
     {
-        $klass = $this->klass;
-        return $klass->client()->search($this->definition);
+        $client = call_user_func([ $this->class, 'client' ]);
+        return $client->search($this->definition);
     }
 }
 

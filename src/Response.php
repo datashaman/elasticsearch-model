@@ -18,8 +18,8 @@ class Response implements ArrayAccess
 
     protected $_arrayDelegate = 'results';
 
-    protected $class;
-    protected $search;
+    public $class;
+    public $search;
 
     protected $_response;
     protected $_results;
