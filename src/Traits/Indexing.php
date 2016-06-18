@@ -1,6 +1,7 @@
 <?php namespace Datashaman\ElasticModel\Traits;
 
 use Elasticsearch\Common\Exceptions\Missing404Exception;
+use Closure;
 use Log;
 
 class Mappings
@@ -9,6 +10,11 @@ class Mappings
     protected $options;
     protected $mapping;
 
+    protected static $typesWithEmbeddedProperties = [
+        'object',
+        'nested',
+    ];
+
     public function __construct($type, $options=[])
     {
         $this->type = $type;
@@ -16,13 +22,22 @@ class Mappings
         $this->mapping = [];
     }
 
-    public function indexes($name, $options=[])
+    public function indexes($name, $options=[], Closure $closure=null)
     {
-        $this->mapping[$name] = $options;
+        array_set($this->mapping, $name, $options);
 
-        if (!isset($this->mapping[$name]['type'])) {
-            $this->mapping[$name]['type'] = 'string';
+        if (!is_null($closure)) {
+            $this->mapping = array_add($this->mapping, "$name.type", 'object');
+
+            $type = array_get($this->mapping, "$name.type");
+            $properties = in_array($type, static::$typesWithEmbeddedProperties) ? 'properties' : 'fields';
+
+            $this->mapping = array_add($this->mapping, "$name.$properties", []);
+
+            $closure->call($this, $this, "$name.$properties");
         }
+
+        $this->mapping = array_add($this->mapping, "$name.type", 'string');
 
         return $this;
     }
