@@ -138,6 +138,7 @@ class IndexingTest extends TestCase
 
         $this->setClient($expectations);
 
+        $this->expectException(Missing404Exception::class, 'Index not found');
         Models\Thing::deleteIndex();
     }
 
@@ -154,7 +155,9 @@ class IndexingTest extends TestCase
 
         $this->setClient($expectations);
 
-        Log::shouldReceive('error', 'Index does not exist', [ 'index' => Models\Thing::indexName() ]);
+        Log::shouldReceive('error')
+            ->once()
+            ->with('Index does not exist', [ 'index' => Models\Thing::indexName() ]);
 
         Models\Thing::deleteIndex([
             'force' => true,

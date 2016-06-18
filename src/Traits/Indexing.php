@@ -112,6 +112,8 @@ trait Indexing
         } catch (Missing404Exception $e) {
             if (array_get($options, 'force')) {
                 Log::error($e->getMessage(), compact('index'));
+            } else {
+                throw $e;
             }
         }
     }
