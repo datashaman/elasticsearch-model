@@ -1,5 +1,6 @@
 <?php namespace Datashaman\ElasticModel\Traits;
 
+use Elasticsearch\Common\Exceptions\Missing404Exception;
 
 class Mappings
 {
@@ -58,7 +59,7 @@ trait Indexing
 
     public $_dirty;
 
-    public function bootIndexing()
+    public static function bootIndexing()
     {
         static::updating(function ($object) {
             $object->_dirty = $object->getDirty();
