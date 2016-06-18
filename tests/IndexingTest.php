@@ -1,6 +1,7 @@
 <?php namespace Datashaman\ElasticModel\Tests;
 
 use Elasticsearch\Common\Exceptions\Missing404Exception;
+use Mockery;
 
 class IndexingTest extends TestCase
 {
@@ -15,60 +16,99 @@ class IndexingTest extends TestCase
 
     public function testIndexDocument()
     {
+        $expectations = [
+            'index' => [
+                '_index' => Models\Thing::indexName(),
+                '_type' => Models\Thing::documentType(),
+                '_id' => 1,
+                '_version' => 1,
+                'created' => true,
+            ],
+        ];
+
+        $client = Mockery::mock('Elasticsearch\Client')
+            ->shouldReceive($expectations)
+            ->mock();
+
+        Models\Thing::client($client);
+
         $thing = Models\Thing::first();
         $result = $thing->indexDocument();
 
-        $this->assertEquals(Models\Thing::indexName(), $result['_index']);
-        $this->assertEquals(Models\Thing::documentType(), $result['_type']);
-        $this->assertEquals($thing->id, $result['_id']);
-        $this->assertEquals(1, $result['_version']);
-        $this->assertEquals(true, $result['created']);
+        $this->assertEquals($expectations['index'], $result);
     }
 
     public function testGetDocument()
     {
         $thing = Models\Thing::first();
-        $thing->indexDocument();
+
+        $expectations = [
+            'get' => [
+                '_index' => Models\Thing::indexName(),
+                '_type' => Models\Thing::documentType(),
+                '_id' => 1,
+                '_version' => 1,
+                'found' => true,
+                '_source' => $thing->toIndexedArray(),
+            ],
+        ];
+
+        $client = Mockery::mock('Elasticsearch\Client')
+            ->shouldReceive($expectations)
+            ->mock();
+
+        Models\Thing::client($client);
 
         $result = Models\Thing::getDocument($thing->id);
-
-        $this->assertEquals(Models\Thing::indexName(), $result['_index']);
-        $this->assertEquals(Models\Thing::documentType(), $result['_type']);
-        $this->assertEquals($thing->id, $result['_id']);
-        $this->assertEquals(1, $result['_version']);
-        $this->assertEquals(true, $result['found']);
-        $this->assertEquals($thing->toIndexedArray(), $result['_source']);
+        $this->assertEquals($expectations['get'], $result);
     }
 
     public function testUpdateDocument()
     {
-        $thing = Models\Thing::first();
-        $thing->indexDocument();
+        $expectations = [
+            'update' => [
+                '_index' => Models\Thing::indexName(),
+                '_type' => Models\Thing::documentType(),
+                '_id' => 1,
+                '_version' => 2,
+            ],
+        ];
 
+        $client = Mockery::mock('Elasticsearch\Client')
+            ->shouldReceive($expectations)
+            ->mock();
+
+        Models\Thing::client($client);
+
+        $thing = Models\Thing::first();
         $thing->title = 'Changed the title';
         $thing->save();
 
         $result = $thing->updateDocument();
-
-        $this->assertEquals(Models\Thing::indexName(), $result['_index']);
-        $this->assertEquals(Models\Thing::documentType(), $result['_type']);
-        $this->assertEquals($thing->id, $result['_id']);
-        $this->assertEquals(2, $result['_version']);
-
-        $result = Models\Thing::getDocument($thing->id);
-
-        $this->assertEquals(2, $result['_version']);
-        $this->assertEquals('Changed the title', $result['_source']['title']);
+        $this->assertEquals($expectations['update'], $result);
     }
 
     public function testDeleteDocument()
     {
         $thing = Models\Thing::first();
-        $thing->indexDocument();
+
+        $expectations = [
+            'delete' => [
+                '_index' => Models\Thing::indexName(),
+                '_type' => Models\Thing::documentType(),
+                '_id' => 1,
+                '_version' => 2,
+                'found' => 1,
+            ],
+        ];
+
+        $client = Mockery::mock('Elasticsearch\Client')
+            ->shouldReceive($expectations)
+            ->mock();
+
+        Models\Thing::client($client);
 
         $result = $thing->deleteDocument();
-
-        $this->expectException(Missing404Exception::class);
-        Models\Thing::getDocument($thing->id);
+        $this->assertEquals($expectations['delete'], $result);
     }
 }

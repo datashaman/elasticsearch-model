@@ -64,8 +64,6 @@ class TestCase extends Orchestra_Testbench_TestCase
 
     public function tearDown()
     {
-        Models\Thing::deleteIndex();
-
         $this->schema()->drop('things');
         $this->schema()->drop('categories');
 
