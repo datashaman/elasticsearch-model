@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Database\Eloquent\Model as Eloquent;
+use Mockery;
 use Orchestra\Testbench\TestCase as Orchestra_Testbench_TestCase;
 
 class TestCase extends Orchestra_Testbench_TestCase
@@ -64,6 +65,8 @@ class TestCase extends Orchestra_Testbench_TestCase
 
     public function tearDown()
     {
+        Mockery::close();
+
         $this->schema()->drop('things');
         $this->schema()->drop('categories');
 
