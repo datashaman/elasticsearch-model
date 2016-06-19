@@ -1,6 +1,6 @@
 <?php namespace Datashaman\ElasticModel\Tests\Models;
 
-use Datashaman\ElasticModel\Traits\ElasticModel;
+use Datashaman\ElasticModel\ElasticModel;
 use Illuminate\Database\Eloquent\Model as Eloquent;
 
 class Thing extends Eloquent

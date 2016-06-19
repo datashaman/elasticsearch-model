@@ -1,6 +1,6 @@
 <?php namespace Datashaman\ElasticModel\Tests;
 
-use Datashaman\ElasticModel\Traits\SearchRequest;
+use Datashaman\ElasticModel\SearchRequest;
 use Mockery;
 
 class SearchingModel

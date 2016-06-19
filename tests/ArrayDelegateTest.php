@@ -1,7 +1,7 @@
 <?php namespace Datashaman\ElasticModel\Tests;
 
 use ArrayAccess;
-use Datashaman\ElasticModel\Traits\ArrayDelegate;
+use Datashaman\ElasticModel\ArrayDelegate;
 
 class ArrayDelegateModel implements ArrayAccess
 {

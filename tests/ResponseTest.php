@@ -5,7 +5,7 @@ use Datashaman\ElasticModel\Response;
 use Datashaman\ElasticModel\Response\Records;
 use Datashaman\ElasticModel\Response\Result;
 use Datashaman\ElasticModel\Response\Results;
-use Datashaman\ElasticModel\Traits\SearchRequest;
+use Datashaman\ElasticModel\SearchRequest;
 
 class ResponseTest extends TestCase
 {

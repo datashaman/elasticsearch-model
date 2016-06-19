@@ -14,7 +14,7 @@ function setOrCreate($value, $creator)
 
 class Response implements ArrayAccess
 {
-    use Traits\ArrayDelegate;
+    use ArrayDelegate;
 
     protected $_arrayDelegate = 'results';
 

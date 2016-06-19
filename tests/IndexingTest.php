@@ -1,6 +1,6 @@
 <?php namespace Datashaman\ElasticModel\Tests;
 
-use Datashaman\ElasticModel\Traits\Mappings;
+use Datashaman\ElasticModel\Mappings;
 use Elasticsearch\Common\Exceptions\Missing404Exception;
 use Log;
 
