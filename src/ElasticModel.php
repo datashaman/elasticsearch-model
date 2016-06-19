@@ -7,10 +7,11 @@ trait ElasticModel
     use Indexing;
     use Searching;
     // use Serializing;
-    // use Importing;
+    use Importing;
 
     public static function resetElasticModel()
     {
+        static::client(null);
         static::documentType(null);
         static::indexName(null);
         static::$mapping = null;

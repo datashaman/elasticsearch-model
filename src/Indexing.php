@@ -108,6 +108,9 @@ trait Indexing
     {
         $index = array_get($options, 'index', static::indexName());
         try {
+            $client = static::client();
+            $indices = $client->indices();
+
             return static::client()->indices()->delete(compact('index'));
         } catch (Missing404Exception $e) {
             if (array_get($options, 'force')) {

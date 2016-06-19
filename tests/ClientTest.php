@@ -1,20 +1,29 @@
 <?php namespace Datashaman\ElasticModel\Tests;
 
 use Elasticsearch\Client;
-use stdClass;
 
 class ClientTest extends TestCase
 {
-    public function testGetClient()
+    public function testDefaultClientMethod()
     {
-        $client = Models\Thing::client();
-        $this->assertInstanceOf(Client::class, $client);
+        $instance = new Models\Thing;
+
+        $this->assertInstanceOf(Client::class, Models\Thing::client());
+        $this->assertInstanceOf(Client::class, $instance->client());
     }
 
-    public function testSetClient()
+    public function testSetClientForModel()
     {
-        $client = new stdClass;
-        Models\Thing::client($client);
-        $this->assertSame($client, Models\Thing::client());
+        $instance = new Models\Thing;
+        Models\Thing::client('foobar');
+        $this->assertSame('foobar', Models\Thing::client());
+        $this->assertSame('foobar', $instance->client());
+    }
+
+    public function testSetClientForModelInstance()
+    {
+        $instance = new Models\Thing;
+        $instance->client('moobam');
+        $this->assertSame('moobam', $instance->client());
     }
 }

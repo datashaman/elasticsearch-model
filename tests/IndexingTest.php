@@ -1,5 +1,6 @@
 <?php namespace Datashaman\ElasticModel\Tests;
 
+use AspectMock\Test as test;
 use Datashaman\ElasticModel\Mappings;
 use Elasticsearch\Common\Exceptions\Missing404Exception;
 use Log;
@@ -19,145 +20,117 @@ class IndexingTest extends TestCase
 
     public function testCreateIndex()
     {
-        $mock = \Mockery::mock()
-            ->shouldReceive([
-                'create' => '',
-                'exists' => false,
-            ])
-            ->mock();
+        $client = $this->getClient([
+            'indices' => $this->getDouble([
+                'create' => null,
+            ]),
+        ]);
 
-        $expectations = [
-            'indices' => $mock,
-        ];
+        test::double(Models\Thing::class, [
+            'indexExists' => false,
+        ]);
 
-        $this->setClient($expectations);
-
-        Models\Thing::settings([ 'number_of_shards' => 2 ]);
-        Models\Thing::settings([ 'number_of_replicas' => 0 ]);
-
-        Models\Thing::mappings([ 'foo' => 'boo' ]);
+        Models\Thing::settings(['number_of_shards' => 2]);
+        Models\Thing::settings(['number_of_replicas' => 0]);
+        Models\Thing::mappings(['foo' => 'boo']);
 
         Models\Thing::createIndex();
     }
 
     public function testCreateIndexThatExists()
     {
-        $mock = \Mockery::mock()
-            ->shouldReceive([
-                'exists' => true
-            ])
-            ->mock();
+        $client = $this->getClient([
+            'indices' => $this->getDouble([
+                'create' => null,
+            ]),
+        ]);
 
-        $expectations = [
-            'indices' => $mock,
-        ];
-
-        $this->setClient($expectations);
+        test::double(Models\Thing::class, [
+            'indexExists' => true,
+        ]);
 
         Models\Thing::createIndex();
     }
 
     public function testCreateIndexWithForce()
     {
-        $mock = \Mockery::mock()
-            ->shouldReceive([
-                'exists' => false,
-                'delete' => '',
-                'create' => '',
-            ])
-            ->mock();
+        $client = $this->getClient([
+            'indices' => $this->getDouble([
+                'create' => null,
+                'delete' => null,
+            ]),
+        ]);
 
-        $expectations = [
-            'indices' => $mock,
-        ];
-
-        $this->setClient($expectations);
+        $model = test::double(Models\Thing::class, [
+            'indexExists' => false,
+        ]);
 
         Models\Thing::createIndex([ 'force' => true ]);
     }
 
     public function testCreateIndexWithForceThatExists()
     {
-        $mock = \Mockery::mock()
-            ->shouldReceive([
-                'exists' => true,
-                'delete' => '',
-                'create' => '',
-            ])
-            ->mock();
+        $client = $this->getClient([
+            'indices' => $this->getDouble([
+                'create' => null,
+                'delete' => null,
+            ]),
+        ]);
 
-        $expectations = [
-            'indices' => $mock,
-        ];
-
-        $this->setClient($expectations);
+        $model = test::double(Models\Thing::class, [
+            'indexExists' => false,
+        ]);
 
         Models\Thing::createIndex([ 'force' => true ]);
     }
 
     public function testIndexExists()
     {
-        $mock = \Mockery::mock()
-            ->shouldReceive('exists')
-            ->mock();
-
-        $expectations = [
-            'indices' => $mock,
-        ];
-
-        $this->setClient($expectations);
+        $client = $this->getClient([
+            'indices' => $this->getDouble([
+                'exists' => true,
+            ]),
+        ]);
 
         Models\Thing::indexExists();
     }
 
     public function testDeleteIndex()
     {
-        $mock = \Mockery::mock()
-            ->shouldReceive('delete')
-            ->mock();
-
-        $expectations = [
-            'indices' => $mock,
-        ];
-
-        $this->setClient($expectations);
+        $client = $this->getClient([
+            'indices' => $this->getDouble([
+                'delete' => null,
+            ]),
+        ]);
 
         Models\Thing::deleteIndex();
     }
 
     public function testDeleteMissingIndex()
     {
-        $mock = \Mockery::mock()
-            ->shouldReceive('delete')
-            ->andThrow(Missing404Exception::class, 'Index not found')
-            ->mock();
+        $exception = new Missing404Exception('Index not found');
 
-        $expectations = [
-            'indices' => $mock,
-        ];
+        $client = $this->getClient([
+            'indices' => $this->getDouble([
+                'delete' => function () use ($exception) {
+                    throw $exception;
+                },
+            ]),
+        ]);
 
-        $this->setClient($expectations);
-
-        $this->expectException(Missing404Exception::class, 'Index not found');
+        $this->expectException($exception);
         Models\Thing::deleteIndex();
     }
 
     public function testDeleteMissingIndexWithForce()
     {
-        $mock = \Mockery::mock()
-            ->shouldReceive('delete')
-            ->andThrow(Missing404Exception::class, 'Index does not exist')
-            ->mock();
-
-        $expectations = [
-            'indices' => $mock,
-        ];
-
-        $this->setClient($expectations);
-
-        Log::shouldReceive('error')
-            ->once()
-            ->with('Index does not exist', [ 'index' => Models\Thing::indexName() ]);
+        $client = $this->getClient([
+            'indices' => $this->getDouble([
+                'delete' => function () {
+                    throw new Missing404Exception('Index not found');
+                },
+            ]),
+        ]);
 
         Models\Thing::deleteIndex([
             'force' => true,
@@ -176,7 +149,7 @@ class IndexingTest extends TestCase
             ],
         ];
 
-        $client = $this->setClient($expectations);
+        $client = $this->getClient($expectations);
 
         $thing = Models\Thing::first();
         $result = $thing->indexDocument();
@@ -199,7 +172,7 @@ class IndexingTest extends TestCase
             ],
         ];
 
-        $this->setClient($expectations);
+        $this->getClient($expectations);
 
         $result = Models\Thing::getDocument($thing->id);
         $this->assertEquals($expectations['get'], $result);
@@ -216,7 +189,7 @@ class IndexingTest extends TestCase
             ],
         ];
 
-        $this->setClient($expectations);
+        $this->getClient($expectations);
 
         $thing = Models\Thing::first();
         $thing->update([
@@ -238,7 +211,7 @@ class IndexingTest extends TestCase
             ],
         ];
 
-        $this->setClient($expectations);
+        $this->getClient($expectations);
 
         $thing = Models\Thing::first();
         $thing->update([]);
@@ -257,11 +230,11 @@ class IndexingTest extends TestCase
                 '_type' => Models\Thing::documentType(),
                 '_id' => 1,
                 '_version' => 2,
-                'found' => 1,
+                'found' => true,
             ],
         ];
 
-        $this->setClient($expectations);
+        $client = $this->getClient($expectations);
 
         $result = $thing->deleteDocument();
         $this->assertEquals($expectations['delete'], $result);

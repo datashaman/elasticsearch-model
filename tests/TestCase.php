@@ -1,9 +1,11 @@
 <?php namespace Datashaman\ElasticModel\Tests;
 
+use AspectMock\Test as test;
+use Elasticsearch\ClientBuilder;
 use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Database\Eloquent\Model as Eloquent;
-use Mockery;
 use Orchestra\Testbench\TestCase as Orchestra_Testbench_TestCase;
+use stdClass;
 
 class TestCase extends Orchestra_Testbench_TestCase
 {
@@ -65,7 +67,7 @@ class TestCase extends Orchestra_Testbench_TestCase
 
     public function tearDown()
     {
-        Mockery::close();
+        test::clean();
 
         $this->schema()->drop('things');
         $this->schema()->drop('categories');
@@ -73,15 +75,18 @@ class TestCase extends Orchestra_Testbench_TestCase
         parent::tearDown();
     }
 
-    protected function setClient($expectations)
+    public function getClient($expectations)
     {
-        $client = Mockery::mock('Elasticsearch\Client')
-            ->shouldReceive($expectations)
-            ->mock();
-
-        Models\Thing::client($client);
-
+        $object = ClientBuilder::create()->build();
+        $client = test::double($object, $expectations);
+        test::double(Models\Thing::class, compact('client'));
         return $client;
+    }
+
+    public function getDouble($expectations)
+    {
+        $object = new stdClass;
+        return test::double($object, $expectations);
     }
 
     /**
