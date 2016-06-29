@@ -10,7 +10,7 @@ class Mappings
     protected $options;
     protected $mapping;
 
-    protected static $typesWithEmbeddedProperties = [
+    protected static $typesWithProps = [
         'object',
         'nested',
     ];
@@ -30,7 +30,7 @@ class Mappings
             $this->mapping = array_add($this->mapping, "$name.type", 'object');
 
             $type = array_get($this->mapping, "$name.type");
-            $properties = in_array($type, static::$typesWithEmbeddedProperties) ? 'properties' : 'fields';
+            $properties = in_array($type, static::$typesWithProps) ? 'properties' : 'fields';
 
             $this->mapping = array_add($this->mapping, "$name.$properties", []);
 
@@ -46,11 +46,11 @@ class Mappings
     {
         if (empty($this->options) && empty($this->mapping)) {
             return [];
-        } else {
-            $properties = $this->mapping;
-            $type = array_merge($this->options, compact('properties'));
-            return [ $this->type => $type ];
         }
+
+        $properties = $this->mapping;
+        $type = array_merge($this->options, compact('properties'));
+        return [ $this->type => $type ];
     }
 
     public function mergeOptions($options)
@@ -108,16 +108,14 @@ trait Indexing
     {
         $index = array_get($options, 'index', static::indexName());
         try {
-            $client = static::client();
-            $indices = $client->indices();
-
             return static::client()->indices()->delete(compact('index'));
         } catch (Missing404Exception $e) {
             if (array_get($options, 'force')) {
                 Log::error($e->getMessage(), compact('index'));
-            } else {
-                throw $e;
+                return false;
             }
+
+            throw $e;
         }
     }
 
@@ -133,11 +131,10 @@ trait Indexing
 
         if (is_null($closure)) {
             return static::$mapping;
-        } else {
-            call_user_func($closure, static::$mapping);
-            return static::class;
         }
 
+        call_user_func($closure, static::$mapping);
+        return static::class;
     }
 
     public static function mappings($options=[])
@@ -149,10 +146,10 @@ trait Indexing
     {
         if (empty(static::$settings)) {
             static::$settings = new Settings($settings);
-        } else {
-            if (!empty($settings)) {
-                static::$settings->merge($settings);
-            }
+        }
+
+        if (!empty($settings)) {
+            static::$settings->merge($settings);
         }
 
         return static::$settings;
@@ -169,21 +166,21 @@ trait Indexing
 
         if (static::indexExists(compact('index'))) {
             return false;
-        } else {
-            $body = [];
-
-            $settings = static::settings()->toArray();
-            if (!empty($settings)) {
-                $body['settings'] = $settings;
-            }
-
-            $mappings = static::mappings()->toArray();
-            if (!empty($mappings)) {
-                $body['mappings'] = $mappings;
-            }
-
-            return static::client()->indices()->create(compact('index', 'body'));
         }
+
+        $body = [];
+
+        $settings = static::settings()->toArray();
+        if (!empty($settings)) {
+            $body['settings'] = $settings;
+        }
+
+        $mappings = static::mappings()->toArray();
+        if (!empty($mappings)) {
+            $body['mappings'] = $mappings;
+        }
+
+        return static::client()->indices()->create(compact('index', 'body'));
     }
 
     private static function _instanceArgs($id, $options)
@@ -219,10 +216,10 @@ trait Indexing
     {
         if (empty($this->_dirty)) {
             return $this->indexDocument($options);
-        } else {
-            $doc = array_only($this->toIndexedArray(), array_keys($this->_dirty));
-            return $this->updateDocumentAttributes($doc, $options);
         }
+
+        $doc = array_only($this->toIndexedArray(), array_keys($this->_dirty));
+        return $this->updateDocumentAttributes($doc, $options);
     }
 
     public function updateDocumentAttributes($doc, $options=[])

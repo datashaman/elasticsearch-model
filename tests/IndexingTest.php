@@ -108,17 +108,14 @@ class IndexingTest extends TestCase
 
     public function testDeleteMissingIndex()
     {
-        $exception = new Missing404Exception('Index not found');
 
         $client = $this->getClient([
             'indices' => $this->getDouble([
-                'delete' => function () use ($exception) {
-                    throw $exception;
-                },
+                'delete' => true,
             ]),
         ]);
 
-        $this->expectException($exception);
+        $this->expectException(Missing404Exception::class);
         Models\Thing::deleteIndex();
     }
 

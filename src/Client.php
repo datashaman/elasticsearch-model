@@ -12,15 +12,14 @@ trait Client
     public static function client()
     {
         if (func_num_args() == 0) {
-            // Static
             if (empty(static::$_client)) {
                 static::$_client = ClientBuilder::create()->build();
             }
 
             return static::$_client;
-        } else {
-            $client = func_get_arg(0);
-            static::$_client = $client;
         }
+
+        $client = func_get_arg(0);
+        static::$_client = $client;
     }
 }
