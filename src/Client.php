@@ -4,7 +4,7 @@ use Elasticsearch\ClientBuilder;
 
 trait Client
 {
-    protected static $_client;
+    protected static $client;
 
     /**
      * Get/set the client for a specific model class
@@ -12,14 +12,14 @@ trait Client
     public static function client()
     {
         if (func_num_args() == 0) {
-            if (empty(static::$_client)) {
-                static::$_client = ClientBuilder::create()->build();
+            if (empty(static::$client)) {
+                static::$client = ClientBuilder::create()->build();
             }
 
-            return static::$_client;
+            return static::$client;
         }
 
         $client = func_get_arg(0);
-        static::$_client = $client;
+        static::$client = $client;
     }
 }
