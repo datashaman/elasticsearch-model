@@ -13,7 +13,7 @@ addons:
 
 install: travis_retry composer install --no-interaction --prefer-dist
 
-script: vendor/bin/phpunit --verbose
+script: composer run coverage
 
 after_script:
   - vendor/bin/test-reporter
