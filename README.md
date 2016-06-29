@@ -2,6 +2,10 @@
 
 Laravel-oriented implementation of [elasticsearch-model](https://github.com/elastic/elasticsearch-rails/tree/master/elasticsearch-model).
 
+[![Build Status](https://travis-ci.org/datashaman/elastic-model.svg?branch=master)](https://travis-ci.org/datashaman/elastic-model)
+[![Code Climate](https://codeclimate.com/github/datashaman/elastic-model/badges/gpa.svg)](https://codeclimate.com/github/datashaman/elastic-model)
+[![Test Coverage](https://codeclimate.com/github/datashaman/elastic-model/badges/coverage.svg)](https://codeclimate.com/github/datashaman/elastic-model/coverage)
+
 ## Attribution
 
 Original design from [elasticsearch-model](https://github.com/elastic/elasticsearch-rails/tree/master/elasticsearch-model) which is:
