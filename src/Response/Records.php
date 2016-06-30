@@ -37,6 +37,7 @@ class Records extends Base implements ArrayAccess
                     if ($record->id == $id) {
                         $ordered[] = $record;
                         array_forget($records, $index);
+                        break;
                     }
                 }
             }

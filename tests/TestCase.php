@@ -57,7 +57,7 @@ class TestCase extends Orchestra_Testbench_TestCase
         ]);
 
         $db->table('things')->insert([
-            'category_id' => Models\Category::first()->id,
+            'category_id' => 1,
             'title' => 'Existing Thing',
             'description' => 'This is the best thing.',
             'status' => 'online',
