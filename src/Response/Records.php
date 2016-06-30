@@ -9,6 +9,7 @@ class Records extends Base implements ArrayAccess
     use ArrayDelegate;
 
     protected static $arrayDelegate = 'records';
+    protected $options;
 
     public function __construct($class, $response, $options=[])
     {
