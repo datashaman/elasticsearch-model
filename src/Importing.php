@@ -5,7 +5,7 @@ use Illuminate\Support\Collection;
 
 trait Importing
 {
-    protected static function _transform()
+    protected static function transform()
     {
         return function ($model) {
             return [
@@ -42,7 +42,7 @@ trait Importing
         $refresh = array_pull($options, 'refresh', false);
         $targetIndex = array_pull($options, 'index', static::indexName());
         $targetType = array_pull($options, 'type', static::documentType());
-        $transform = array_pull($options, 'transform', [static::class, '_transform']);
+        $transform = array_pull($options, 'transform', [static::class, 'transform']);
         $returnValue = array_pull($options, 'return', 'count');
 
         if (!is_callable($transform)) {

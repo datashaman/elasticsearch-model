@@ -2,38 +2,19 @@
 
 trait Naming
 {
-    protected static $documentType;
-    protected static $indexName;
-
     /**
-     * Get/set the document type
+     * Get/put the document type
      */
     public static function documentType()
     {
-        if (func_num_args() == 0) {
-            if (empty(static::$documentType)) {
-                static::$documentType = strtolower(last(explode('\\', static::class)));
-            }
-
-            return static::$documentType;
-        } else {
-            static::$documentType = func_get_arg(0);
-        }
+        return static::getOrSetStatic(func_get_args(), 'documentType', str_slug(last(explode('\\', static::class))));
     }
 
     /**
-     * Get/set the index name
+     * Get/put the index name
      */
     public static function indexName()
     {
-        if (func_num_args() == 0) {
-            if (empty(static::$indexName)) {
-                static::$indexName = str_plural(static::documentType());
-            }
-
-            return static::$indexName;
-        } else {
-            static::$indexName = func_get_arg(0);
-        }
+        return static::getOrSetStatic(func_get_args(), 'indexName', str_plural(static::documentType()));
     }
 }

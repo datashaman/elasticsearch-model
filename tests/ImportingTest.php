@@ -145,11 +145,11 @@ EOF
 
         $thing = test::double(Models\Thing::class, [
             'indexExists' => true,
-            '_transform' => $transform,
+            'transform' => $transform,
         ]);
 
         Models\Thing::import(['index' => 'foo', 'type' => 'bar']);
 
-        $thing->verifyInvoked('_transform', []);
+        $thing->verifyInvoked('transform', []);
     }
 }
