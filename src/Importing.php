@@ -5,14 +5,16 @@ use Illuminate\Support\Collection;
 
 trait Importing
 {
-    protected static function _transform($model)
+    protected static function _transform()
     {
-        return [
-            'index' => [
-                '_id' => $model->id,
-                'data' => $model->toIndexedArray(),
-            ]
-        ];
+        return function ($model) {
+            return [
+                'index' => [
+                    '_id' => $model->id,
+                    'data' => $model->toIndexedArray(),
+                ]
+            ];
+        };
     }
 
     protected static function _chunkToData($chunk, $transform=null)
@@ -64,7 +66,7 @@ trait Importing
             $response = $client->bulk([
                 'index' => $targetIndex,
                 'type' => $targetType,
-                'body' => static::_dataToBulk(static::_chunkToData($chunk, $transform)),
+                'body' => static::_dataToBulk(static::_chunkToData($chunk, call_user_func($transform))),
             ]);
 
             if (is_callable($callable)) {
