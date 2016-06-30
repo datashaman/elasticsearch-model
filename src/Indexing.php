@@ -1,7 +1,6 @@
 <?php namespace Datashaman\ElasticModel;
 
 use Elasticsearch\Common\Exceptions\Missing404Exception;
-use Closure;
 use Log;
 
 class Mappings
@@ -22,11 +21,11 @@ class Mappings
         $this->mapping = [];
     }
 
-    public function indexes($name, $options=[], Closure $closure=null)
+    public function indexes($name, $options=[], callable $callable=null)
     {
         array_set($this->mapping, $name, $options);
 
-        if (!is_null($closure)) {
+        if (is_callable($callable)) {
             $this->mapping = array_add($this->mapping, "$name.type", 'object');
 
             $type = array_get($this->mapping, "$name.type");
@@ -34,7 +33,7 @@ class Mappings
 
             $this->mapping = array_add($this->mapping, "$name.$properties", []);
 
-            call_user_func($closure, $this, "$name.$properties");
+            call_user_func($callable, $this, "$name.$properties");
         }
 
         $this->mapping = array_add($this->mapping, "$name.type", 'string');
@@ -119,7 +118,7 @@ trait Indexing
         }
     }
 
-    public static function mapping($options=[], Closure $closure=null)
+    public static function mapping($options=[], callable $callable=null)
     {
         if (empty(static::$mapping)) {
             static::$mapping = new Mappings(static::documentType());
@@ -129,11 +128,11 @@ trait Indexing
             static::$mapping->mergeOptions($options);
         }
 
-        if (is_null($closure)) {
+        if (!is_callable($callable)) {
             return static::$mapping;
         }
 
-        call_user_func($closure, static::$mapping);
+        call_user_func($callable, static::$mapping);
         return static::class;
     }
 

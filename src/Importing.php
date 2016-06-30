@@ -1,34 +1,43 @@
 <?php namespace Datashaman\ElasticModel;
 
-use Closure;
 use Exception;
+use Illuminate\Support\Collection;
 
 trait Importing
 {
-    protected static function _chunkToBulk($chunk, $transform=null)
+    protected static function _transform($model)
     {
-        $rows = $chunk->reduce(function ($carry, $item) {
-            $_id = $item->id;
-            $carry[] = [ 'index' => compact('_id') ];
-            $carry[] = $item->toIndexedArray();
-            return $carry;
-        }, []);
-        return $rows;
+        return [
+            'index' => [
+                '_id' => $model->id,
+                'data' => $model->toIndexedArray(),
+            ]
+        ];
     }
 
-    protected static function _transform()
+    protected static function _chunkToData($chunk, $transform=null)
     {
-        return function ($model) {
-            return [
-                'index' => [
-                    '_id' => $model->id,
-                    'data' => $model->toIndexedArray(),
-                ]
-            ];
-        };
+        $data = $chunk->map($transform);
+        return $data;
     }
 
-    public static function import($options=[], Closure $closure=null)
+    protected static function _dataToBulk($actions)
+    {
+        $bulk = $actions
+            ->reduce(function ($bulk, $item) use ($actions) {
+                foreach($item as $action => $meta) {
+                    $data = array_pull($meta, 'data');
+                    $bulk[] = [ $action => $meta ];
+                    $bulk[] = $data;
+                }
+                return $bulk;
+            }, new Collection)
+            ->map('json_encode')
+            ->implode("\n") . "\n";
+        return $bulk;
+    }
+
+    public static function import($options=[], callable $callable=null)
     {
         $errors = [];
 
@@ -49,17 +58,17 @@ trait Importing
             throw new Exception(sprintf("%s does not exist to be imported into. Use createIndex() or the 'force' option to create it.", $targetIndex));
         }
 
-        static::chunk($chunkSize, function ($chunk) use ($targetIndex, $targetType, $closure, &$errors) {
+        static::chunk($chunkSize, function ($chunk) use ($targetIndex, $targetType, $transform, $callable, &$errors) {
             $client = static::client();
 
             $response = $client->bulk([
                 'index' => $targetIndex,
                 'type' => $targetType,
-                'body' => static::_chunkToBulk($chunk, $targetIndex, $targetType),
+                'body' => static::_dataToBulk(static::_chunkToData($chunk, $transform)),
             ]);
 
-            if (!is_null($closure)) {
-                call_user_func($closure, $response);
+            if (is_callable($callable)) {
+                call_user_func($callable, $response);
             }
 
             $errors += array_values(array_filter($response['items'], function ($item) {

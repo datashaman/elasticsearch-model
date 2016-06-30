@@ -1,28 +1,41 @@
 <?php namespace Datashaman\ElasticModel\Tests;
 
 use AspectMock\Test as test;
+use Elasticsearch\Namespaces\IndicesNamespace;
 use Exception;
+use Illuminate\Support\Collection;
 use stdClass;
 
 class ImportingTest extends TestCase
 {
     public function testCallsClientWhenImporting()
     {
-        $client = $this->getClient([
+        $client = $this->setClient([
             'bulk' => ['items' => []],
-            'indices' => $this->getDouble(['exists' => true]),
         ]);
 
         test::double(Models\Thing::class, [
             'indexExists' => true,
         ]);
 
+        $encodedThing = json_encode(Models\Thing::first()->toIndexedArray());
+
         Models\Thing::import();
+
+        $client->verifyInvoked('bulk', [[
+            'index' => 'things',
+            'type' => 'thing',
+            'body' => <<<EOF
+{"index":{"_id":1}}
+$encodedThing
+
+EOF
+        ]]);
     }
 
     public function testReturnsNumberOfErrors()
     {
-        $client = $this->getClient([
+        $client = $this->setClient([
             'bulk' => ['items' => [['index' => []], ['index' => ['error' => 'FAILED']]]],
         ]);
 
@@ -37,7 +50,7 @@ class ImportingTest extends TestCase
     {
         $error = ['index' => ['error' => 'FAILED']];
 
-        $client = $this->getClient([
+        $client = $this->setClient([
             'bulk' => ['items' => [['index' => []], $error]],
         ]);
 
@@ -48,9 +61,9 @@ class ImportingTest extends TestCase
         $this->assertEquals([$error], Models\Thing::import(['return' => 'errors']));
     }
 
-    public function testYieldResponseToClosure()
+    public function testYieldResponseToCallable()
     {
-        $client = $this->getClient([
+        $client = $this->setClient([
             'bulk' => ['items' => [['index' => []], ['index' => ['error' => 'FAILED']]]],
         ]);
 
@@ -65,8 +78,8 @@ class ImportingTest extends TestCase
 
     public function testWhenIndexDoesNotExist()
     {
-        $client = $this->getClient([
-            'indices' => $this->getDouble(['exists' => false]),
+        test::double(Models\Thing::class, [
+            'indexExists' => false,
         ]);
 
         $this->expectException(Exception::class);
@@ -88,9 +101,8 @@ class ImportingTest extends TestCase
         ];
 
         /** TODO: Check arguments */
-        $client = $this->getClient([
+        $client = $this->setClient([
             'bulk' => ['items' => []],
-            'indices' => $this->getDouble(['exists' => true]),
         ]);
 
         test::double(Models\Thing::class, [
@@ -99,22 +111,38 @@ class ImportingTest extends TestCase
             'indexExists' => true,
         ]);
 
+        $encodedThing = json_encode(Models\Thing::first()->toIndexedArray());
+
         Models\Thing::import($args);
+
+        $client->verifyInvoked('bulk', [[
+            'index' => 'my-new-index',
+            'type' => 'my-other-type',
+            'body' => <<<EOF
+{"index":{"_id":1}}
+$encodedThing
+
+EOF
+        ]]);
     }
 
     public function testUseDefaultTransform()
     {
         $transform = function ($a) {};
 
-        $client = $this->getClient([
-            'bulk' => ['items' => []],
+        $client = $this->setClient([
+            'bulk' => [ 'items' => [] ],
         ]);
 
-        test::double(Models\Thing::class, [
+        $thing = test::double(Models\Thing::class, [
             'indexExists' => true,
             '_transform' => $transform,
+            '_chunkToData' => new Collection,
         ]);
 
         Models\Thing::import(['index' => 'foo', 'type' => 'bar']);
+
+        $thing->verifyInvoked('_chunkToData');
+        $thing->verifyInvoked('_transform', []);
     }
 }

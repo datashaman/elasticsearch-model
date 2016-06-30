@@ -376,7 +376,7 @@ class IndexingTest extends TestCase
         ], Models\Thing::mappings()->toArray());
     }
 
-    public function testMappingsClosure()
+    public function testMappingsCallable()
     {
         Models\Thing::mapping([], function ($m) {
             $m->indexes('foo');
