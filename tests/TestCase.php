@@ -75,18 +75,12 @@ class TestCase extends Orchestra_Testbench_TestCase
         parent::tearDown();
     }
 
-    public function getClient($expectations)
+    protected function setClient($expectations)
     {
         $object = ClientBuilder::create()->build();
         $client = test::double($object, $expectations);
         test::double(Models\Thing::class, compact('client'));
         return $client;
-    }
-
-    public function getDouble($expectations)
-    {
-        $object = new stdClass;
-        return test::double($object, $expectations);
     }
 
     /**

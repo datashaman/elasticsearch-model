@@ -2,8 +2,11 @@
 
 use AspectMock\Test as test;
 use Datashaman\ElasticModel\Mappings;
+use Elasticsearch\ClientBuilder;
 use Elasticsearch\Common\Exceptions\Missing404Exception;
+use Elasticsearch\Namespaces\IndicesNamespace;
 use Log;
+use stdClass;
 
 class IndexingTest extends TestCase
 {
@@ -15,123 +18,118 @@ class IndexingTest extends TestCase
 
         $thing = Models\Thing::first();
         $thing->update($changedAttributes);
+
         $this->assertEquals($changedAttributes, $thing->_dirty);
     }
 
     public function testCreateIndex()
     {
-        $client = $this->getClient([
-            'indices' => $this->getDouble([
-                'create' => null,
-            ]),
-        ]);
+        $create = new stdClass;
+        $indices = test::double(IndicesNamespace::class, compact('create'));
 
         test::double(Models\Thing::class, [
             'indexExists' => false,
         ]);
 
-        Models\Thing::settings(['number_of_shards' => 2]);
-        Models\Thing::settings(['number_of_replicas' => 0]);
-        Models\Thing::mappings(['foo' => 'boo']);
+        $this->assertSame($create, Models\Thing::createIndex());
 
-        Models\Thing::createIndex();
+        $indices->verifyInvoked('create', [[ 'index' => 'things', 'body' => [] ]]);
     }
 
     public function testCreateIndexThatExists()
     {
-        $client = $this->getClient([
-            'indices' => $this->getDouble([
-                'create' => null,
-            ]),
-        ]);
+        $create = new stdClass;
+        $indices = test::double(IndicesNamespace::class, compact('create'));
 
         test::double(Models\Thing::class, [
             'indexExists' => true,
         ]);
 
-        Models\Thing::createIndex();
+        $this->assertFalse(Models\Thing::createIndex());
+
+        $indices->verifyNeverInvoked('create');
     }
 
     public function testCreateIndexWithForce()
     {
-        $client = $this->getClient([
-            'indices' => $this->getDouble([
-                'create' => null,
-                'delete' => null,
-            ]),
-        ]);
+        $create = new stdClass;
+        $indices = test::double(IndicesNamespace::class, compact('create'));
 
-        $model = test::double(Models\Thing::class, [
+        $thing = test::double(Models\Thing::class, [
+            'deleteIndex' => null,
             'indexExists' => false,
         ]);
 
-        Models\Thing::createIndex([ 'force' => true ]);
+        $this->assertSame($create, Models\Thing::createIndex([ 'force' => true ]));
+
+        $thing->verifyInvoked('deleteIndex', [[ 'force' => true, 'index' => 'things' ]]);
+        $thing->verifyInvoked('indexExists', [[ 'index' => 'things' ]]);
+
+        $indices->verifyInvoked('create', [[ 'index' => 'things', 'body' => [] ]]);
     }
 
     public function testCreateIndexWithForceThatExists()
     {
-        $client = $this->getClient([
-            'indices' => $this->getDouble([
-                'create' => null,
-                'delete' => null,
-            ]),
+        $indices = test::double(IndicesNamespace::class, [
+            'create' => null,
         ]);
 
-        $model = test::double(Models\Thing::class, [
-            'indexExists' => false,
+        $thing = test::double(Models\Thing::class, [
+            'deleteIndex' => null,
+            'indexExists' => true,
         ]);
 
-        Models\Thing::createIndex([ 'force' => true ]);
+        $this->assertFalse(Models\Thing::createIndex([ 'force' => true ]));
+
+        $thing->verifyInvoked('deleteIndex', [[ 'force' => true, 'index' => 'things' ]]);
+        $thing->verifyInvoked('indexExists', [[ 'index' => 'things' ]]);
+
+        $indices->verifyNeverInvoked('create');
     }
 
     public function testIndexExists()
     {
-        $client = $this->getClient([
-            'indices' => $this->getDouble([
-                'exists' => true,
-            ]),
+        $indices = test::double(IndicesNamespace::class, [
+            'exists' => true,
         ]);
 
-        Models\Thing::indexExists();
+        $this->assertTrue(Models\Thing::indexExists());
+
+        $indices->verifyInvoked('exists', [[ 'index' => 'things' ]]);
     }
 
     public function testDeleteIndex()
     {
-        $client = $this->getClient([
-            'indices' => $this->getDouble([
-                'delete' => null,
-            ]),
-        ]);
+        $delete = new stdClass;
+        $indices = test::double(IndicesNamespace::class, compact('delete'));
 
-        Models\Thing::deleteIndex();
+        $this->assertSame($delete, Models\Thing::deleteIndex());
+
+        $indices->verifyInvoked('delete', [[ 'index' => 'things' ]]);
     }
 
     public function testDeleteMissingIndex()
     {
-
-        $client = $this->getClient([
-            'indices' => $this->getDouble([
-                'delete' => true,
-            ]),
-        ]);
+        $delete = function () { throw new Missing404Exception('Index is missing'); };
+        $indices = test::double(IndicesNamespace::class, compact('delete'));
 
         $this->expectException(Missing404Exception::class);
+        $this->expectExceptionMessage('Index is missing');
+
         Models\Thing::deleteIndex();
     }
 
     public function testDeleteMissingIndexWithForce()
     {
-        $client = $this->getClient([
-            'indices' => $this->getDouble([
-                'delete' => function () {
-                    throw new Missing404Exception('Index not found');
-                },
-            ]),
+        $delete = function () { throw new Missing404Exception('Index is missing'); };
+        $indices = test::double(IndicesNamespace::class, compact('delete'));
+        $log = test::double(Log::class, [
+            'error' => null,
         ]);
 
-        Models\Thing::deleteIndex([
-            'force' => true,
-        ]);
+        $this->assertFalse(Models\Thing::deleteIndex([ 'force' => true ]));
+
+        // $log->verifyInvoked('error', [ 'Index is missing', [ 'index' => 'things' ]]);
     }
 
     public function testIndexDocument()
@@ -146,12 +144,18 @@ class IndexingTest extends TestCase
             ],
         ];
 
-        $client = $this->getClient($expectations);
+        $client = $this->setClient($expectations);
 
         $thing = Models\Thing::first();
-        $result = $thing->indexDocument();
 
-        $this->assertEquals($expectations['index'], $result);
+        $this->assertEquals($expectations['index'], $thing->indexDocument());
+
+        $client->verifyInvoked('index', [[
+            'index' => 'things',
+            'type' => 'thing',
+            'id' => 1,
+            'body' => $thing->toIndexedArray(),
+        ]]);
     }
 
     public function testGetDocument()
@@ -169,10 +173,15 @@ class IndexingTest extends TestCase
             ],
         ];
 
-        $this->getClient($expectations);
+        $client = $this->setClient($expectations);
 
-        $result = Models\Thing::getDocument($thing->id);
-        $this->assertEquals($expectations['get'], $result);
+        $this->assertEquals($expectations['get'], Models\Thing::getDocument($thing->id));
+
+        $client->verifyInvoked('get', [[
+            'index' => 'things',
+            'type' => 'thing',
+            'id' => 1,
+        ]]);
     }
 
     public function testUpdateDocument()
@@ -186,35 +195,38 @@ class IndexingTest extends TestCase
             ],
         ];
 
-        $this->getClient($expectations);
+        $client = $this->setClient($expectations);
 
         $thing = Models\Thing::first();
         $thing->update([
             'title' => 'Changed the title',
         ]);
 
-        $result = $thing->updateDocument();
-        $this->assertEquals($expectations['update'], $result);
+        $this->assertEquals($expectations['update'], $thing->updateDocument());
+
+        $client->verifyInvoked('update', [[
+            'index' => 'things',
+            'type' => 'thing',
+            'id' => 1,
+            'body' => [
+                'doc' => [
+                    'title' => 'Changed the title',
+                ],
+            ],
+        ]]);
     }
 
     public function testUpdateUnchangedDocument()
     {
-        $expectations = [
-            'index' => [
-                '_index' => Models\Thing::indexName(),
-                '_type' => Models\Thing::documentType(),
-                '_id' => 1,
-                '_version' => 2,
-            ],
-        ];
-
-        $this->getClient($expectations);
+        $indexDocument = new stdClass;
+        $thingDouble = test::double(Models\Thing::class, compact('indexDocument'));
 
         $thing = Models\Thing::first();
         $thing->update([]);
 
-        $result = $thing->updateDocument();
-        $this->assertEquals($expectations['index'], $result);
+        $this->assertEquals($indexDocument, $thing->updateDocument());
+
+        $thingDouble->verifyInvoked('indexDocument', [[]]);
     }
 
     public function testDeleteDocument()
@@ -231,10 +243,15 @@ class IndexingTest extends TestCase
             ],
         ];
 
-        $client = $this->getClient($expectations);
+        $client = $this->setClient($expectations);
 
-        $result = $thing->deleteDocument();
-        $this->assertEquals($expectations['delete'], $result);
+        $this->assertEquals($expectations['delete'], $thing->deleteDocument());
+
+        $client->verifyInvoked('delete', [[
+            'index' => 'things',
+            'type' => 'thing',
+            'id' => 1,
+        ]]);
     }
 
     public function testMappingsClass()
