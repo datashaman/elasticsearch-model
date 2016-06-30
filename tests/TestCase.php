@@ -1,8 +1,9 @@
 <?php namespace Datashaman\ElasticModel\Tests;
 
 use AspectMock\Test as test;
+use DB;
 use Elasticsearch\ClientBuilder;
-use Illuminate\Database\Capsule\Manager as DB;
+use Illuminate\Database\Capsule\Manager;
 use Illuminate\Database\Eloquent\Model as Eloquent;
 use Orchestra\Testbench\TestCase as Orchestra_Testbench_TestCase;
 use stdClass;
@@ -19,14 +20,13 @@ class TestCase extends Orchestra_Testbench_TestCase
         Models\Thing::bootIndexing();
 
         $this->createDatabase();
-        $this->createData();
     }
 
     protected function createDatabase()
     {
         Eloquent::unguard();
 
-        $db = new DB;
+        $db = new Manager;
         $db->addConnection([
             'driver' => 'sqlite',
             'database' => ':memory:',
@@ -50,14 +50,13 @@ class TestCase extends Orchestra_Testbench_TestCase
 
             $table->foreign('category_id')->references('id')->on('categories');
         });
-    }
 
-    protected function createData()
-    {
-        Models\Category::create([ 'title' => 'Category #1' ]);
-        Models\Category::create([ 'title' => 'Category #2' ]);
+        $db->table('categories')->insert([
+            [ 'title' => 'Category #1' ],
+            [ 'title' => 'Category #2' ],
+        ]);
 
-        Models\Thing::create([
+        $db->table('things')->insert([
             'category_id' => Models\Category::first()->id,
             'title' => 'Existing Thing',
             'description' => 'This is the best thing.',
