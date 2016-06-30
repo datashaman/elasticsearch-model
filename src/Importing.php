@@ -17,16 +17,11 @@ trait Importing
         };
     }
 
-    protected static function _chunkToData($chunk, $transform=null)
+    protected static function chunkToBulk($chunk, callable $transform)
     {
-        $data = $chunk->map($transform);
-        return $data;
-    }
-
-    protected static function _dataToBulk($actions)
-    {
-        $bulk = $actions
-            ->reduce(function ($bulk, $item) use ($actions) {
+        $bulk = $chunk
+            ->map($transform)
+            ->reduce(function ($bulk, $item) {
                 foreach($item as $action => $meta) {
                     $data = array_pull($meta, 'data');
                     $bulk[] = [ $action => $meta ];
@@ -66,7 +61,7 @@ trait Importing
             $response = $client->bulk([
                 'index' => $targetIndex,
                 'type' => $targetType,
-                'body' => static::_dataToBulk(static::_chunkToData($chunk, call_user_func($transform))),
+                'body' => static::chunkToBulk($chunk, call_user_func($transform)),
             ]);
 
             if (is_callable($callable)) {

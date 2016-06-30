@@ -7,7 +7,7 @@ class Results extends Base implements ArrayAccess
 {
     use ArrayDelegate;
 
-    protected $_arrayDelegate = 'results';
+    protected static $arrayDelegate = 'results';
 
     public function __get($name)
     {

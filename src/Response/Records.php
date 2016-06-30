@@ -8,7 +8,7 @@ class Records extends Base implements ArrayAccess
 {
     use ArrayDelegate;
 
-    protected $_arrayDelegate = 'records';
+    protected static $arrayDelegate = 'records';
 
     public function __construct($class, $response, $options=[])
     {
@@ -36,7 +36,7 @@ class Records extends Base implements ArrayAccess
                 foreach ($records as $index => $record) {
                     if ($record->id == $id) {
                         $ordered[] = $record;
-                        array_forget($records, $index);
+                        array_pull($records, $index);
                         break;
                     }
                 }

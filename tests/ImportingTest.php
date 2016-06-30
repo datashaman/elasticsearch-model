@@ -129,22 +129,27 @@ EOF
     public function testUseDefaultTransform()
     {
         $transform = function () {
-            function ($a) {};
+            return function ($model) {
+                return [
+                    'index' => [
+                        '_id' => $model->id,
+                        'data' => $model->toIndexedArray(),
+                    ],
+                ];
+            };
         };
 
-        $client = $this->setClient([
+        $this->setClient([
             'bulk' => [ 'items' => [] ],
         ]);
 
         $thing = test::double(Models\Thing::class, [
             'indexExists' => true,
-            '_transform' => null,
-            '_chunkToData' => new Collection,
+            '_transform' => $transform,
         ]);
 
         Models\Thing::import(['index' => 'foo', 'type' => 'bar']);
 
-        $thing->verifyInvoked('_chunkToData');
-        $thing->verifyInvoked('_transform');
+        $thing->verifyInvoked('_transform', []);
     }
 }

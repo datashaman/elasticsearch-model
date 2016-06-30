@@ -16,7 +16,7 @@ class Response implements ArrayAccess
 {
     use ArrayDelegate;
 
-    protected $_arrayDelegate = 'results';
+    protected static $arrayDelegate = 'results';
 
     public $class;
     public $search;

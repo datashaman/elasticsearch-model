@@ -7,7 +7,7 @@ class Suggestions implements ArrayAccess
 {
     use ArrayDelegate;
 
-    protected $_arrayDelegate = 'input';
+    protected static $arrayDelegate = 'input';
 
     public function __construct($input=[])
     {

@@ -7,7 +7,8 @@ class ArrayDelegateModel implements ArrayAccess
 {
     use ArrayDelegate;
 
-    protected $_arrayDelegate = 'array';
+    protected static $arrayDelegate = 'array';
+
     public $array = [
         'key' => 'value',
     ];
