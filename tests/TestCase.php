@@ -1,11 +1,12 @@
 <?php namespace Datashaman\ElasticModel\Tests;
 
-use Illuminate\Database\Capsule\Manager as DB;
-use Illuminate\Database\Eloquent\Model as Eloquent;
-use Mockery;
-use Orchestra\Testbench\TestCase as Orchestra_Testbench_TestCase;
+use AspectMock\Test as test;
+use DB;
+use Elasticsearch\ClientBuilder;
+use Datashaman\ElasticModel\Elasticsearch;
+use Schema;
 
-class TestCase extends Orchestra_Testbench_TestCase
+class TestCase extends \Orchestra\Testbench\TestCase
 {
     protected $indexName;
 
@@ -17,28 +18,27 @@ class TestCase extends Orchestra_Testbench_TestCase
         Models\Thing::bootIndexing();
 
         $this->createDatabase();
-        $this->createData();
+    }
+
+    protected function getEnvironmentSetup($app)
+    {
+        $app['config']->set('database.default', 'testbench');
+        $app['config']->set('database.connections.testbench', [
+            'driver' => 'sqlite',
+            'database' => ':memory:',
+            'prefix' => '',
+        ]);
     }
 
     protected function createDatabase()
     {
-        Eloquent::unguard();
-
-        $db = new DB;
-        $db->addConnection([
-            'driver' => 'sqlite',
-            'database' => ':memory:',
-        ]);
-        $db->bootEloquent();
-        $db->setAsGlobal();
-
-        $this->schema()->create('categories', function ($table) {
+        Schema::create('categories', function ($table) {
             $table->increments('id');
             $table->string('title');
             $table->timestamps();
         });
 
-        $this->schema()->create('things', function ($table) {
+        Schema::create('things', function ($table) {
             $table->increments('id');
             $table->string('title');
             $table->text('description')->nullable();
@@ -48,15 +48,14 @@ class TestCase extends Orchestra_Testbench_TestCase
 
             $table->foreign('category_id')->references('id')->on('categories');
         });
-    }
 
-    protected function createData()
-    {
-        Models\Category::create([ 'title' => 'Category #1' ]);
-        Models\Category::create([ 'title' => 'Category #2' ]);
+        DB::table('categories')->insert([
+            [ 'title' => 'Category #1' ],
+            [ 'title' => 'Category #2' ],
+        ]);
 
-        Models\Thing::create([
-            'category_id' => Models\Category::first()->id,
+        DB::table('things')->insert([
+            'category_id' => 1,
             'title' => 'Existing Thing',
             'description' => 'This is the best thing.',
             'status' => 'online',
@@ -65,35 +64,19 @@ class TestCase extends Orchestra_Testbench_TestCase
 
     public function tearDown()
     {
-        Mockery::close();
+        test::clean();
 
-        $this->schema()->drop('things');
-        $this->schema()->drop('categories');
+        Schema::drop('things');
+        Schema::drop('categories');
 
         parent::tearDown();
     }
 
     protected function setClient($expectations)
     {
-        $client = Mockery::mock('Elasticsearch\Client')
-            ->shouldReceive($expectations)
-            ->mock();
-
-        Models\Thing::client($client);
-
+        $object = ClientBuilder::create()->build();
+        $client = test::double($object, $expectations);
+        test::double(Elasticsearch::class, compact('client'));
         return $client;
-    }
-
-    /**
-     * Schema Helpers.
-     */
-    protected function schema()
-    {
-        return $this->connection()->getSchemaBuilder();
-    }
-
-    protected function connection()
-    {
-        return Eloquent::getConnectionResolver()->connection();
     }
 }

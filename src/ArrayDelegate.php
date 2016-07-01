@@ -3,18 +3,18 @@
 trait ArrayDelegate
 {
     public function offsetSet($offset, $value) {
-        array_set($this->{$this->_arrayDelegate}, $offset, $value);
+        array_set($this->{static::$arrayDelegate}, $offset, $value);
     }
 
     public function offsetExists($offset) {
-        return array_has($this->{$this->_arrayDelegate}, $offset);
+        return array_has($this->{static::$arrayDelegate}, $offset);
     }
 
     public function offsetUnset($offset) {
-        array_forget($this->{$this->_arrayDelegate}, $offset);
+        array_forget($this->{static::$arrayDelegate}, $offset);
     }
 
     public function offsetGet($offset) {
-        return array_get($this->{$this->_arrayDelegate}, $offset);
+        return array_get($this->{static::$arrayDelegate}, $offset);
     }
 }

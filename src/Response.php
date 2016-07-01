@@ -2,54 +2,53 @@
 
 use ArrayAccess;
 use ArrayObject;
-
-function setOrCreate($value, $creator)
-{
-    if (!isset($value)) {
-        $value = $creator();
-    }
-
-    return $value;
-}
+use Illuminate\Support\Collection;
 
 class Response implements ArrayAccess
 {
     use ArrayDelegate;
 
-    protected $_arrayDelegate = 'results';
+    protected static $arrayDelegate = 'results';
 
     public $class;
     public $search;
 
-    protected $_response;
-    protected $_results;
-    protected $_records;
+    protected $attributes;
 
     public function __construct($class, $search)
     {
         $this->class = $class;
         $this->search = $search;
+        $this->attributes = new Collection;
     }
 
-    public function records($options=[])
+    public function getRecords($options=[])
     {
         return new Response\Records($this->class, $this, $options);
+    }
+
+    private function setOrCreate($key, callable $creator)
+    {
+        if (!$this->attributes->has($key)) {
+            $this->attributes->put($key, call_user_func($creator));
+        }
+        return $this->attributes->get($key);
     }
 
     public function __get($name)
     {
         switch ($name) {
         case 'response':
-            return setOrCreate($this->_response, function () {
-                return new ArrayObject($this->search->execute(), ArrayObject::ARRAY_AS_PROPS);
+            return $this->setOrCreate('response', function () {
+                return $this->search->execute();
             });
         case 'results':
-            return setOrCreate($this->_results, function () {
+            return $this->setOrCreate('results', function () {
                 return new Response\Results($this->class, $this);
             });
         case 'records':
-            return setOrCreate($this->_records, function () {
-                return $this->records();
+            return $this->setOrCreate('records', function () {
+                return $this->getRecords();
             });
         case 'took':
             return $this->response['took'];

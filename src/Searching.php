@@ -14,8 +14,8 @@ class SearchRequest
         $this->class = $class;
         $this->options = $options;
 
-        $index = array_get($options, 'index', $class::indexName());
-        $type = array_get($options, 'type', $class::documentType());
+        $index = array_get($options, 'index', $class::elastic()->indexName());
+        $type = array_get($options, 'type', $class::elastic()->documentType());
 
         if (method_exists($query, 'toArray')) {
             $body = $query->toArray();
@@ -30,8 +30,19 @@ class SearchRequest
 
     public function execute()
     {
-        $client = call_user_func([ $this->class, 'client' ]);
-        return $client->search($this->definition);
+        $class = $this->class;
+
+        if (!empty($this->definition['q'])) {
+            $query = array_pull($this->definition, 'q');
+            $this->definition['body'] = [
+                'query' => [
+                    'query_string' => compact('query'),
+                ],
+            ];
+        }
+
+        $result = $class::elastic()->client()->search($this->definition);
+        return $result;
     }
 }
 

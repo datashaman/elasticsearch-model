@@ -13,5 +13,10 @@ ratings:
   paths:
   - "**.php"
 exclude_paths:
+- LICENSE.md
+- Makefile
+- README.md
+- composer.json
+- phpunit.xml
 - tests/**/*
 - vendor/**/*

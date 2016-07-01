@@ -1,18 +1,18 @@
 <?php namespace Datashaman\ElasticModel;
 
+use Illuminate\Support\Collection;
 
 trait ElasticModel
 {
-    // use Naming;
+    use Proxy;
     use Indexing;
     use Searching;
     // use Serializing;
-    // use Importing;
+    use Importing;
 
     public static function resetElasticModel()
     {
-        static::documentType(null);
-        static::indexName(null);
+        static::$elasticsearch = null;
         static::$mapping = null;
         static::$settings = null;
     }

@@ -2,13 +2,15 @@
 
 use ArrayAccess;
 use Datashaman\ElasticModel\ArrayDelegate;
+use Illuminate\Support\Collection;
 
 
 class Records extends Base implements ArrayAccess
 {
     use ArrayDelegate;
 
-    protected $_arrayDelegate = 'records';
+    protected static $arrayDelegate = 'records';
+    protected $options;
 
     public function __construct($class, $response, $options=[])
     {
@@ -36,12 +38,20 @@ class Records extends Base implements ArrayAccess
                 foreach ($records as $index => $record) {
                     if ($record->id == $id) {
                         $ordered[] = $record;
-                        array_forget($records, $index);
+                        array_pull($records, $index);
+                        break;
                     }
                 }
             }
 
-            return $ordered;
+            return new Collection($ordered);
+        default:
+            return parent::__get($name);
         }
+    }
+
+    public function __call($name, $args)
+    {
+        return call_user_func_array([ $this->records, $name ], $args);
     }
 }
