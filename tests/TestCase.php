@@ -3,7 +3,7 @@
 use AspectMock\Test as test;
 use DB;
 use Elasticsearch\ClientBuilder;
-use Datashaman\ElasticModel\ElasticCollection;
+use Datashaman\ElasticModel\Elasticsearch;
 use Schema;
 
 class TestCase extends \Orchestra\Testbench\TestCase
@@ -76,7 +76,7 @@ class TestCase extends \Orchestra\Testbench\TestCase
     {
         $object = ClientBuilder::create()->build();
         $client = test::double($object, $expectations);
-        test::double(ElasticCollection::class, compact('client'));
+        test::double(Elasticsearch::class, compact('client'));
         return $client;
     }
 }

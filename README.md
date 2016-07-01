@@ -42,7 +42,7 @@ This will extend the model with functionality related to Elasticsearch.
 
 The package contains a big amount of class and instance methods to provide all this functionality.
 
-To prevent polluting your model namespace, static variables are stored in a custom Collection `Article::$elasticsearch`, and accessed via static method `Article::elastic`.
+To prevent polluting your model namespace, *nearly* all functionality is accessed via static method `Article::elastic()` in a chained manner like Elasticsearch.
 
 ### Elasticsearch client
 

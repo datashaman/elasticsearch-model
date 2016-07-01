@@ -180,7 +180,7 @@ trait Indexing
         return static::elastic()->client()->indices()->create(compact('index', 'body'));
     }
 
-    private static function _instanceArgs($id, $options)
+    private static function instanceArgs($id, $options)
     {
         $args = array_merge([
             'index' => static::elastic()->indexName(),
@@ -192,19 +192,19 @@ trait Indexing
 
     public static function getDocument($id, $options=[])
     {
-        $args = static::_instanceArgs($id, $options);
+        $args = static::instanceArgs($id, $options);
         return static::elastic()->client()->get($args);
     }
 
     public function deleteDocument($options=[])
     {
-        $args = static::_instanceArgs($this->id, $options);
+        $args = static::instanceArgs($this->id, $options);
         return static::elastic()->client()->delete($args);
     }
 
     public function indexDocument($options=[])
     {
-        $args = static::_instanceArgs($this->id, $options);
+        $args = static::instanceArgs($this->id, $options);
         $args['body'] = $this->toIndexedArray();
         return static::elastic()->client()->index($args);
     }
@@ -221,7 +221,7 @@ trait Indexing
 
     public function updateDocumentAttributes($doc, $options=[])
     {
-        $args = static::_instanceArgs($this->id, $options);
+        $args = static::instanceArgs($this->id, $options);
         $args['body'] = array_merge(compact('doc'), $options);
         return static::elastic()->client()->update($args);
     }

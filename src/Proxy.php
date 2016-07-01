@@ -3,28 +3,30 @@
 use Elasticsearch\ClientBuilder;
 use Illuminate\Support\Collection;
 
-class ElasticCollection extends Collection
+class Elasticsearch
 {
     protected $class;
+    protected $collection;
 
     public function __construct($class)
     {
         $this->class = $class;
+        $this->collection = new Collection;
     }
 
-    public function getOrSet($args, $key, $default)
+    protected function getOrSet($args, $key, $default)
     {
         if (count($args) == 0) {
-            if (!$this->has($key)) {
-                $this->put($key, $default);
+            if (!$this->collection->has($key)) {
+                $this->collection->put($key, $default);
             }
 
-            return $this->get($key);
+            return $this->collection->get($key);
         }
 
-        $this->put($key, head($args));
+        $this->collection->put($key, head($args));
 
-        return $this->get($key);
+        return $this->collection->get($key);
     }
 
     /**
@@ -59,7 +61,7 @@ trait Proxy
     protected static function elastic()
     {
         if (!isset(static::$elasticsearch)) {
-            static::$elasticsearch = new ElasticCollection(static::class);
+            static::$elasticsearch = new Elasticsearch(static::class);
         }
 
         return static::$elasticsearch;
