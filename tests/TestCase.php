@@ -3,12 +3,10 @@
 use AspectMock\Test as test;
 use DB;
 use Elasticsearch\ClientBuilder;
-use Illuminate\Database\Capsule\Manager;
-use Illuminate\Database\Eloquent\Model as Eloquent;
-use Orchestra\Testbench\TestCase as Orchestra_Testbench_TestCase;
-use stdClass;
+use Datashaman\ElasticModel\ElasticCollection;
+use Schema;
 
-class TestCase extends Orchestra_Testbench_TestCase
+class TestCase extends \Orchestra\Testbench\TestCase
 {
     protected $indexName;
 
@@ -22,25 +20,25 @@ class TestCase extends Orchestra_Testbench_TestCase
         $this->createDatabase();
     }
 
-    protected function createDatabase()
+    protected function getEnvironmentSetup($app)
     {
-        Eloquent::unguard();
-
-        $db = new Manager;
-        $db->addConnection([
+        $app['config']->set('database.default', 'testbench');
+        $app['config']->set('database.connections.testbench', [
             'driver' => 'sqlite',
             'database' => ':memory:',
+            'prefix' => '',
         ]);
-        $db->bootEloquent();
-        $db->setAsGlobal();
+    }
 
-        $this->schema()->create('categories', function ($table) {
+    protected function createDatabase()
+    {
+        Schema::create('categories', function ($table) {
             $table->increments('id');
             $table->string('title');
             $table->timestamps();
         });
 
-        $this->schema()->create('things', function ($table) {
+        Schema::create('things', function ($table) {
             $table->increments('id');
             $table->string('title');
             $table->text('description')->nullable();
@@ -51,12 +49,12 @@ class TestCase extends Orchestra_Testbench_TestCase
             $table->foreign('category_id')->references('id')->on('categories');
         });
 
-        $db->table('categories')->insert([
+        DB::table('categories')->insert([
             [ 'title' => 'Category #1' ],
             [ 'title' => 'Category #2' ],
         ]);
 
-        $db->table('things')->insert([
+        DB::table('things')->insert([
             'category_id' => 1,
             'title' => 'Existing Thing',
             'description' => 'This is the best thing.',
@@ -68,8 +66,8 @@ class TestCase extends Orchestra_Testbench_TestCase
     {
         test::clean();
 
-        $this->schema()->drop('things');
-        $this->schema()->drop('categories');
+        Schema::drop('things');
+        Schema::drop('categories');
 
         parent::tearDown();
     }
@@ -78,20 +76,7 @@ class TestCase extends Orchestra_Testbench_TestCase
     {
         $object = ClientBuilder::create()->build();
         $client = test::double($object, $expectations);
-        test::double(Models\Thing::class, compact('client'));
+        test::double(ElasticCollection::class, compact('client'));
         return $client;
-    }
-
-    /**
-     * Schema Helpers.
-     */
-    protected function schema()
-    {
-        return $this->connection()->getSchemaBuilder();
-    }
-
-    protected function connection()
-    {
-        return Eloquent::getConnectionResolver()->connection();
     }
 }

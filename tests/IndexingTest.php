@@ -12,14 +12,13 @@ class IndexingTest extends TestCase
 {
     public function testBootIndexing()
     {
-        $changedAttributes = [
-            'title' => 'Changed the title',
-        ];
-
         $thing = Models\Thing::first();
-        $thing->update($changedAttributes);
+        $thing->title = 'Changed the title';
+        $thing->save();
 
-        $this->assertEquals($changedAttributes, $thing->_dirty);
+        $this->assertEquals([
+            'title' => 'Changed the title',
+        ], $thing->_dirty);
     }
 
     public function testCreateIndex()
@@ -136,8 +135,8 @@ class IndexingTest extends TestCase
     {
         $expectations = [
             'index' => [
-                '_index' => Models\Thing::indexName(),
-                '_type' => Models\Thing::documentType(),
+                '_index' => Models\Thing::elastic()->indexName(),
+                '_type' => Models\Thing::elastic()->documentType(),
                 '_id' => 1,
                 '_version' => 1,
                 'created' => true,
@@ -164,8 +163,8 @@ class IndexingTest extends TestCase
 
         $expectations = [
             'get' => [
-                '_index' => Models\Thing::indexName(),
-                '_type' => Models\Thing::documentType(),
+                '_index' => Models\Thing::elastic()->indexName(),
+                '_type' => Models\Thing::elastic()->documentType(),
                 '_id' => 1,
                 '_version' => 1,
                 'found' => true,
@@ -188,8 +187,8 @@ class IndexingTest extends TestCase
     {
         $expectations = [
             'update' => [
-                '_index' => Models\Thing::indexName(),
-                '_type' => Models\Thing::documentType(),
+                '_index' => Models\Thing::elastic()->indexName(),
+                '_type' => Models\Thing::elastic()->documentType(),
                 '_id' => 1,
                 '_version' => 2,
             ],
@@ -198,11 +197,10 @@ class IndexingTest extends TestCase
         $client = $this->setClient($expectations);
 
         $thing = Models\Thing::first();
-        $thing->update([
-            'title' => 'Changed the title',
-        ]);
+        $thing->title = 'Changed the title';
+        $thing->save();
 
-        $this->assertEquals($expectations['update'], $thing->updateDocument());
+        $thing->updateDocument();
 
         $client->verifyInvoked('update', [[
             'index' => 'things',
@@ -235,8 +233,8 @@ class IndexingTest extends TestCase
 
         $expectations = [
             'delete' => [
-                '_index' => Models\Thing::indexName(),
-                '_type' => Models\Thing::documentType(),
+                '_index' => Models\Thing::elastic()->indexName(),
+                '_type' => Models\Thing::elastic()->documentType(),
                 '_id' => 1,
                 '_version' => 2,
                 'found' => true,

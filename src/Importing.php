@@ -40,8 +40,8 @@ trait Importing
 
         $chunkSize = array_pull($options, 'chunkSize', 1000);
         $refresh = array_pull($options, 'refresh', false);
-        $targetIndex = array_pull($options, 'index', static::indexName());
-        $targetType = array_pull($options, 'type', static::documentType());
+        $targetIndex = array_pull($options, 'index', static::elastic()->indexName());
+        $targetType = array_pull($options, 'type', static::elastic()->documentType());
         $transform = array_pull($options, 'transform', [static::class, 'transform']);
         $returnValue = array_pull($options, 'return', 'count');
 
@@ -56,7 +56,7 @@ trait Importing
         }
 
         static::chunk($chunkSize, function ($chunk) use ($targetIndex, $targetType, $transform, $callable, &$errors) {
-            $client = static::client();
+            $client = static::elastic()->client();
 
             $response = $client->bulk([
                 'index' => $targetIndex,

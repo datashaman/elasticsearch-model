@@ -5,7 +5,6 @@ use Illuminate\Support\Collection;
 trait ElasticModel
 {
     use Proxy;
-    // use Naming;
     use Indexing;
     use Searching;
     // use Serializing;
@@ -13,7 +12,7 @@ trait ElasticModel
 
     public static function resetElasticModel()
     {
-        static::$elasticStatic = new Collection;
+        static::$elasticsearch = null;
         static::$mapping = null;
         static::$settings = null;
     }
