@@ -8,7 +8,7 @@ class Result
 
     public function __construct($attributes=[])
     {
-        $this->result = new ArrayObject($attributes, ArrayObject::ARRAY_AS_PROPS);
+        $this->result = $attributes;
     }
 
     public function __get($name)
@@ -19,7 +19,7 @@ class Result
         case 'id':
         case 'score':
         case 'source':
-            return $this->result->{'_'.$name};
+            return $this->result['_'.$name];
         }
     }
 

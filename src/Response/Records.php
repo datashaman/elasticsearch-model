@@ -2,6 +2,7 @@
 
 use ArrayAccess;
 use Datashaman\ElasticModel\ArrayDelegate;
+use Illuminate\Support\Collection;
 
 
 class Records extends Base implements ArrayAccess
@@ -43,7 +44,14 @@ class Records extends Base implements ArrayAccess
                 }
             }
 
-            return $ordered;
+            return new Collection($ordered);
+        default:
+            return parent::__get($name);
         }
+    }
+
+    public function __call($name, $args)
+    {
+        return call_user_func_array([ $this->records, $name ], $args);
     }
 }

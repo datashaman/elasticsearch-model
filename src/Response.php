@@ -40,7 +40,7 @@ class Response implements ArrayAccess
         switch ($name) {
         case 'response':
             return $this->setOrCreate('response', function () {
-                return new ArrayObject($this->search->execute(), ArrayObject::ARRAY_AS_PROPS);
+                return $this->search->execute();
             });
         case 'results':
             return $this->setOrCreate('results', function () {

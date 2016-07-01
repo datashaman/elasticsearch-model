@@ -65,6 +65,32 @@ It's possible to import only records from a specific scope or query, transform t
 
 No errors were reported during importing, so... let's search the index!
 
+### Searching
+
+For starters, we can try the *simple* type of search:
+
+    $response = Article::search('fox dogs');
+
+    $response->took;
+    # 3
+
+    $response->results->total;
+    # 2
+
+    $response->results[0]->score;
+    # 0.02250402
+
+    $response->results[0]->source['title'];
+    # "Fast black dogs"
+
+### Search results
+
+The returned `response` object is a rich wrapper around the JSON returned from Elasticsearch, providing access to response metadata and the actual results (*hits*).
+
+Each *hit* is wrapped in the `Result` class.
+
+The `results` object delegates to an internal `Collection`, so it supports all the usual methods: `map`, `filter`, `each`, etc.
+
 ## Attribution
 
 Original design from [elasticsearch-model](https://github.com/elastic/elasticsearch-rails/tree/master/elasticsearch-model) which is:

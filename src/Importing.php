@@ -44,6 +44,7 @@ trait Importing
         $targetType = array_pull($options, 'type', static::elastic()->documentType());
         $transform = array_pull($options, 'transform', [static::class, 'transform']);
         $returnValue = array_pull($options, 'return', 'count');
+        $wait = array_pull($options, 'wait', false);
 
         if (!is_callable($transform)) {
             throw new Exception(sprintf('Pass a callable as the transform option, %s given', $transform));
@@ -55,14 +56,20 @@ trait Importing
             throw new Exception(sprintf("%s does not exist to be imported into. Use createIndex() or the 'force' option to create it.", $targetIndex));
         }
 
-        static::chunk($chunkSize, function ($chunk) use ($targetIndex, $targetType, $transform, $callable, &$errors) {
+        static::chunk($chunkSize, function ($chunk) use ($targetIndex, $targetType, $transform, $callable, &$errors, $wait) {
             $client = static::elastic()->client();
 
-            $response = $client->bulk([
+            $args = [
                 'index' => $targetIndex,
                 'type' => $targetType,
                 'body' => static::chunkToBulk($chunk, call_user_func($transform)),
-            ]);
+            ];
+
+            if ($wait) {
+                $args['client'] = [ 'future' => 'lazy' ];
+            }
+
+            $response = $client->bulk($args);
 
             if (is_callable($callable)) {
                 call_user_func($callable, $response);

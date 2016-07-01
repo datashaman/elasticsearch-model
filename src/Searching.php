@@ -31,8 +31,18 @@ class SearchRequest
     public function execute()
     {
         $class = $this->class;
-        $client = $class::elastic()->client();
-        return $client->search($this->definition);
+
+        if (!empty($this->definition['q'])) {
+            $query = array_pull($this->definition, 'q');
+            $this->definition['body'] = [
+                'query' => [
+                    'query_string' => compact('query'),
+                ],
+            ];
+        }
+
+        $result = $class::elastic()->client()->search($this->definition);
+        return $result;
     }
 }
 

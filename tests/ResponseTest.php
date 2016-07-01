@@ -54,7 +54,7 @@ class ResponseTest extends TestCase
 
         $this->assertSame(Models\Thing::class, $response->class);
         $this->assertSame($search, $response->search);
-        $this->assertSame(static::$mockResponse, $response->response->getArrayCopy());
+        $this->assertSame(static::$mockResponse, $response->response);
         $this->assertSame('5', $response->took);
         $this->assertSame(false, $response->timedOut);
         $this->assertSame('OK', $response->shards->one);
