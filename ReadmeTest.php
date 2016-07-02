@@ -57,5 +57,27 @@ class ReadmeTest extends TestCase
 
         $this->assertEquals(2, $response->records->count());
         $this->assertEquals([ 'Fast black dogs', 'Quick brown fox', ], $response->records->map(function ($r) { return $r->title; })->all());
+
+        $lines = [];
+
+        $response->records->eachWithHit(function ($record, $hit) use (&$lines) {
+            $lines[] = "* {$record->title}: {$hit->score}";
+        });
+
+        $this->assertEquals([
+            '* Fast black dogs: '.$response->results[0]->score,
+            '* Quick brown fox: '.$response->results[1]->score,
+        ], $lines);
+
+        $lines = $response->records
+            ->mapWithHit(function ($record, $hit) {
+                return "* {$record->title}: {$hit->score}";
+            })
+            ->all();
+
+        $this->assertEquals([
+            '* Fast black dogs: '.$response->results[0]->score,
+            '* Quick brown fox: '.$response->results[1]->score,
+        ], $lines);
     }
 }

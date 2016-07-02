@@ -54,4 +54,20 @@ class Records extends Base implements ArrayAccess
     {
         return call_user_func_array([ $this->records, $name ], $args);
     }
+
+    public function eachWithHit(callable $callable)
+    {
+        $collection = $this->records->zip($this->results->results);
+        return $collection->each(function ($both) use ($callable) {
+            call_user_func($callable, $both[0], $both[1]);
+        });
+    }
+
+    public function mapWithHit(callable $callable)
+    {
+        $collection = $this->records->zip($this->results->results);
+        return $collection->map(function ($both) use ($callable) {
+            return call_user_func($callable, $both[0], $both[1]);
+        });
+    }
 }

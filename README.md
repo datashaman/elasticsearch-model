@@ -95,6 +95,51 @@ Each *hit* is wrapped in the `Result` class.
 
 The `results` object delegates to an internal `Collection`, so it supports all the usual methods: `map`, `filter`, `each`, etc.
 
+    $response->results
+        ->map(function ($r) { return $r->source['title']; })
+        ->all();
+    # ["Fast black dogs", "Quick brown fox"]
+
+    $response->results
+        ->filter(function ($r) { return preg_match('/^Q/', $r->source['title']); })
+        ->map(function ($r) { return $r->source['title']; })
+        ->all();
+    # ["Quick brown fox"]
+
+As you can see in the examples above, use the `Collection::all()` method to get a regular array.
+
+### Search results as database records
+
+Instead of returning documents from Elasticsearch, the records method will return a collection of model instances, fetched from the primary database, ordered by score:
+
+    $response->records
+        ->map(function ($article) { return $article->title; })
+        ->all();
+    # ["Fast black dogs", "Quick brown fox"]
+
+The returned object is a `Collection` of model instances returned by your database, i.e. the `Eloquent` instance.
+
+The records method returns the real instances of your model, which is useful when you want to access your model methods -- at the expense of slowing down your application, of course. In most cases, working with results coming from Elasticsearch is sufficient, and much faster.
+
+When you want to access both the database `records` and search `results`, use the `eachWithHit` (or `mapWithHit`) iterator:
+
+    $lines = [];
+    $response->records->eachWithHit(function ($record, $hit) {
+        $lines[] = "* {$record->title}: {$hit->score}";
+    });
+
+    $lines;
+    # [ "* Fast black dogs: 0.01125201", "* Quick brown fox: 0.01125201" ]
+
+    $lines = $response->records->mapWithHit(function ($record, $hit) {
+        return "* {$record->title}: {$hit->score}";
+    })->all();
+
+    $lines;
+    # [ "* Fast black dogs: 0.01125201", "* Quick brown fox: 0.01125201" ]
+
+Note the use `Collection::all()` to convert to a regular array in the `mapWithHit` example. `Collection` methods prefer to return `Collection` instances instead of regular arrays.
+
 ## Attribution
 
 Original design from [elasticsearch-model](https://github.com/elastic/elasticsearch-rails/tree/master/elasticsearch-model) which is:
