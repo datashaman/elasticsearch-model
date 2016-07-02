@@ -55,7 +55,7 @@ trait Pagination
         $from = array_get($this->search->definition, 'from');
         $perPage = $this->perPage();
 
-        if ($perPage) {
+        if (!is_null($from) && $perPage) {
             return $from / $perPage + 1;
         }
     }
