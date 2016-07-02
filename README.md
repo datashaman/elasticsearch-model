@@ -46,13 +46,13 @@ This will extend the model with functionality related to Elasticsearch.
 
 The package contains a big amount of class and instance methods to provide all this functionality.
 
-To prevent polluting your model namespace, *nearly* all functionality is accessed via static method `Article::elastic()` in a chained manner like Elasticsearch.
+To prevent polluting your model namespace, *nearly* all functionality is accessed via static method `Article::elastic()`.
 
 ### Elasticsearch client
 
 The module will setup a [client](https://github.com/elasticsearch/elasticsearch-ruby/tree/master/elasticsearch), connected to `localhost:9200`, by default. You can access and use it like any other `Elasticsearch::Client`:
 
-    Article::elastic()->client()->cluster()->health();
+    Article::elastic()->client->cluster()->health();
     # [ "cluster_name" => "elasticsearch", "status" => "yellow", ... ]
 
 To use a client with a different configuration, set a client for the model using `Elasticsearch\ClientBuilder`:

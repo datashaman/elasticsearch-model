@@ -76,7 +76,7 @@ class TestCase extends \Orchestra\Testbench\TestCase
     {
         $object = ClientBuilder::create()->build();
         $client = test::double($object, $expectations);
-        test::double(Elasticsearch::class, compact('client'));
+        Models\Thing::elastic()->client($client);
         return $client;
     }
 }

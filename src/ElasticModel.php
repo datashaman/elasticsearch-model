@@ -1,7 +1,5 @@
 <?php namespace Datashaman\ElasticModel;
 
-use Illuminate\Support\Collection;
-
 trait ElasticModel
 {
     use Proxy;

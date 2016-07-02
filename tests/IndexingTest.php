@@ -2,7 +2,7 @@
 
 use AspectMock\Test as test;
 use Datashaman\ElasticModel\Mappings;
-use Elasticsearch\ClientBuilder;
+use Elasticsearch\clientBuilder;
 use Elasticsearch\Common\Exceptions\Missing404Exception;
 use Elasticsearch\Namespaces\IndicesNamespace;
 use Log;
@@ -135,8 +135,8 @@ class IndexingTest extends TestCase
     {
         $expectations = [
             'index' => [
-                '_index' => Models\Thing::elastic()->indexName(),
-                '_type' => Models\Thing::elastic()->documentType(),
+                '_index' => Models\Thing::elastic()->indexName,
+                '_type' => Models\Thing::elastic()->documentType,
                 '_id' => 1,
                 '_version' => 1,
                 'created' => true,
@@ -163,8 +163,8 @@ class IndexingTest extends TestCase
 
         $expectations = [
             'get' => [
-                '_index' => Models\Thing::elastic()->indexName(),
-                '_type' => Models\Thing::elastic()->documentType(),
+                '_index' => Models\Thing::elastic()->indexName,
+                '_type' => Models\Thing::elastic()->documentType,
                 '_id' => 1,
                 '_version' => 1,
                 'found' => true,
@@ -187,8 +187,8 @@ class IndexingTest extends TestCase
     {
         $expectations = [
             'update' => [
-                '_index' => Models\Thing::elastic()->indexName(),
-                '_type' => Models\Thing::elastic()->documentType(),
+                '_index' => Models\Thing::elastic()->indexName,
+                '_type' => Models\Thing::elastic()->documentType,
                 '_id' => 1,
                 '_version' => 2,
             ],
@@ -233,8 +233,8 @@ class IndexingTest extends TestCase
 
         $expectations = [
             'delete' => [
-                '_index' => Models\Thing::elastic()->indexName(),
-                '_type' => Models\Thing::elastic()->documentType(),
+                '_index' => Models\Thing::elastic()->indexName,
+                '_type' => Models\Thing::elastic()->documentType,
                 '_id' => 1,
                 '_version' => 2,
                 'found' => true,

@@ -29,13 +29,13 @@ class SearchingTest extends TestCase
 
         $this->assertInstanceOf(SearchRequest::class, $search);
         $this->assertEquals(Models\Thing::class, $search->class);
-        $this->assertEquals('foo', $search->definition['q']);
+        $this->assertEquals('foo', $search->definition['body']['query']['query_string']['query']);
         $this->assertEquals($searchOptions, $search->options);
     }
 
     public function testSearchWithText()
     {
-        $client = test::double(Models\Thing::elastic()->client(), ['search' => '']);
+        $client = test::double(Models\Thing::elastic()->client, ['search' => '']);
         Models\Thing::elastic()->client($client);
 
         $s = new SearchRequest(Models\Thing::class, 'foo');
@@ -50,7 +50,7 @@ class SearchingTest extends TestCase
 
     public function testSearchWithObject()
     {
-        $client = test::double(Models\Thing::elastic()->client(), ['search' => '']);
+        $client = test::double(Models\Thing::elastic()->client, ['search' => '']);
         Models\Thing::elastic()->client($client);
 
         $object = new SearchingModel();
@@ -81,7 +81,7 @@ class SearchingTest extends TestCase
             ],
         ]);
 
-        $client = test::double(Models\Thing::elastic()->client(), ['search' => '']);
+        $client = test::double(Models\Thing::elastic()->client, ['search' => '']);
         Models\Thing::elastic()->client($client);
 
         $s = new SearchRequest(Models\Thing::class, $body);
@@ -94,9 +94,9 @@ class SearchingTest extends TestCase
         ]);
     }
 
-    public function testPassOptionsToClient()
+    public function testPassOptionsToclient
     {
-        $client = test::double(Models\Thing::elastic()->client(), ['search' => '']);
+        $client = test::double(Models\Thing::elastic()->client, ['search' => '']);
         Models\Thing::elastic()->client($client);
 
         $s = new SearchRequest(Models\Thing::class, 'foo', [ 'size' => 15 ]);
