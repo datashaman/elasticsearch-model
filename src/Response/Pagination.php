@@ -10,28 +10,58 @@ trait Pagination
         $currentPage = max((int) array_pull($options, $pageName), 1);
         $perPage = (int) array_pull($options, 'perPage', $this->defaultPerPage());
 
-        $this->search->update([
+        $args = [
             'size' => $perPage,
             'from' => ($currentPage - 1) * $perPage,
-        ]);
+        ];
 
-        $results = $this->results->results->all();
-        $paginator = new LengthAwarePaginator($results, $this->results->total, $perPage, $currentPage, $options);
-        return $paginator;
+        $this->search->update($args);
+
+        // $results = $this->results->results->all();
+        // $paginator = new LengthAwarePaginator($results, $this->results->total, $perPage, $currentPage, $options);
+
+        return $this;
     }
 
     public function defaultPerPage()
     {
         $class = $this->class;
-        if (isset($class::$defaultPerPage)) {
-            return $class::$defaultPerPage;
-        } else {
-            return 15;
+
+        if (isset($class::$perPage)) {
+            return $class::$perPage;
+        }
+
+        return 15;
+    }
+
+    public function page($num)
+    {
+        $this->paginate([ 'page' => $num, 'perPage' => $this->perPage() ]);
+        return $this;
+    }
+
+    public function perPage($num=null)
+    {
+        if (is_null($num)) {
+            return array_get($this->search->definition, 'size', $this->defaultPerPage());
+        }
+
+        $this->paginate([ 'page' => $this->currentPage(), 'perPage' => $num ]);
+        return $this;
+    }
+
+    public function currentPage()
+    {
+        $from = array_get($this->search->definition, 'from');
+        $perPage = $this->perPage();
+
+        if ($perPage) {
+            return $from / $perPage + 1;
         }
     }
 
-    public function offset()
+    public function toArray()
     {
-        return $this->search->definition['from'];
+        return $this->results->results->all();
     }
 }
