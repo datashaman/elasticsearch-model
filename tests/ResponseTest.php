@@ -57,8 +57,8 @@ class ResponseTest extends TestCase
         $this->assertSame(static::$mockResponse, $response->response);
         $this->assertSame('5', $response->took);
         $this->assertSame(false, $response->timedOut);
-        $this->assertSame('OK', $response->shards->one);
-        $this->assertSame(10, $response->aggregations->foo['bar']);
+        $this->assertSame('OK', $response->shards['one']);
+        $this->assertSame(10, $response->aggregations['foo']['bar']);
         $this->assertSame('Foo', $response->suggestions['my_suggest'][0]['options'][0]['text']);
         $this->assertSame(['Foo', 'Bar'], $response->suggestions->terms);
 

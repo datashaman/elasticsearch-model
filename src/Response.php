@@ -1,9 +1,8 @@
 <?php namespace Datashaman\ElasticModel;
 
 use ArrayAccess;
-use ArrayObject;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Fluent;
 
 class Response implements ArrayAccess
 {
@@ -11,24 +10,24 @@ class Response implements ArrayAccess
     use Response\Pagination;
 
     protected static $arrayDelegate = 'results';
-
-    public $class;
-    public $search;
-
     protected $attributes;
 
     public function __construct($class, $search, $response=null)
     {
-        $this->class = $class;
-        $this->search = $search;
-        $this->attributes = Collection::make();
-        if (!is_null($response)) {
-            $this->attributes->put('response', $response);
-        }
+        $this->attributes = new Fluent(compact('class', 'search', 'response'));
+    }
+
+    public function __set($name, $value)
+    {
+        $this->attributes[$name] = $value;
     }
 
     public function __get($name)
     {
+        if (isset($this->attributes[$name])) {
+            return $this->attributes[$name];
+        }
+
         switch ($name) {
         case 'response':
             return $this->search->execute();
@@ -41,15 +40,17 @@ class Response implements ArrayAccess
         case 'timedOut':
             return $this->response['timed_out'];
         case 'shards':
-            return new ArrayObject($this->response['_shards'], ArrayObject::ARRAY_AS_PROPS);
+            return $this->response['_shards'];
         case 'aggregations':
-            return array_has($this->response, 'aggregations') ? new ArrayObject(array_get($this->response, 'aggregations'), ArrayObject::ARRAY_AS_PROPS) : null;
+            return array_get($this->response, 'aggregations');
         case 'suggestions':
             return array_has($this->response, 'suggest') ? new Response\Suggestions($this->response['suggest']) : null;
         case 'from':
             return $this->search->definition['from'];
         case 'size':
             return $this->search->definition['size'];
+        case 'total':
+            return $this->results['total'];
         default:
             parent::__get($name);
         }

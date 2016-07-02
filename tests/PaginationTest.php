@@ -1,5 +1,6 @@
 <?php namespace Datashaman\ElasticModel\Tests;
 
+use AspectMock\Test as test;
 use Datashaman\ElasticModel\ElasticModel;
 use DB;
 
@@ -185,5 +186,17 @@ class PaginationTest extends TestCase
     {
         $this->response->paginate([ 'page' => 3, 'perPage' => 9 ]);
         $this->assertEquals(3, $this->response->currentPage());
+    }
+
+    public function testReturnPerPag()
+    {
+        $this->response->paginate([ 'perPage' => 8 ]);
+        $this->assertEquals(8, $this->response->perPage());
+    }
+
+    public function testTotal()
+    {
+        $this->response->results = [ 'total' => 100 ];
+        $this->assertEquals(100, $this->response->total);
     }
 }
