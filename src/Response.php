@@ -5,7 +5,7 @@ use ArrayObject;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
-class Response extends LengthAwarePaginator implements ArrayAccess
+class Response implements ArrayAccess
 {
     use ArrayDelegate;
     use Response\Pagination;
@@ -46,6 +46,12 @@ class Response extends LengthAwarePaginator implements ArrayAccess
             return array_has($this->response, 'aggregations') ? new ArrayObject(array_get($this->response, 'aggregations'), ArrayObject::ARRAY_AS_PROPS) : null;
         case 'suggestions':
             return array_has($this->response, 'suggest') ? new Response\Suggestions($this->response['suggest']) : null;
+        case 'from':
+            return $this->search->definition['from'];
+        case 'size':
+            return $this->search->definition['size'];
+        default:
+            parent::__get($name);
         }
     }
 }

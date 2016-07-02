@@ -72,11 +72,11 @@ class TestCase extends \Orchestra\Testbench\TestCase
         parent::tearDown();
     }
 
-    protected function setClient($expectations)
+    protected function setClient($expectations, $class=Models\Thing::class)
     {
         $object = ClientBuilder::create()->build();
         $client = test::double($object, $expectations);
-        Models\Thing::elastic()->client($client);
+        $class::elastic()->client($client);
         return $client;
     }
 }
