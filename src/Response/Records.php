@@ -44,7 +44,7 @@ class Records extends Base implements ArrayAccess
                 }
             }
 
-            return new Collection($ordered);
+            return Collection::make($ordered);
         default:
             return parent::__get($name);
         }

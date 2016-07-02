@@ -94,7 +94,7 @@ class SearchingTest extends TestCase
         ]);
     }
 
-    public function testPassOptionsToclient
+    public function testPassOptionsToclient()
     {
         $client = test::double(Models\Thing::elastic()->client, ['search' => '']);
         Models\Thing::elastic()->client($client);

@@ -1,13 +1,13 @@
 <?php namespace Datashaman\ElasticModel;
 
 use Datashaman\ElasticModel\Response;
-
+use Illuminate\Support\Fluent;
 
 class SearchRequest
 {
     public $class;
-    public $definition;
     public $options;
+    public $definition;
 
     public function __construct($class, $query, $options=[])
     {
@@ -37,6 +37,13 @@ class SearchRequest
         $class = $this->class;
         $result = $class::elastic()->client->search($this->definition);
         return $result;
+    }
+
+    public function update($attributes)
+    {
+        foreach ($attributes as $key => $value) {
+            $this->definition[$key] = $value;
+        }
     }
 }
 

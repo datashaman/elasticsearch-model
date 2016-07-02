@@ -23,5 +23,10 @@ class Result
         }
     }
 
+    public function toArray()
+    {
+        return $this->result;
+    }
+
     /** TODO: Implement delegate methods to result or result._source */
 }

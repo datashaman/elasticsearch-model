@@ -14,7 +14,7 @@ class Results extends Base implements ArrayAccess
     {
         switch ($name) {
         case 'results':
-            $results = (new Collection($this->response->response['hits']['hits']))
+            $results = (Collection::make($this->response->response['hits']['hits']))
                 ->map(function ($hit) {
                     return new Result($hit);
                 });

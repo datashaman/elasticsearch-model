@@ -11,4 +11,9 @@ class Thing extends Eloquent
     {
         return $this->belongsTo(Category::class, 'category_id');
     }
+
+    public function perPage()
+    {
+        return 33;
+    }
 }

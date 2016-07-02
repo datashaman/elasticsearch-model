@@ -28,8 +28,10 @@ trait Importing
                     $bulk[] = $data;
                 }
                 return $bulk;
-            }, new Collection)
-            ->map('json_encode')
+            }, Collection::make())
+            ->map(function ($row) {
+                return json_encode($row);
+            })
             ->implode("\n") . "\n";
         return $bulk;
     }

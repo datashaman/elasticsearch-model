@@ -22,7 +22,7 @@ trait Proxy
 {
     protected static $elasticsearch;
 
-    protected static function elastic()
+    public static function elastic()
     {
         if (!isset(static::$elasticsearch)) {
             static::$elasticsearch = new Elasticsearch(static::class);

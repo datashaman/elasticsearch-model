@@ -2,11 +2,13 @@
 
 use ArrayAccess;
 use ArrayObject;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
-class Response implements ArrayAccess
+class Response extends LengthAwarePaginator implements ArrayAccess
 {
     use ArrayDelegate;
+    use Response\Pagination;
 
     protected static $arrayDelegate = 'results';
 
@@ -15,41 +17,25 @@ class Response implements ArrayAccess
 
     protected $attributes;
 
-    public function __construct($class, $search)
+    public function __construct($class, $search, $response=null)
     {
         $this->class = $class;
         $this->search = $search;
-        $this->attributes = new Collection;
-    }
-
-    public function getRecords($options=[])
-    {
-        return new Response\Records($this->class, $this, $options);
-    }
-
-    private function setOrCreate($key, callable $creator)
-    {
-        if (!$this->attributes->has($key)) {
-            $this->attributes->put($key, call_user_func($creator));
+        $this->attributes = Collection::make();
+        if (!is_null($response)) {
+            $this->attributes->put('response', $response);
         }
-        return $this->attributes->get($key);
     }
 
     public function __get($name)
     {
         switch ($name) {
         case 'response':
-            return $this->setOrCreate('response', function () {
-                return $this->search->execute();
-            });
+            return $this->search->execute();
         case 'results':
-            return $this->setOrCreate('results', function () {
-                return new Response\Results($this->class, $this);
-            });
+            return new Response\Results($this->class, $this);
         case 'records':
-            return $this->setOrCreate('records', function () {
-                return $this->getRecords();
-            });
+            return new Response\Records($this->class, $this);
         case 'took':
             return $this->response['took'];
         case 'timedOut':
