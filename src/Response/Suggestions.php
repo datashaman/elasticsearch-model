@@ -19,19 +19,15 @@ class Suggestions implements ArrayAccess
         case 'terms':
             $input = $this->input;
 
-            $flattened = array_reduce(array_map(function ($k, $v) {
-                return head($v)['options'];
-            }, array_keys($input), $input), function ($carry, $item) {
-                if (is_array($item)) {
-                    $carry += $item;
-                } else {
-                    $carry[] = $item;
-                }
+            $flattened = array_reduce(array_map(function ($value) {
+                return head($value)['options'];
+            }, $input), function ($carry, $item) {
+                $carry += is_array($item) ? $item : [$item];
                 return $carry;
             }, []);
 
-            $terms = array_unique(array_map(function ($v) {
-                return $v['text'];
+            $terms = array_unique(array_map(function ($value) {
+                return $value['text'];
             }, $flattened));
 
             return $terms;

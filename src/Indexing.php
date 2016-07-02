@@ -180,19 +180,19 @@ trait Indexing
         return static::elastic()->client()->indices()->create(compact('index', 'body'));
     }
 
-    private static function instanceArgs($id, $options)
+    private static function instanceArgs($primaryKey, $options)
     {
         $args = array_merge([
             'index' => static::elastic()->indexName(),
             'type' => static::elastic()->documentType(),
-            'id' => $id,
+            'id' => $primaryKey,
         ], $options);
         return $args;
     }
 
-    public static function getDocument($id, $options=[])
+    public static function getDocument($primaryKey, $options=[])
     {
-        $args = static::instanceArgs($id, $options);
+        $args = static::instanceArgs($primaryKey, $options);
         return static::elastic()->client()->get($args);
     }
 
