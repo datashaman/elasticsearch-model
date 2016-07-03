@@ -13,10 +13,6 @@ class TestCase extends \Orchestra\Testbench\TestCase
     public function setUp()
     {
         parent::setUp();
-
-        Models\Thing::resetElasticModel();
-        Models\Thing::elastic()->bootIndexing();
-
         $this->createDatabase();
     }
 
@@ -65,6 +61,8 @@ class TestCase extends \Orchestra\Testbench\TestCase
     public function tearDown()
     {
         test::clean();
+
+        Models\Thing::resetElasticModel();
 
         Schema::drop('things');
         Schema::drop('categories');

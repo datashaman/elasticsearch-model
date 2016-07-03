@@ -14,12 +14,18 @@ class Result
     public function __get($name)
     {
         switch ($name) {
-        case 'index':
-        case 'type':
         case 'id':
-        case 'score':
-        case 'source':
-            return $this->result['_'.$name];
+        case 'type':
+            return array_get($this->result, '_'.$name);
+        default:
+            if(array_has($this->result, $name)) {
+                return array_get($this->result, $name);
+            }
+
+            if (array_has($this->result, '_source')
+                && array_has($this->result['_source'], $name)) {
+                return array_get($this->result['_source'], $name);
+            }
         }
     }
 
@@ -27,6 +33,4 @@ class Result
     {
         return $this->result;
     }
-
-    /** TODO: Implement delegate methods to result or result._source */
 }
