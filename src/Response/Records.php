@@ -22,9 +22,9 @@ class Records extends Base implements ArrayAccess
     {
         switch ($name) {
         case 'ids':
-            return array_map(function ($hit) {
-                return $hit['_id'];
-            }, $this->response->response['hits']['hits']);
+            return $this->response->results->map(function ($hit) {
+                return $hit->id;
+            });
         case 'results':
             return $this->response->results;
         case 'records':

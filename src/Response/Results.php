@@ -24,6 +24,12 @@ class Results extends Base implements ArrayAccess
         }
     }
 
+    public function total()
+    {
+        $total = $this->response->response()['hits']['total'];
+        return $total;
+    }
+
     public function __call($name, $args) {
         return call_user_func_array([ $this->results, $name ], $args);
     }

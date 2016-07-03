@@ -39,7 +39,8 @@ class Response extends GetOrSet implements ArrayAccess
 
         switch ($name) {
         case 'response':
-            return $this->search()->execute();
+            $response = $this->search()->execute();
+            return $response;
         case 'results':
             return new Response\Results($this->class, $this);
         case 'records':
@@ -60,7 +61,7 @@ class Response extends GetOrSet implements ArrayAccess
         case 'size':
             return $this->search()->definition['size'];
         case 'total':
-            return $this->results()['total'];
+            return $this->results()->total();
         default:
             return parent::__call($name, $args);
         }

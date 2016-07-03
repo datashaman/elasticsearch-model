@@ -27,15 +27,15 @@ class ReadmeTest extends TestCase
         Article::create([ 'title' => 'Fast black dogs' ]);
         Article::create([ 'title' => 'Swift green frogs' ]);
 
-        Article::createIndex();
-        Article::import();
+        Article::elastic()->createIndex([ 'force' => true ]);
+        Article::elastic()->import();
 
         sleep(1);
     }
 
     public function tearDown()
     {
-        Article::deleteIndex();
+        Article::elastic()->deleteIndex();
         parent::tearDown();
     }
 
@@ -43,41 +43,41 @@ class ReadmeTest extends TestCase
     {
         $response = Article::search('fox dogs');
 
-        $this->assertGreaterThan(0, $response->took);
-        $this->assertEquals(2, $response->results->total);
-        $this->assertGreaterThan(0, $response->results[0]->score);
-        $this->assertEquals('Fast black dogs', $response->results[0]->source['title']);
+        $this->assertGreaterThan(0, $response->took());
+        $this->assertEquals(2, $response->total());
+        $this->assertGreaterThan(0, $response[0]->_score);
+        $this->assertEquals('Fast black dogs', $response[0]->title);
 
-        $this->assertEquals([ 'Fast black dogs', 'Quick brown fox', ], $response->results->map(function ($r) { return $r->source['title']; })->all());
+        $this->assertEquals([ 'Fast black dogs', 'Quick brown fox', ], $response->results()->map(function ($r) { return $r->title; })->all());
 
-        $filtered = $response->results->filter(function ($r) { return preg_match('/^Q/', $r->source['title']); });
+        $filtered = $response->results()->filter(function ($r) { return preg_match('/^Q/', $r->title); });
 
         $this->assertEquals(1, $filtered->count());
-        $this->assertEquals('Quick brown fox', $filtered->first()->source['title']);
+        $this->assertEquals('Quick brown fox', $filtered->first()->title);
 
-        $this->assertEquals(2, $response->records->count());
-        $this->assertEquals([ 'Fast black dogs', 'Quick brown fox', ], $response->records->map(function ($r) { return $r->title; })->all());
+        $this->assertEquals(2, $response->records()->count());
+        $this->assertEquals([ 'Fast black dogs', 'Quick brown fox', ], $response->records()->map(function ($r) { return $r->title; })->all());
 
         $lines = [];
 
-        $response->records->eachWithHit(function ($record, $hit) use (&$lines) {
+        $response->records()->eachWithHit(function ($record, $hit) use (&$lines) {
             $lines[] = "* {$record->title}: {$hit->score}";
         });
 
         $this->assertEquals([
-            '* Fast black dogs: '.$response->results[0]->score,
-            '* Quick brown fox: '.$response->results[1]->score,
+            '* Fast black dogs: '.$response[0]->score,
+            '* Quick brown fox: '.$response[1]->score,
         ], $lines);
 
-        $lines = $response->records
+        $lines = $response->records()
             ->mapWithHit(function ($record, $hit) {
                 return "* {$record->title}: {$hit->score}";
             })
             ->all();
 
         $this->assertEquals([
-            '* Fast black dogs: '.$response->results[0]->score,
-            '* Quick brown fox: '.$response->results[1]->score,
+            '* Fast black dogs: '.$response[0]->score,
+            '* Quick brown fox: '.$response[1]->score,
         ], $lines);
     }
 }

@@ -70,6 +70,7 @@ class Settings
     public function merge($settings)
     {
         $this->settings = array_merge($this->settings, $settings);
+        return $this->settings;
     }
 
     public function toArray()
@@ -132,12 +133,7 @@ trait Indexing
 
     public function settings($settings=[])
     {
-        if (empty($this->settings)) {
-            $this->settings = new Settings($settings);
-        } else {
-            $this->settings->merge($settings);
-        }
-
+        $this->settings = empty($this->settings) ? new Settings($settings) : $this->settings->merge($settings);
         return $this->settings;
     }
 
