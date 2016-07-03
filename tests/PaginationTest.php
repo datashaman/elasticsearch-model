@@ -2,6 +2,8 @@
 
 use AspectMock\Test as test;
 use Datashaman\ElasticModel\ElasticModel;
+use Datashaman\ElasticModel\Response;
+use Datashaman\ElasticModel\SearchRequest;
 use DB;
 
 class ModelClass
@@ -196,7 +198,9 @@ class PaginationTest extends TestCase
 
     public function testTotal()
     {
-        $this->response->results([ 'total' => 100 ]);
-        $this->assertEquals(100, $this->response->total());
+        $response = [ 'hits' => [ 'total' => 100 ] ];
+        $search = new SearchRequest(ModelClass::class, '*');
+        $response = new Response(ModelClass::class, $search, $response);
+        $this->assertEquals(100, $response->total());
     }
 }
