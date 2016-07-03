@@ -18,6 +18,8 @@ class SearchRequest
 
         if (method_exists($query, 'toArray')) {
             $body = $query->toArray();
+        } elseif (is_array($query)) {
+            $body = $query;
         } elseif (is_string($query) && preg_match('/^\s*{/', $query)) {
             $body = $query;
         } else {
