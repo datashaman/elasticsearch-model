@@ -53,20 +53,20 @@ class ResponseTest extends TestCase
         $response = new Response(Models\Thing::class, $search);
 
         $this->assertSame(Models\Thing::class, $response->class);
-        $this->assertSame($search, $response->search);
-        $this->assertSame(static::$mockResponse, $response->response);
-        $this->assertSame('5', $response->took);
-        $this->assertSame(false, $response->timedOut);
-        $this->assertSame('OK', $response->shards['one']);
-        $this->assertSame(10, $response->aggregations['foo']['bar']);
-        $this->assertSame('Foo', $response->suggestions['my_suggest'][0]['options'][0]['text']);
-        $this->assertSame(['Foo', 'Bar'], $response->suggestions->terms);
+        $this->assertSame($search, $response->search());
+        $this->assertSame(static::$mockResponse, $response->response());
+        $this->assertSame('5', $response->took());
+        $this->assertSame(false, $response->timedOut());
+        $this->assertSame('OK', $response->shards()['one']);
+        $this->assertSame(10, $response->aggregations()['foo']['bar']);
+        $this->assertSame('Foo', $response->suggestions()['my_suggest'][0]['options'][0]['text']);
+        $this->assertSame(['Foo', 'Bar'], $response->suggestions()->terms);
 
-        $this->assertInstanceOf(Results::class, $response->results);
-        $this->assertEquals(1, count($response->results->results));
+        $this->assertInstanceOf(Results::class, $response->results());
+        $this->assertEquals(1, count($response->results()));
 
-        $this->assertInstanceOf(Records::class, $response->records);
-        $this->assertEquals(1, count($response->records->records));
+        $this->assertInstanceOf(Records::class, $response->records());
+        $this->assertEquals(1, count($response->records()));
     }
 
     public function testDelegateToResults()
@@ -74,7 +74,8 @@ class ResponseTest extends TestCase
         $s = new SearchRequest(Models\Thing::class, '*');
         $search = test::double($s, ['execute' => static::$mockResponse]);
         $response = new Response(Models\Thing::class, $search);
-        $result = array_get($response, 0);
+
+        $result = $response[0];
 
         $this->assertInstanceOf(Result::class, $result);
     }

@@ -10,27 +10,16 @@ use stdClass;
 
 class IndexingTest extends TestCase
 {
-    public function testBootIndexing()
-    {
-        $thing = Models\Thing::first();
-        $thing->title = 'Changed the title';
-        $thing->save();
-
-        $this->assertEquals([
-            'title' => 'Changed the title',
-        ], $thing->_dirty);
-    }
-
     public function testCreateIndex()
     {
         $create = new stdClass;
         $indices = test::double(IndicesNamespace::class, compact('create'));
 
-        test::double(Models\Thing::class, [
+        test::double(Models\Thing::elastic(), [
             'indexExists' => false,
         ]);
 
-        $this->assertSame($create, Models\Thing::createIndex());
+        $this->assertSame($create, Models\Thing::elastic()->createIndex());
 
         $indices->verifyInvoked('create', [[ 'index' => 'things', 'body' => [] ]]);
     }
@@ -40,11 +29,11 @@ class IndexingTest extends TestCase
         $create = new stdClass;
         $indices = test::double(IndicesNamespace::class, compact('create'));
 
-        test::double(Models\Thing::class, [
+        test::double(Models\Thing::elastic(), [
             'indexExists' => true,
         ]);
 
-        $this->assertFalse(Models\Thing::createIndex());
+        $this->assertFalse(Models\Thing::elastic()->createIndex());
 
         $indices->verifyNeverInvoked('create');
     }
@@ -54,12 +43,12 @@ class IndexingTest extends TestCase
         $create = new stdClass;
         $indices = test::double(IndicesNamespace::class, compact('create'));
 
-        $thing = test::double(Models\Thing::class, [
+        $thing = test::double(Models\Thing::elastic(), [
             'deleteIndex' => null,
             'indexExists' => false,
         ]);
 
-        $this->assertSame($create, Models\Thing::createIndex([ 'force' => true ]));
+        $this->assertSame($create, Models\Thing::elastic()->createIndex([ 'force' => true ]));
 
         $thing->verifyInvoked('deleteIndex', [[ 'force' => true, 'index' => 'things' ]]);
         $thing->verifyInvoked('indexExists', [[ 'index' => 'things' ]]);
@@ -73,12 +62,12 @@ class IndexingTest extends TestCase
             'create' => null,
         ]);
 
-        $thing = test::double(Models\Thing::class, [
+        $thing = test::double(Models\Thing::elastic(), [
             'deleteIndex' => null,
             'indexExists' => true,
         ]);
 
-        $this->assertFalse(Models\Thing::createIndex([ 'force' => true ]));
+        $this->assertFalse(Models\Thing::elastic()->createIndex([ 'force' => true ]));
 
         $thing->verifyInvoked('deleteIndex', [[ 'force' => true, 'index' => 'things' ]]);
         $thing->verifyInvoked('indexExists', [[ 'index' => 'things' ]]);
@@ -92,7 +81,7 @@ class IndexingTest extends TestCase
             'exists' => true,
         ]);
 
-        $this->assertTrue(Models\Thing::indexExists());
+        $this->assertTrue(Models\Thing::elastic()->indexExists());
 
         $indices->verifyInvoked('exists', [[ 'index' => 'things' ]]);
     }
@@ -102,7 +91,7 @@ class IndexingTest extends TestCase
         $delete = new stdClass;
         $indices = test::double(IndicesNamespace::class, compact('delete'));
 
-        $this->assertSame($delete, Models\Thing::deleteIndex());
+        $this->assertSame($delete, Models\Thing::elastic()->deleteIndex());
 
         $indices->verifyInvoked('delete', [[ 'index' => 'things' ]]);
     }
@@ -115,7 +104,7 @@ class IndexingTest extends TestCase
         $this->expectException(Missing404Exception::class);
         $this->expectExceptionMessage('Index is missing');
 
-        Models\Thing::deleteIndex();
+        Models\Thing::elastic()->deleteIndex();
     }
 
     public function testDeleteMissingIndexWithForce()
@@ -126,7 +115,7 @@ class IndexingTest extends TestCase
             'error' => null,
         ]);
 
-        $this->assertFalse(Models\Thing::deleteIndex([ 'force' => true ]));
+        $this->assertFalse(Models\Thing::elastic()->deleteIndex([ 'force' => true ]));
 
         // $log->verifyInvoked('error', [ 'Index is missing', [ 'index' => 'things' ]]);
     }
@@ -135,8 +124,8 @@ class IndexingTest extends TestCase
     {
         $expectations = [
             'index' => [
-                '_index' => Models\Thing::elastic()->indexName,
-                '_type' => Models\Thing::elastic()->documentType,
+                '_index' => Models\Thing::indexName(),
+                '_type' => Models\Thing::documentType(),
                 '_id' => 1,
                 '_version' => 1,
                 'created' => true,
@@ -163,8 +152,8 @@ class IndexingTest extends TestCase
 
         $expectations = [
             'get' => [
-                '_index' => Models\Thing::elastic()->indexName,
-                '_type' => Models\Thing::elastic()->documentType,
+                '_index' => Models\Thing::indexName(),
+                '_type' => Models\Thing::documentType(),
                 '_id' => 1,
                 '_version' => 1,
                 'found' => true,
@@ -185,10 +174,14 @@ class IndexingTest extends TestCase
 
     public function testUpdateDocument()
     {
+        Models\Thing::updated(function ($thing) {
+            $thing->updateDocument();
+        });
+
         $expectations = [
             'update' => [
-                '_index' => Models\Thing::elastic()->indexName,
-                '_type' => Models\Thing::elastic()->documentType,
+                '_index' => Models\Thing::indexName(),
+                '_type' => Models\Thing::documentType(),
                 '_id' => 1,
                 '_version' => 2,
             ],
@@ -200,8 +193,6 @@ class IndexingTest extends TestCase
         $thing->title = 'Changed the title';
         $thing->save();
 
-        $thing->updateDocument();
-
         $client->verifyInvoked('update', [[
             'index' => 'things',
             'type' => 'thing',
@@ -209,6 +200,7 @@ class IndexingTest extends TestCase
             'body' => [
                 'doc' => [
                     'title' => 'Changed the title',
+                    'updated_at' => $thing->updated_at->toDateTimeString(),
                 ],
             ],
         ]]);
@@ -233,8 +225,8 @@ class IndexingTest extends TestCase
 
         $expectations = [
             'delete' => [
-                '_index' => Models\Thing::elastic()->indexName,
-                '_type' => Models\Thing::elastic()->documentType,
+                '_index' => Models\Thing::indexName(),
+                '_type' => Models\Thing::documentType(),
                 '_id' => 1,
                 '_version' => 2,
                 'found' => true,
@@ -362,8 +354,8 @@ class IndexingTest extends TestCase
 
     public function testMappingsUpdateAndReturn()
     {
-        Models\Thing::mapping([ 'foo' => 'boo' ]);
-        Models\Thing::mapping([ 'bar' => 'bam' ]);
+        Models\Thing::elastic()->mapping([ 'foo' => 'boo' ]);
+        Models\Thing::elastic()->mapping([ 'bar' => 'bam' ]);
 
         $this->assertEquals([
             'thing' => [
@@ -376,7 +368,7 @@ class IndexingTest extends TestCase
 
     public function testMappingsCallable()
     {
-        Models\Thing::mapping([], function ($m) {
+        Models\Thing::mappings([], function ($m) {
             $m->indexes('foo');
         });
 
@@ -388,6 +380,6 @@ class IndexingTest extends TestCase
                     ],
                 ],
             ],
-        ], Models\Thing::mapping()->toArray());
+        ], Models\Thing::mappings()->toArray());
     }
 }

@@ -14,13 +14,13 @@ class ImportingTest extends TestCase
             'bulk' => ['items' => []],
         ]);
 
-        test::double(Models\Thing::class, [
+        test::double(Models\Thing::elastic(), [
             'indexExists' => true,
         ]);
 
         $encodedThing = json_encode(Models\Thing::first()->toIndexedArray());
 
-        Models\Thing::import();
+        Models\Thing::elastic()->import();
 
         $client->verifyInvoked('bulk', [[
             'index' => 'things',
@@ -39,11 +39,11 @@ EOF
             'bulk' => ['items' => [['index' => []], ['index' => ['error' => 'FAILED']]]],
         ]);
 
-        test::double(Models\Thing::class, [
+        test::double(Models\Thing::elastic(), [
             'indexExists' => true,
         ]);
 
-        $this->assertEquals(1, Models\Thing::import());
+        $this->assertEquals(1, Models\Thing::elastic()->import());
     }
 
     public function testReturnsArrayOfErrors()
@@ -54,11 +54,11 @@ EOF
             'bulk' => ['items' => [['index' => []], $error]],
         ]);
 
-        test::double(Models\Thing::class, [
+        test::double(Models\Thing::elastic(), [
             'indexExists' => true,
         ]);
 
-        $this->assertEquals([$error], Models\Thing::import(['return' => 'errors']));
+        $this->assertEquals([$error], Models\Thing::elastic()->import(['return' => 'errors']));
     }
 
     public function testYieldResponseToCallable()
@@ -67,30 +67,30 @@ EOF
             'bulk' => ['items' => [['index' => []], ['index' => ['error' => 'FAILED']]]],
         ]);
 
-        test::double(Models\Thing::class, [
+        test::double(Models\Thing::elastic(), [
             'indexExists' => true,
         ]);
 
-        Models\Thing::import([], function ($response) {
+        Models\Thing::elastic()->import([], function ($response) {
             $this->assertEquals(2, count($response['items']));
         });
     }
 
     public function testWhenIndexDoesNotExist()
     {
-        test::double(Models\Thing::class, [
+        test::double(Models\Thing::elastic(), [
             'indexExists' => false,
         ]);
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage("things does not exist to be imported into. Use createIndex() or the 'force' option to create it.");
 
-        Models\Thing::import();
+        Models\Thing::elastic()->import();
     }
 
     public function testWithTheForceOption()
     {
-        // Models\Thing::import(['force' => true, 'foo' => 'bar']);
+        // Models\Thing::elastic()->import(['force' => true, 'foo' => 'bar']);
     }
 
     public function testCustomIndexAndType()
@@ -105,7 +105,7 @@ EOF
             'bulk' => ['items' => []],
         ]);
 
-        test::double(Models\Thing::class, [
+        test::double(Models\Thing::elastic(), [
             'indexName' => 'foo',
             'documentType' => 'foo',
             'indexExists' => true,
@@ -113,7 +113,7 @@ EOF
 
         $encodedThing = json_encode(Models\Thing::first()->toIndexedArray());
 
-        Models\Thing::import($args);
+        Models\Thing::elastic()->import($args);
 
         $client->verifyInvoked('bulk', [[
             'index' => 'my-new-index',
@@ -143,12 +143,12 @@ EOF
             'bulk' => [ 'items' => [] ],
         ]);
 
-        $thing = test::double(Models\Thing::class, [
+        $thing = test::double(Models\Thing::elastic(), [
             'indexExists' => true,
             'transform' => $transform,
         ]);
 
-        Models\Thing::import(['index' => 'foo', 'type' => 'bar']);
+        Models\Thing::elastic()->import(['index' => 'foo', 'type' => 'bar']);
 
         $thing->verifyInvoked('transform', []);
     }

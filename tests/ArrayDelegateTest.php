@@ -23,6 +23,7 @@ class ArrayDelegateTest extends TestCase
 
     public function tearDown()
     {
+        // Do nothing
     }
 
     public function testOffsetSet()

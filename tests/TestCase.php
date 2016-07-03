@@ -1,9 +1,9 @@
 <?php namespace Datashaman\ElasticModel\Tests;
 
 use AspectMock\Test as test;
+use Datashaman\ElasticModel\Elasticsearch;
 use DB;
 use Elasticsearch\ClientBuilder;
-use Datashaman\ElasticModel\Elasticsearch;
 use Schema;
 
 class TestCase extends \Orchestra\Testbench\TestCase
@@ -15,7 +15,7 @@ class TestCase extends \Orchestra\Testbench\TestCase
         parent::setUp();
 
         Models\Thing::resetElasticModel();
-        Models\Thing::bootIndexing();
+        Models\Thing::elastic()->bootIndexing();
 
         $this->createDatabase();
     }

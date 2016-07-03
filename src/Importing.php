@@ -5,7 +5,7 @@ use Illuminate\Support\Collection;
 
 trait Importing
 {
-    protected static function transform()
+    protected function transform()
     {
         return function ($model) {
             return [
@@ -17,7 +17,7 @@ trait Importing
         };
     }
 
-    protected static function chunkToBulk($chunk, callable $transform)
+    protected function chunkToBulk($chunk, callable $transform)
     {
         $bulk = $chunk
             ->map($transform)
@@ -36,15 +36,15 @@ trait Importing
         return $bulk;
     }
 
-    public static function import($options=[], callable $callable=null)
+    public function import($options=[], callable $callable=null)
     {
         $errors = [];
 
         $chunkSize = array_pull($options, 'chunkSize', 1000);
         $refresh = array_pull($options, 'refresh', false);
-        $targetIndex = array_pull($options, 'index', static::elastic()->indexName);
-        $targetType = array_pull($options, 'type', static::elastic()->documentType);
-        $transform = array_pull($options, 'transform', [static::class, 'transform']);
+        $targetIndex = array_pull($options, 'index', $this->indexName());
+        $targetType = array_pull($options, 'type', $this->documentType());
+        $transform = array_pull($options, 'transform', [ $this, 'transform' ]);
         $returnValue = array_pull($options, 'return', 'count');
         $wait = array_pull($options, 'wait', false);
 
@@ -53,23 +53,24 @@ trait Importing
         }
 
         if (array_pull($options, 'force')) {
-            static::createIndex(['force' => true, 'index' => $targetIndex]);
-        } elseif (!static::indexExists(['index' => $targetIndex])) {
+            $this->createIndex(['force' => true, 'index' => $targetIndex]);
+        } elseif (!$this->indexExists(['index' => $targetIndex])) {
             throw new Exception(sprintf("%s does not exist to be imported into. Use createIndex() or the 'force' option to create it.", $targetIndex));
         }
 
-        static::chunk($chunkSize, function ($chunk) use ($targetIndex, $targetType, $transform, $callable, &$errors, $wait) {
+        $class = $this->class;
+        $class::chunk($chunkSize, function ($chunk) use ($targetIndex, $targetType, $transform, $callable, &$errors, $wait) {
             $args = [
                 'index' => $targetIndex,
                 'type' => $targetType,
-                'body' => static::chunkToBulk($chunk, call_user_func($transform)),
+                'body' => $this->chunkToBulk($chunk, call_user_func($transform)),
             ];
 
             if ($wait) {
                 $args['client'] = [ 'future' => 'lazy' ];
             }
 
-            $response = static::elastic()->client->bulk($args);
+            $response = $this->client()->bulk($args);
 
             if (is_callable($callable)) {
                 call_user_func($callable, $response);
@@ -82,7 +83,7 @@ trait Importing
         });
 
         if ($refresh) {
-            static::refreshIndex();
+            $this->refreshIndex();
         }
 
         switch ($returnValue) {

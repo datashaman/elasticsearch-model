@@ -1,7 +1,6 @@
 <?php namespace Datashaman\ElasticModel;
 
 use Datashaman\ElasticModel\Response;
-use Illuminate\Support\Fluent;
 
 class SearchRequest
 {
@@ -14,8 +13,8 @@ class SearchRequest
         $this->class = $class;
         $this->options = $options;
 
-        $index = array_get($options, 'index', $class::elastic()->indexName);
-        $type = array_get($options, 'type', $class::elastic()->documentType);
+        $index = array_get($options, 'index', $class::indexName());
+        $type = array_get($options, 'type', $class::documentType());
 
         if (method_exists($query, 'toArray')) {
             $body = $query->toArray();
@@ -35,7 +34,7 @@ class SearchRequest
     public function execute()
     {
         $class = $this->class;
-        $result = $class::elastic()->client->search($this->definition);
+        $result = $class::elastic()->client()->search($this->definition);
         return $result;
     }
 
@@ -49,10 +48,10 @@ class SearchRequest
 
 trait Searching
 {
-    public static function search($query, $options=[])
+    public function search($query, $options=[])
     {
-        $search = new SearchRequest(static::class, $query, $options);
-        $response = new Response(static::class, $search);
+        $search = new SearchRequest($this->class, $query, $options);
+        $response = new Response($this->class, $search);
         return $response;
     }
 }

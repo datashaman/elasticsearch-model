@@ -83,29 +83,20 @@ trait Indexing
 {
     use Serializing;
 
-    protected static $settings;
-    protected static $mapping;
+    protected $settings;
+    protected $mapping;
 
-    public $_dirty;
-
-    public static function bootIndexing()
+    public function indexExists($options=[])
     {
-        static::updating(function ($object) {
-            $object->_dirty = $object->getDirty();
-        });
+        $index = array_get($options, 'index', $this->indexName());
+        return $this->client()->indices()->exists(compact('index'));
     }
 
-    public static function indexExists($options=[])
+    public function deleteIndex($options=[])
     {
-        $index = array_get($options, 'index', static::elastic()->indexName);
-        return static::elastic()->client->indices()->exists(compact('index'));
-    }
-
-    public static function deleteIndex($options=[])
-    {
-        $index = array_get($options, 'index', static::elastic()->indexName);
+        $index = array_get($options, 'index', $this->indexName());
         try {
-            return static::elastic()->client->indices()->delete(compact('index'));
+            return $this->client()->indices()->delete(compact('index'));
         } catch (Missing404Exception $e) {
             if (array_get($options, 'force')) {
                 Log::error($e->getMessage(), compact('index'));
@@ -116,113 +107,85 @@ trait Indexing
         }
     }
 
-    public static function mapping($options=[], callable $callable=null)
+    public function mappings($options=[], callable $callable=null)
     {
-        if (empty(static::$mapping)) {
-            static::$mapping = new Mappings(static::elastic()->documentType);
+        if (empty($this->mapping)) {
+            $this->mapping = new Mappings($this->documentType());
         }
 
         if (!empty($options)) {
-            static::$mapping->mergeOptions($options);
+            $this->mapping->mergeOptions($options);
         }
 
         if (!is_callable($callable)) {
-            return static::$mapping;
+            return $this->mapping;
         }
 
-        call_user_func($callable, static::$mapping);
-        return static::class;
+        call_user_func($callable, $this->mapping);
+        return $this->mapping;
     }
 
-    public static function mappings($options=[])
+    public function mapping($options=[], callable $callable=null)
     {
-        return static::mapping($options);
+        return $this->mappings($options, $callable);
     }
 
-    public static function settings($settings=[])
+    public function settings($settings=[])
     {
-        if (empty(static::$settings)) {
-            static::$settings = new Settings($settings);
+        if (empty($this->settings)) {
+            $this->settings = new Settings($settings);
+        } else {
+            $this->settings->merge($settings);
         }
 
-        if (!empty($settings)) {
-            static::$settings->merge($settings);
-        }
-
-        return static::$settings;
+        return $this->settings;
     }
 
-    public static function createIndex($options=[])
+    public function createIndex($options=[])
     {
-        $index = array_get($options, 'index', static::elastic()->indexName);
+        $index = array_get($options, 'index', $this->indexName());
 
         if (array_get($options, 'force')) {
             $options['index'] = $index;
-            static::deleteIndex($options);
+            $this->deleteIndex($options);
         }
 
-        if (static::indexExists(compact('index'))) {
+        if ($this->indexExists(compact('index'))) {
             return false;
         }
 
         $body = [];
 
-        $settings = static::settings()->toArray();
+        $settings = $this->settings()->toArray();
         if (!empty($settings)) {
             $body['settings'] = $settings;
         }
 
-        $mappings = static::mappings()->toArray();
+        $mappings = $this->mappings()->toArray();
         if (!empty($mappings)) {
             $body['mappings'] = $mappings;
         }
 
-        return static::elastic()->client->indices()->create(compact('index', 'body'));
+        return $this->client()->indices()->create(compact('index', 'body'));
     }
 
-    private static function instanceArgs($primaryKey, $options)
+    public function getDocument($options=[])
     {
-        $args = array_merge([
-            'index' => static::elastic()->indexName,
-            'type' => static::elastic()->documentType,
-            'id' => $primaryKey,
-        ], $options);
-        return $args;
-    }
-
-    public static function getDocument($primaryKey, $options=[])
-    {
-        $args = static::instanceArgs($primaryKey, $options);
-        return static::elastic()->client->get($args);
+        return $this->client()->get($options);
     }
 
     public function deleteDocument($options=[])
     {
-        $args = static::instanceArgs($this->id, $options);
-        return static::elastic()->client->delete($args);
+        return $this->client()->delete($options);
     }
 
     public function indexDocument($options=[])
     {
-        $args = static::instanceArgs($this->id, $options);
-        $args['body'] = $this->toIndexedArray();
-        return static::elastic()->client->index($args);
+        return $this->client()->index($options);
     }
 
     public function updateDocument($options=[])
     {
-        if (empty($this->_dirty)) {
-            return $this->indexDocument($options);
-        }
-
-        $doc = array_only($this->toIndexedArray(), array_keys($this->_dirty));
-        return $this->updateDocumentAttributes($doc, $options);
-    }
-
-    public function updateDocumentAttributes($doc, $options=[])
-    {
-        $args = static::instanceArgs($this->id, $options);
-        $args['body'] = array_merge(compact('doc'), $options);
-        return static::elastic()->client->update($args);
+        return $this->client()->update($options);
     }
 }
