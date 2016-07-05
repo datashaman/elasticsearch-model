@@ -16,3 +16,14 @@ script: composer run coverage
 
 after_script:
   - vendor/bin/test-reporter
+
+cache:
+  directories:
+    - vendor
+    # - vendor/bundle
+    # - $HOME/.cache/bower
+    # - $HOME/.cache/pip
+    # - $HOME/.ccache
+    - $HOME/.composer/cache
+    # - $HOME/.npm
+    # - $HOME/.nvm
