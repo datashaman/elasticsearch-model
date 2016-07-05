@@ -6,10 +6,6 @@ php:
 
 sudo: false
 
-addons:
-  code_climate:
-    repo_token: 00886efbeafd1e15123ef6b2f8e10f6f8743494eb7b860a3075e6f439e3a3119
-
 install: travis_retry composer install --no-interaction --prefer-dist
 
 script: composer run coverage
