@@ -11,26 +11,6 @@ use Schema;
 
 class RecordsTest extends TestCase
 {
-    const RESPONSE = [
-        'hits' => [
-            'total' => 1,
-            'max_score' => 1.2,
-            'hits' => [[
-                '_id' => 1,
-                '_index' => 'things',
-                '_type' => 'thing',
-                '_score' => 1.2,
-                '_source' => [
-                    'id' => 1,
-                    'title' => 'Existing Thing',
-                    'description' => 'This is the best thing.',
-                    'status' => 'online',
-
-                ],
-            ]],
-        ],
-    ];
-
     protected $search;
     protected $response;
     protected $results;
@@ -41,7 +21,25 @@ class RecordsTest extends TestCase
         $this->createThings();
 
         $search = m::mock(new SearchRequest(Models\Thing::class, '*'), [
-            'execute' => static::RESPONSE,
+            'execute' => [
+                'hits' => [
+                    'total' => 1,
+                    'max_score' => 1.2,
+                    'hits' => [[
+                        '_id' => 1,
+                        '_index' => 'things',
+                        '_type' => 'thing',
+                        '_score' => 1.2,
+                        '_source' => [
+                            'id' => 1,
+                            'title' => 'Existing Thing',
+                            'description' => 'This is the best thing.',
+                            'status' => 'online',
+
+                        ],
+                    ]],
+                ],
+            ],
         ]);
 
         $response = new Response(Models\Thing::class, $search);

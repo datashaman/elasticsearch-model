@@ -20,16 +20,6 @@ class ResultsTestModel
  */
 class ResultsTest extends TestCase
 {
-    const RESPONSE = [
-        'hits' => [
-            'total' => 123,
-            'max_score' => 456,
-            'hits' => [
-                [ 'foo' => 'bar' ],
-            ],
-        ],
-    ];
-
     protected $search;
     protected $response;
     protected $results;
@@ -41,7 +31,15 @@ class ResultsTest extends TestCase
         parent::setUp();
 
         $this->search = m::mock(new SearchRequest(ResultsTestModel::class, '*'), [
-            'execute' => static::RESPONSE,
+            'execute' => [
+                'hits' => [
+                    'total' => 123,
+                    'max_score' => 456,
+                    'hits' => [
+                        [ 'foo' => 'bar' ],
+                    ],
+                ],
+            ],
         ]);
 
         $this->response = new Response(ResultsTestModel::class, $this->search);
