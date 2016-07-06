@@ -302,18 +302,20 @@ class IndexingTest extends TestCase
         $thing->save();
     }
 
+    /**
+     * @group wip
+     */
     public function testUpdateUnchangedDocument()
     {
-        $thing = new Models\Thing;
+        $elastic = m::mock(Elastic::class, [Models\Thing::class], [
+            'indexDocument' => '',
+            'indexName' => 'things',
+            'documentType' => 'thing',
+        ]);
 
-        $instance = m::mock($thing)
-            ->shouldReceive('indexing')
-            ->mock();
+        Models\Thing::elastic($elastic);
 
-        $thing->title = 'Title';
-        $thing->category_id = 1;
-        $thing->save();
-
+        $instance = new Models\Thing;
         $instance->updateDocument();
     }
 
