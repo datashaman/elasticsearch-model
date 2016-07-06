@@ -2,7 +2,6 @@
 
 use ArrayAccess;
 use Datashaman\ElasticModel\ArrayDelegate;
-use Illuminate\Support\Collection;
 
 class Results extends Base implements ArrayAccess
 {
@@ -14,7 +13,7 @@ class Results extends Base implements ArrayAccess
     {
         switch ($name) {
         case 'results':
-            $results = (Collection::make($this->response->response()['hits']['hits']))
+            $results = collect($this->response->response()['hits']['hits'])
                 ->map(function ($hit) {
                     return new Result($hit);
                 });
