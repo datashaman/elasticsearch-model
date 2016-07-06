@@ -14,6 +14,7 @@ use stdClass;
 class ImportingTestModel extends Model
 {
     use ElasticModel;
+    protected static $elasticsearch;
 }
 
 class ImportingTest extends TestCase
@@ -118,6 +119,10 @@ class ImportingTest extends TestCase
         });
     }
 
+    /**
+     * @expectedException      Exception
+     * @expectExceptionMessage importing-test-models does not exist to be imported into. Use createIndex() or the 'force' option to create it.
+     */
     public function testWhenIndexDoesNotExist()
     {
         $elastic = m::mock(Elastic::class, [ ImportingTestModel::class ], [
@@ -125,9 +130,6 @@ class ImportingTest extends TestCase
             'indexName' => 'importing-test-models',
             'documentType' => 'importing-test-model',
         ])->shouldDeferMissing();
-
-        $this->expectException(Exception::class);
-        $this->expectExceptionMessage("importing-test-models does not exist to be imported into. Use createIndex() or the 'force' option to create it.");
 
         $elastic->import();
     }
