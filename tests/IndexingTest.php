@@ -144,6 +144,11 @@ class IndexingTest extends TestCase
         $this->assertSame($delete, $elastic->deleteIndex());
     }
 
+
+    /**
+     * $expectedException        Missing404Exception
+     * $expectedExceptionMessage Index is missing
+     */
     public function testDeleteMissingIndex()
     {
         $client = m::mock('Client');
@@ -155,9 +160,6 @@ class IndexingTest extends TestCase
             'client' => $client,
             'indexName' => 'indexing-test-models',
         ])->shouldDeferMissing();
-
-        $this->expectException(Missing404Exception::class);
-        $this->expectExceptionMessage('Index is missing');
 
         $elastic->deleteIndex();
     }
