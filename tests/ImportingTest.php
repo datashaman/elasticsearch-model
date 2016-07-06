@@ -119,10 +119,6 @@ class ImportingTest extends TestCase
         });
     }
 
-    /**
-     * @expectedException      Exception
-     * @expectExceptionMessage importing-test-models does not exist to be imported into. Use createIndex() or the 'force' option to create it.
-     */
     public function testWhenIndexDoesNotExist()
     {
         $elastic = m::mock(Elastic::class, [ ImportingTestModel::class ], [
@@ -131,6 +127,7 @@ class ImportingTest extends TestCase
             'documentType' => 'importing-test-model',
         ])->shouldDeferMissing();
 
+        $this->setExpectedException(Exception::class, "importing-test-models does not exist to be imported into. Use createIndex() or the 'force' option to create it.");
         $elastic->import();
     }
 
