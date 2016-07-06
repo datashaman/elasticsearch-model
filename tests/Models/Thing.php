@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model as Eloquent;
 class Thing extends Eloquent
 {
     use ElasticModel;
+    protected static $elasticsearch;
 
     public function category()
     {

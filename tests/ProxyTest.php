@@ -1,39 +1,67 @@
 <?php namespace Datashaman\ElasticModel\Tests;
 
+use Datashaman\ElasticModel\ElasticModel;
 use Elasticsearch\Client;
+
+class ProxyTestModel
+{
+    use ElasticModel;
+
+    protected static $elasticsearch;
+}
+
+class ProxyTestModelWithProperties
+{
+    use ElasticModel;
+
+    protected static $elasticsearch;
+
+    public static $indexName = 'foo';
+    public static $documentType = 'bar';
+}
 
 class ProxyTest extends TestCase
 {
     public function testGetClient()
     {
-        $this->assertInstanceOf(Client::class, Models\Thing::elastic()->client());
+        $this->assertInstanceOf(Client::class, ProxyTestModel::elastic()->client());
     }
 
     public function testSetClient()
     {
-        Models\Thing::elastic()->client('foobar');
-        $this->assertSame('foobar', Models\Thing::elastic()->client());
+        ProxyTestModel::elastic()->client('foobar');
+        $this->assertSame('foobar', ProxyTestModel::elastic()->client());
     }
 
     public function testGetDocumentType()
     {
-        $this->assertEquals('thing', Models\Thing::documentType());
+        $this->assertEquals('proxy-test-model', ProxyTestModel::documentType());
     }
 
     public function testSetDocumentType()
     {
-        Models\Thing::documentType('thingybob');
-        $this->assertEquals('thingybob', Models\Thing::documentType());
+        ProxyTestModel::documentType('thingybob');
+        $this->assertEquals('thingybob', ProxyTestModel::documentType());
     }
 
     public function testGetIndexName()
     {
-        $this->assertNotNull('things', Models\Thing::indexName());
+        $this->assertEquals('proxy-test-models', ProxyTestModel::indexName());
     }
 
     public function testSetIndexName()
     {
-        Models\Thing::indexName('thingybobs');
-        $this->assertEquals('thingybobs', Models\Thing::indexName());
+        ProxyTestModel::indexName('thingybobs');
+        $this->assertEquals('thingybobs', ProxyTestModel::indexName());
+    }
+
+    public function testGetIndexNameWithProperty()
+    {
+        $this->assertEquals('foo', ProxyTestModelWithProperties::indexName());
+    }
+
+    public function testGetDocumentTypeWithProperty()
+    {
+        $this->assertEquals('bar', ProxyTestModelWithProperties::documentType());
     }
 }

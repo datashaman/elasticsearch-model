@@ -1,14 +1,15 @@
 <?php namespace Datashaman\ElasticModel\Tests;
 
-use AspectMock\Test as test;
 use Datashaman\ElasticModel\ElasticModel;
 use Datashaman\ElasticModel\Response;
 use Datashaman\ElasticModel\SearchRequest;
 use DB;
+use Mockery as m;
 
 class ModelClass
 {
     use ElasticModel;
+    protected static $elasticsearch;
 
     public static $indexName = 'foo';
     public static $documentType = 'bar';
@@ -34,9 +35,9 @@ class PaginationTest extends TestCase
 
     public function testPageParameters()
     {
-        $client = $this->setClient([
+        ModelClass::elastic()->client(m::mock('Client', [
             'search' => null,
-        ], ModelClass::class);
+        ]));
 
         $this->response->paginate([
             'perPage' => 3,
@@ -49,28 +50,29 @@ class PaginationTest extends TestCase
 
     public function testFromSizeWithDefaults()
     {
-        $client = $this->setClient([
-            'search' => null,
-        ], ModelClass::class);
+        $client = m::mock('Client');
+
+        $client->shouldReceive('search')
+            ->with([
+                'index' => 'foo',
+                'type' => 'bar',
+                'body' => [
+                    'query' => [
+                        'query_string' => [
+                            'query' => '*',
+                        ],
+                    ],
+                ],
+                'size' => 33,
+                'from' => 33,
+            ]);
+
+        ModelClass::elastic()->client($client);
 
         $this->assertNull(array_get($this->response->search()->definition, 'size'));
         $this->assertNull(array_get($this->response->search()->definition, 'from'));
 
         $this->response->paginate([ 'page' => 2 ])->toArray();
-
-        $client->verifyInvoked('search', [[
-            'index' => 'foo',
-            'type' => 'bar',
-            'body' => [
-                'query' => [
-                    'query_string' => [
-                        'query' => '*',
-                    ],
-                ],
-            ],
-            'size' => 33,
-            'from' => 33,
-        ]]);
 
         $this->assertEquals(33, $this->response->search()->definition['size']);
         $this->assertEquals(33, $this->response->search()->definition['from']);
@@ -78,28 +80,29 @@ class PaginationTest extends TestCase
 
     public function testFromSizeUsingCustom()
     {
-        $client = $this->setClient([
-            'search' => null,
-        ], ModelClass::class);
+        $client = m::mock('Client');
+
+        $client->shouldReceive('search')
+            ->with([
+                'index' => 'foo',
+                'type' => 'bar',
+                'body' => [
+                    'query' => [
+                        'query_string' => [
+                            'query' => '*',
+                        ],
+                    ],
+                ],
+                'size' => 9,
+                'from' => 18,
+            ]);
+
+        ModelClass::elastic()->client($client);
 
         $this->assertNull(array_get($this->response->search()->definition, 'size'));
         $this->assertNull(array_get($this->response->search()->definition, 'from'));
 
         $this->response->paginate([ 'page' => 3, 'perPage' => 9 ])->toArray();
-
-        $client->verifyInvoked('search', [[
-            'index' => 'foo',
-            'type' => 'bar',
-            'body' => [
-                'query' => [
-                    'query_string' => [
-                        'query' => '*',
-                    ],
-                ],
-            ],
-            'size' => 9,
-            'from' => 18,
-        ]]);
 
         $this->assertEquals(9, $this->response->search()->definition['size']);
         $this->assertEquals(18, $this->response->search()->definition['from']);
@@ -107,28 +110,29 @@ class PaginationTest extends TestCase
 
     public function testSearchForFirstPageIfLessThanOne()
     {
-        $client = $this->setClient([
-            'search' => null,
-        ], ModelClass::class);
+        $client = m::mock('Client');
+
+        $client->shouldReceive('search')
+            ->with([
+                'index' => 'foo',
+                'type' => 'bar',
+                'body' => [
+                    'query' => [
+                        'query_string' => [
+                            'query' => '*',
+                        ],
+                    ],
+                ],
+                'size' => 33,
+                'from' => 0,
+            ]);
+
+        ModelClass::elastic()->client($client);
 
         $this->assertNull(array_get($this->response->search()->definition, 'size'));
         $this->assertNull(array_get($this->response->search()->definition, 'from'));
 
         $this->response->paginate([ 'page' => "-1" ])->toArray();
-
-        $client->verifyInvoked('search', [[
-            'index' => 'foo',
-            'type' => 'bar',
-            'body' => [
-                'query' => [
-                    'query_string' => [
-                        'query' => '*',
-                    ],
-                ],
-            ],
-            'size' => 33,
-            'from' => 0,
-        ]]);
 
         $this->assertEquals(33, $this->response->search()->definition['size']);
         $this->assertEquals(0, $this->response->search()->definition['from']);
@@ -136,25 +140,26 @@ class PaginationTest extends TestCase
 
     public function testUseCustomName()
     {
-        $client = $this->setClient([
-            'search' => null,
-        ], ModelClass::class);
+        $client = m::mock('Client');
 
-        $this->response->paginate([ 'myPage' => 2, 'perPage' => 10, 'pageName' => 'myPage' ])->toArray();
-
-        $client->verifyInvoked('search', [[
-            'index' => 'foo',
-            'type' => 'bar',
-            'body' => [
-                'query' => [
-                    'query_string' => [
-                        'query' => '*',
+        $client->shouldReceive('search')
+            ->with([
+                'index' => 'foo',
+                'type' => 'bar',
+                'body' => [
+                    'query' => [
+                        'query_string' => [
+                            'query' => '*',
+                        ],
                     ],
                 ],
-            ],
-            'size' => 10,
-            'from' => 10,
-        ]]);
+                'size' => 10,
+                'from' => 10,
+            ]);
+
+        ModelClass::elastic()->client($client);
+
+        $this->response->paginate([ 'myPage' => 2, 'perPage' => 10, 'pageName' => 'myPage' ])->toArray();
     }
 
     public function testFromSizeUsingDefaultPerPage()

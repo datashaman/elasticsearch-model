@@ -14,6 +14,9 @@ class ArrayDelegateModel implements ArrayAccess
     ];
 }
 
+/**
+ * @group wip
+ */
 class ArrayDelegateTest extends TestCase
 {
     public function setUp()

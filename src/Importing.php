@@ -5,7 +5,7 @@ use Illuminate\Support\Collection;
 
 trait Importing
 {
-    protected function transform()
+    public function transform()
     {
         return function ($model) {
             return [

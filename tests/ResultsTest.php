@@ -1,32 +1,35 @@
 <?php namespace Datashaman\ElasticModel\Tests;
 
-use AspectMock\Test as test;
-
 use Datashaman\ElasticModel\ElasticModel;
 use Datashaman\ElasticModel\SearchRequest;
 use Datashaman\ElasticModel\Response;
 use Datashaman\ElasticModel\Response\Results;
+use Mockery as m;
 
 class ResultsTestModel
 {
     use ElasticModel;
+    protected static $elasticsearch;
 
-    protected static $indexName = 'foo';
-    protected static $documentType = 'bar';
+    public static $indexName = 'foo';
+    public static $documentType = 'bar';
 }
 
-$response = [
-    'hits' => [
-        'total' => 123,
-        'max_score' => 456,
-        'hits' => [
-            [ 'foo' => 'bar' ],
-        ],
-    ],
-];
-
+/**
+ * @group passing
+ */
 class ResultsTest extends TestCase
 {
+    const RESPONSE = [
+        'hits' => [
+            'total' => 123,
+            'max_score' => 456,
+            'hits' => [
+                [ 'foo' => 'bar' ],
+            ],
+        ],
+    ];
+
     protected $search;
     protected $response;
     protected $results;
@@ -37,8 +40,8 @@ class ResultsTest extends TestCase
 
         parent::setUp();
 
-        $this->search = test::double(new SearchRequest(ResultsTestModel::class, '*'), [
-            'execute' => $response,
+        $this->search = m::mock(new SearchRequest(ResultsTestModel::class, '*'), [
+            'execute' => static::RESPONSE,
         ]);
 
         $this->response = new Response(ResultsTestModel::class, $this->search);

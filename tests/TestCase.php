@@ -1,21 +1,13 @@
 <?php namespace Datashaman\ElasticModel\Tests;
 
-use AspectMock\Test as test;
 use Datashaman\ElasticModel\Elasticsearch;
 use DB;
 use Elasticsearch\ClientBuilder;
+use Mockery as m;
 use Schema;
 
 class TestCase extends \Orchestra\Testbench\TestCase
 {
-    protected $indexName;
-
-    public function setUp()
-    {
-        parent::setUp();
-        $this->createDatabase();
-    }
-
     protected function getEnvironmentSetup($app)
     {
         $app['config']->set('database.default', 'testbench');
@@ -26,7 +18,13 @@ class TestCase extends \Orchestra\Testbench\TestCase
         ]);
     }
 
-    protected function createDatabase()
+    public function setUp()
+    {
+        parent::setUp();
+        Models\Thing::resetElasticModel();
+    }
+
+    protected function createThings()
     {
         Schema::create('categories', function ($table) {
             $table->increments('id');
@@ -60,21 +58,8 @@ class TestCase extends \Orchestra\Testbench\TestCase
 
     public function tearDown()
     {
-        test::clean();
-
-        Models\Thing::resetElasticModel();
-
-        Schema::drop('things');
-        Schema::drop('categories');
-
+        m::close();
         parent::tearDown();
     }
 
-    protected function setClient($expectations, $class=Models\Thing::class)
-    {
-        $object = ClientBuilder::create()->build();
-        $client = test::double($object, $expectations);
-        $class::elastic()->client($client);
-        return $client;
-    }
 }

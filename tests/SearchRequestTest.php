@@ -1,14 +1,17 @@
 <?php namespace Datashaman\ElasticModel\Tests;
 
+use Elasticsearch\Client;
 use Datashaman\ElasticModel\ElasticModel;
 use Datashaman\ElasticModel\SearchRequest;
+use Mockery as m;
 
 class SearchRequestTestModel
 {
     use ElasticModel;
+    protected static $elasticsearch;
 
-    protected static $indexName = 'foo';
-    protected static $documentType = 'bar';
+    public static $indexName = 'foo';
+    public static $documentType = 'bar';
 }
 
 class SearchRequestQueryBuilder
@@ -19,107 +22,112 @@ class SearchRequestQueryBuilder
     }
 }
 
+/**
+ * @group passing
+ */
 class SearchRequestTest extends TestCase
 {
     public function testSimpleQuery()
     {
-        $client = $this->setClient([
-            'search' => '',
-        ], SearchRequestTestModel::class);
+        $client = SearchRequestTestModel::elastic()->client(
+            m::mock(Client::class)
+                ->shouldReceive('search')
+                ->with([
+                    'index' => 'foo',
+                    'type' => 'bar',
+                    'body' => [
+                        'query' => [
+                            'query_string' => [
+                                'query' => 'foo',
+                            ],
+                        ],
+                    ],
+                ])
+                ->mock()
+        );
 
         $search = new SearchRequest(SearchRequestTestModel::class, 'foo');
         $search->execute();
-
-        $client->verifyInvoked('search', [[
-            'index' => 'search-request-test-models',
-            'type' => 'search-request-test-model',
-            'body' => [
-                'query' => [
-                    'query_string' => [
-                        'query' => 'foo',
-                    ],
-                ],
-            ],
-        ]]);
     }
 
     public function testArray()
     {
-        $client = $this->setClient([
-            'search' => '',
-        ], SearchRequestTestModel::class);
+        $client = SearchRequestTestModel::elastic()->client(
+            m::mock(Client::class)
+                ->shouldReceive('search')
+                ->with([
+                    'index' => 'foo',
+                    'type' => 'bar',
+                    'body' => [
+                        'foo' => 'bar',
+                    ],
+                ])
+                ->mock()
+        );
 
         $search = new SearchRequest(SearchRequestTestModel::class, [ 'foo' => 'bar' ]);
         $search->execute();
-
-        $client->verifyInvoked('search', [[
-            'index' => 'search-request-test-models',
-            'type' => 'search-request-test-model',
-            'body' => [
-                'foo' => 'bar'
-            ],
-        ]]);
     }
 
     public function testJsonString()
     {
-        $client = $this->setClient([
-            'search' => '',
-        ], SearchRequestTestModel::class);
+        $client = SearchRequestTestModel::elastic()->client(
+            m::mock(Client::class)
+                ->shouldReceive('search')
+                ->with([
+                    'index' => 'foo',
+                    'type' => 'bar',
+                    'body' => '{"foo":"bar"}',
+                ])
+                ->mock()
+        );
 
         $search = new SearchRequest(SearchRequestTestModel::class, '{"foo":"bar"}');
         $search->execute();
-
-        $client->verifyInvoked('search', [[
-            'index' => 'search-request-test-models',
-            'type' => 'search-request-test-model',
-            'body' => '{"foo":"bar"}',
-        ]]);
     }
 
     public function testToArray()
     {
-        $client = $this->setClient([
-            'search' => '',
-        ], SearchRequestTestModel::class);
+        $client = SearchRequestTestModel::elastic()->client(
+            m::mock(Client::class)
+                ->shouldReceive('search')
+                ->with([
+                    'index' => 'foo',
+                    'type' => 'bar',
+                    'body' => [
+                        'foo' => 'bar',
+                    ],
+                ])
+                ->mock()
+        );
 
         $builder = new SearchRequestQueryBuilder();
-
         $search = new SearchRequest(SearchRequestTestModel::class, $builder);
         $search->execute();
-
-        $client->verifyInvoked('search', [[
-            'index' => 'search-request-test-models',
-            'type' => 'search-request-test-model',
-            'body' => [
-                'foo' => 'bar',
-            ],
-        ]]);
     }
 
     public function testPassOptionsToClient()
     {
-        $client = $this->setClient([
-            'search' => '',
-        ], SearchRequestTestModel::class);
-
-        $builder = new SearchRequestQueryBuilder();
+        $client = SearchRequestTestModel::elastic()->client(
+            m::mock(Client::class)
+                ->shouldReceive('search')
+                ->with([
+                    'index' => 'foo',
+                    'type' => 'bar',
+                    'body' => [
+                        'query' => [
+                            'query_string' => [
+                                'query' => 'foo',
+                            ],
+                        ],
+                    ],
+                    'from' => 33,
+                    'size' => 33,
+                ])
+                ->mock()
+        );
 
         $search = new SearchRequest(SearchRequestTestModel::class, 'foo', [ 'from' => 33, 'size' => 33 ]);
         $search->execute();
-
-        $client->verifyInvoked('search', [[
-            'index' => 'search-request-test-models',
-            'type' => 'search-request-test-model',
-            'body' => [
-                'query' => [
-                    'query_string' => [
-                        'query' => 'foo',
-                    ],
-                ],
-            ],
-            'from' => 33,
-            'size' => 33,
-        ]]);
     }
 }

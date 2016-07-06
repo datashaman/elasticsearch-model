@@ -1,15 +1,15 @@
 <?php namespace Datashaman\ElasticModel\Tests;
 
-use AspectMock\Test as test;
 use Datashaman\ElasticModel\Response;
 use Datashaman\ElasticModel\Response\Records;
 use Datashaman\ElasticModel\Response\Result;
 use Datashaman\ElasticModel\Response\Results;
 use Datashaman\ElasticModel\SearchRequest;
+use Mockery as m;
 
 class ResponseTest extends TestCase
 {
-    protected static $mockResponse = [
+    const RESPONSE = [
         'took' => '5',
         'timed_out' => false,
         '_shards' => [
@@ -49,12 +49,14 @@ class ResponseTest extends TestCase
     public function testResponseAttributes()
     {
         $s = new SearchRequest(Models\Thing::class, '*');
-        $search = test::double($s, ['execute' => static::$mockResponse]);
+        $search = m::mock($s, [
+            'execute' => static::RESPONSE,
+        ]);
         $response = new Response(Models\Thing::class, $search);
 
         $this->assertSame(Models\Thing::class, $response->class);
         $this->assertSame($search, $response->search());
-        $this->assertSame(static::$mockResponse, $response->response());
+        $this->assertSame(static::RESPONSE, $response->response());
         $this->assertSame('5', $response->took());
         $this->assertSame(false, $response->timedOut());
         $this->assertSame('OK', $response->shards()['one']);
@@ -72,7 +74,7 @@ class ResponseTest extends TestCase
     public function testDelegateToResults()
     {
         $s = new SearchRequest(Models\Thing::class, '*');
-        $search = test::double($s, ['execute' => static::$mockResponse]);
+        $search = m::mock($s, ['execute' => static::RESPONSE]);
         $response = new Response(Models\Thing::class, $search);
 
         $result = $response[0];

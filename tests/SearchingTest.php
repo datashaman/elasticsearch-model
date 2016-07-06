@@ -1,8 +1,8 @@
 <?php namespace Datashaman\ElasticModel\Tests;
 
-use AspectMock\Test as test;
 use Datashaman\ElasticModel\SearchRequest;
 use Elasticsearch\Client;
+use Mockery as m;
 
 class SearchingModel
 {
@@ -35,40 +35,49 @@ class SearchingTest extends TestCase
 
     public function testSearchWithText()
     {
-        $client = test::double(Models\Thing::elastic()->client(), ['search' => '']);
+        $client = m::mock('Client')
+            ->shouldReceive('search')
+            ->with([
+                'index' => 'things',
+                'type' => 'thing',
+                'body' => [
+                    'query' => [
+                        'query_string' => [
+                            'query' => 'foo',
+                        ],
+                    ],
+                ],
+            ])
+            ->mock();
+
         Models\Thing::elastic()->client($client);
 
         $s = new SearchRequest(Models\Thing::class, 'foo');
         $s->execute();
-
-        $client->verifyMethodInvoked('search', [
-            'index' => 'things',
-            'type' => 'thing',
-            'q' => 'foo',
-        ]);
     }
 
     public function testSearchWithObject()
     {
-        $client = test::double(Models\Thing::elastic()->client(), ['search' => '']);
+        $client = m::mock(Client::class)
+            ->shouldReceive('search')
+            ->with([
+                'index' => 'things',
+                'type' => 'thing',
+                'body' => [
+                    'query' => [
+                        'match' => [
+                            'foo' => 'bar',
+                        ],
+                    ],
+                ],
+            ])
+            ->mock();
+
         Models\Thing::elastic()->client($client);
 
         $object = new SearchingModel();
-
         $s = new SearchRequest(Models\Thing::class, $object);
         $s->execute();
-
-        $client->verifyMethodInvoked('search', [
-            'index' => 'things',
-            'type' => 'thing',
-            'body' => [
-                'query' => [
-                    'match' => [
-                        'foo' => 'bar'
-                    ],
-                ],
-            ],
-        ]);
     }
 
     public function testSearchWithJson()
@@ -81,32 +90,42 @@ class SearchingTest extends TestCase
             ],
         ]);
 
-        $client = test::double(Models\Thing::elastic()->client(), ['search' => '']);
+        $client = m::mock(Client::class)
+            ->shouldReceive('search')
+            ->with([
+                'index' => 'things',
+                'type' => 'thing',
+                'body' => $body,
+            ])
+            ->mock();
+
         Models\Thing::elastic()->client($client);
 
         $s = new SearchRequest(Models\Thing::class, $body);
         $s->execute();
-
-        $client->verifyMethodInvoked('search', [
-            'index' => 'things',
-            'type' => 'thing',
-            'body' => $body,
-        ]);
     }
 
     public function testPassOptionsToclient()
     {
-        $client = test::double(Models\Thing::elastic()->client(), ['search' => '']);
+        $client = m::mock(Client::class)
+            ->shouldReceive('search')
+            ->with([
+                'index' => 'things',
+                'type' => 'thing',
+                'body' => [
+                    'query' => [
+                        'query_string' => [
+                            'query' => 'foo',
+                        ],
+                    ],
+                ],
+                'size' => 15,
+            ])
+            ->mock();
+
         Models\Thing::elastic()->client($client);
 
         $s = new SearchRequest(Models\Thing::class, 'foo', [ 'size' => 15 ]);
         $s->execute();
-
-        $client->verifyMethodInvoked('search', [
-            'index' => 'things',
-            'type' => 'thing',
-            'q' => 'foo',
-            'size' => 15,
-        ]);
     }
 }

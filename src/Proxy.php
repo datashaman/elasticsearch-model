@@ -2,7 +2,7 @@
 
 use Elasticsearch\ClientBuilder;
 
-class Elasticsearch extends GetOrSet
+class Elastic extends GetOrSet
 {
     use Searching;
     use Importing;
@@ -14,11 +14,13 @@ class Elasticsearch extends GetOrSet
     {
         $name = preg_replace('/([A-Z])/', ' \1', class_basename($class));
 
-        parent::__construct([
+        $attributes = [
             'client' => ClientBuilder::create()->build(),
             'documentType' => isset($class::$documentType) ? $class::$documentType : str_slug($name),
             'indexName' => isset($class::$indexName) ? $class::$indexName : str_slug(str_plural($name)),
-        ]);
+        ];
+
+        parent::__construct($attributes);
 
         $this->class = $class;
     }
@@ -27,7 +29,6 @@ class Elasticsearch extends GetOrSet
 trait Proxy
 {
     protected $_dirty;
-    protected static $elasticsearch;
 
     public static function resetElasticModel()
     {
@@ -36,10 +37,17 @@ trait Proxy
 
     public static function elastic()
     {
-        if (is_null(static::$elasticsearch)) {
-            static::$elasticsearch = new Elasticsearch(static::class);
+        $args = func_get_args();
+
+        if (count($args) == 0) {
+            if (empty(static::$elasticsearch)) {
+                static::$elasticsearch = new Elastic(static::class);
+            }
+
+            return static::$elasticsearch;
         }
 
+        static::$elasticsearch = $args[0];
         return static::$elasticsearch;
     }
 
@@ -60,7 +68,8 @@ trait Proxy
 
     public static function indexName()
     {
-        return static::getOrSet('indexName', func_get_args());
+        $result = static::getOrSet('indexName', func_get_args());
+        return $result;
     }
 
     public static function documentType()
@@ -108,7 +117,7 @@ trait Proxy
         return static::elastic()->updateDocument($options);
     }
 
-    private static function getOrSet($name, $args)
+    protected static function getOrSet($name, $args)
     {
         if (count($args) == 0) {
             return static::elastic()->$name();
@@ -117,7 +126,7 @@ trait Proxy
         return static::elastic()->$name($args[0]);
     }
 
-    private static function instanceOptions($primaryKey, $options=[])
+    public static function instanceOptions($primaryKey, $options=[])
     {
         $options = array_merge([
             'index' => static::indexName(),

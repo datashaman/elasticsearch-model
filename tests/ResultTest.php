@@ -3,6 +3,9 @@
 use Datashaman\ElasticModel\Response\Result;
 
 
+/**
+ * @group passing
+ */
 class ResultTest extends TestCase
 {
     public function testAccessToProperties()

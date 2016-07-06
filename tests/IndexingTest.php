@@ -1,247 +1,338 @@
 <?php namespace Datashaman\ElasticModel\Tests;
 
-use AspectMock\Test as test;
+use Datashaman\ElasticModel\Elastic;
+use Datashaman\ElasticModel\ElasticModel;
 use Datashaman\ElasticModel\Mappings;
 use Elasticsearch\clientBuilder;
 use Elasticsearch\Common\Exceptions\Missing404Exception;
 use Elasticsearch\Namespaces\IndicesNamespace;
+use Illuminate\Database\Eloquent\Model;
 use Log;
+use Mockery as m;
+use Schema;
 use stdClass;
+
+class IndexingTestModel
+{
+    use ElasticModel;
+    protected static $elasticsearch;
+    public $id = 1;
+}
+
+class EloquentModel extends Model
+{
+    use ElasticModel;
+    protected static $elasticsearch;
+}
 
 class IndexingTest extends TestCase
 {
+
+    public function setUp()
+    {
+        parent::setUp();
+        $this->createThings();
+    }
+
     public function testCreateIndex()
     {
         $create = new stdClass;
-        $indices = test::double(IndicesNamespace::class, compact('create'));
 
-        test::double(Models\Thing::elastic(), [
+        $elastic = m::mock(Elastic::class, [IndexingTestModel::class], [
+            'client' => m::mock('Client', [
+                'indices->create' => $create,
+            ]),
             'indexExists' => false,
-        ]);
+            'indexName' => 'indexing-test-models',
+            'documentType' => 'indexing-test-model',
+        ])->shouldDeferMissing();
 
-        $this->assertSame($create, Models\Thing::elastic()->createIndex());
-
-        $indices->verifyInvoked('create', [[ 'index' => 'things', 'body' => [] ]]);
+        $this->assertSame($create, $elastic->createIndex());
     }
 
     public function testCreateIndexThatExists()
     {
-        $create = new stdClass;
-        $indices = test::double(IndicesNamespace::class, compact('create'));
-
-        test::double(Models\Thing::elastic(), [
+        $elastic = m::mock(Elastic::class, [IndexingTestModel::class], [
             'indexExists' => true,
-        ]);
+            'indexName' => 'indexing-test-models',
+            'documentType' => 'indexing-test-model',
+        ])->shouldDeferMissing();
 
-        $this->assertFalse(Models\Thing::elastic()->createIndex());
-
-        $indices->verifyNeverInvoked('create');
+        $this->assertFalse($elastic->createIndex());
     }
 
     public function testCreateIndexWithForce()
     {
         $create = new stdClass;
-        $indices = test::double(IndicesNamespace::class, compact('create'));
 
-        $thing = test::double(Models\Thing::elastic(), [
-            'deleteIndex' => null,
-            'indexExists' => false,
-        ]);
+        $client = m::mock('Client');
 
-        $this->assertSame($create, Models\Thing::elastic()->createIndex([ 'force' => true ]));
+        $client->shouldReceive('indices->create')
+            ->with([
+                'index' => 'indexing-test-models',
+                'body' => [],
+            ])
+            ->andReturn($create);
 
-        $thing->verifyInvoked('deleteIndex', [[ 'force' => true, 'index' => 'things' ]]);
-        $thing->verifyInvoked('indexExists', [[ 'index' => 'things' ]]);
+        $elastic = m::mock(Elastic::class, [IndexingTestModel::class], [
+            'client' => $client,
+            'indexName' => 'indexing-test-models',
+            'documentType' => 'indexing-test-model',
+        ])->shouldDeferMissing();
 
-        $indices->verifyInvoked('create', [[ 'index' => 'things', 'body' => [] ]]);
+        $elastic->shouldReceive('deleteIndex')
+            ->with([ 'force' => true, 'index' => 'indexing-test-models' ]);
+
+        $elastic->shouldReceive('indexExists')
+            ->with([ 'index' => 'indexing-test-models' ]);
+
+        $this->assertSame($create, $elastic->createIndex([ 'force' => true ]));
     }
 
     public function testCreateIndexWithForceThatExists()
     {
-        $indices = test::double(IndicesNamespace::class, [
-            'create' => null,
-        ]);
+        $elastic = m::mock(Elastic::class, [IndexingTestModel::class], [
+            'indexName' => 'indexing-test-models',
+            'documentType' => 'indexing-test-model',
+        ])->shouldDeferMissing();
 
-        $thing = test::double(Models\Thing::elastic(), [
-            'deleteIndex' => null,
-            'indexExists' => true,
-        ]);
+        $elastic->shouldReceive('deleteIndex')
+            ->with([ 'force' => true, 'index' => 'indexing-test-models' ]);
 
-        $this->assertFalse(Models\Thing::elastic()->createIndex([ 'force' => true ]));
+        $elastic->shouldReceive('indexExists')
+            ->with([ 'index' => 'indexing-test-models' ])
+            ->andReturn(true);
 
-        $thing->verifyInvoked('deleteIndex', [[ 'force' => true, 'index' => 'things' ]]);
-        $thing->verifyInvoked('indexExists', [[ 'index' => 'things' ]]);
-
-        $indices->verifyNeverInvoked('create');
+        $this->assertFalse($elastic->createIndex([ 'force' => true ]));
     }
 
     public function testIndexExists()
     {
-        $indices = test::double(IndicesNamespace::class, [
-            'exists' => true,
-        ]);
+        $client = m::mock('Client');
+        $client->shouldReceive('indices->exists')
+            ->with([
+                'index' => 'indexing-test-models',
+            ])
+            ->andReturn(true);
 
-        $this->assertTrue(Models\Thing::elastic()->indexExists());
+        $elastic = m::mock(Elastic::class, [IndexingTestModel::class], [
+            'client' => $client,
+            'indexName' => 'indexing-test-models',
+            'documentType' => 'indexing-test-model',
+        ])->shouldDeferMissing();
 
-        $indices->verifyInvoked('exists', [[ 'index' => 'things' ]]);
+        $this->assertTrue($elastic->indexExists());
     }
 
     public function testDeleteIndex()
     {
         $delete = new stdClass;
-        $indices = test::double(IndicesNamespace::class, compact('delete'));
 
-        $this->assertSame($delete, Models\Thing::elastic()->deleteIndex());
+        $client = m::mock('Client');
+        $client->shouldReceive('indices->delete')
+            ->with([
+                'index' => 'indexing-test-models',
+            ])
+            ->andReturn($delete);
 
-        $indices->verifyInvoked('delete', [[ 'index' => 'things' ]]);
+        $elastic = m::mock(Elastic::class, [IndexingTestModel::class], [
+            'client' => $client,
+            'indexName' => 'indexing-test-models',
+            'documentType' => 'indexing-test-model',
+        ])->shouldDeferMissing();
+
+        $this->assertSame($delete, $elastic->deleteIndex());
     }
 
     public function testDeleteMissingIndex()
     {
-        $delete = function () { throw new Missing404Exception('Index is missing'); };
-        $indices = test::double(IndicesNamespace::class, compact('delete'));
+        $client = m::mock('Client');
+
+        $client->shouldReceive('indices->delete')
+            ->andThrow(Missing404Exception::class, 'Index is missing');
+
+        $elastic = m::mock(Elastic::class, [IndexingTestModel::class], [
+            'client' => $client,
+            'indexName' => 'indexing-test-models',
+        ])->shouldDeferMissing();
 
         $this->expectException(Missing404Exception::class);
         $this->expectExceptionMessage('Index is missing');
 
-        Models\Thing::elastic()->deleteIndex();
+        $elastic->deleteIndex();
     }
 
     public function testDeleteMissingIndexWithForce()
     {
-        $delete = function () { throw new Missing404Exception('Index is missing'); };
-        $indices = test::double(IndicesNamespace::class, compact('delete'));
-        $log = test::double(Log::class, [
-            'error' => null,
-        ]);
+        $client = m::mock('Client');
 
-        $this->assertFalse(Models\Thing::elastic()->deleteIndex([ 'force' => true ]));
+        $client->shouldReceive('indices->delete')
+            ->andThrow(Missing404Exception::class, 'Index is missing');
 
-        // $log->verifyInvoked('error', [ 'Index is missing', [ 'index' => 'things' ]]);
+        $elastic = m::mock(Elastic::class, [IndexingTestModel::class], [
+            'client' => $client,
+            'indexName' => 'indexing-test-models',
+        ])->shouldDeferMissing();
+
+        Log::shouldReceive('error')
+            ->with('Index is missing', [ 'index' => 'indexing-test-models' ]);
+
+        $this->assertFalse($elastic->deleteIndex([ 'force' => true ]));
     }
 
     public function testIndexDocument()
     {
-        $expectations = [
-            'index' => [
-                '_index' => Models\Thing::indexName(),
-                '_type' => Models\Thing::documentType(),
-                '_id' => 1,
-                '_version' => 1,
-                'created' => true,
+        $client = m::mock('Client');
+
+        $client->shouldReceive('index')
+            ->with([
+                'index' => 'indexing-test-models',
+                'type' => 'indexing-test-model',
+                'id' => 1,
+                'body' => [
+                    'id' => 1,
+                    'foo' => 'bar',
+                ]
+            ]);
+
+        $elastic = m::mock(Elastic::class, [IndexingTestModel::class], [
+            'client' => $client,
+            'indexName' => 'indexing-test-models',
+            'documentType' => 'indexing-test-model',
+        ])->shouldDeferMissing();
+
+        IndexingTestModel::elastic($elastic);
+
+        $instance = m::mock(IndexingTestModel::class, [
+            'toArray' => [
+                'id' => 1,
+                'foo' => 'bar',
             ],
-        ];
+            'first' => '',
+        ])->shouldDeferMissing();
 
-        $client = $this->setClient($expectations);
-
-        $thing = Models\Thing::first();
-
-        $this->assertEquals($expectations['index'], $thing->indexDocument());
-
-        $client->verifyInvoked('index', [[
-            'index' => 'things',
-            'type' => 'thing',
-            'id' => 1,
-            'body' => $thing->toIndexedArray(),
-        ]]);
+        $instance->indexDocument();
     }
 
     public function testGetDocument()
     {
-        $thing = Models\Thing::first();
+        $expected = [
+            '_index' => 'indexing-test-models',
+            '_type' => 'indexing-test-model',
+            '_id' => 1,
+            '_version' => 1,
+            'found' => true,
+            '_source' => [
+                'id' => 1,
+                'foo' => 'bar',
+            ]
+        ];
 
-        $expectations = [
-            'get' => [
-                '_index' => Models\Thing::indexName(),
-                '_type' => Models\Thing::documentType(),
+        $client = m::mock('Client');
+
+        $client->shouldReceive('get')
+            ->with([
+                'index' => 'indexing-test-models',
+                'type' => 'indexing-test-model',
+                'id' => 1,
+            ])
+            ->andReturn([
+                '_index' => 'indexing-test-models',
+                '_type' => 'indexing-test-model',
                 '_id' => 1,
                 '_version' => 1,
                 'found' => true,
-                '_source' => $thing->toIndexedArray(),
-            ],
-        ];
+                '_source' => [
+                    'id' => 1,
+                    'foo' => 'bar',
+                ]
+            ]);
 
-        $client = $this->setClient($expectations);
+        $elastic = m::mock(Elastic::class, [IndexingTestModel::class], [
+            'client' => $client,
+            'indexName' => 'indexing-test-models',
+            'documentType' => 'indexing-test-model',
+        ])->shouldDeferMissing();
 
-        $this->assertEquals($expectations['get'], Models\Thing::getDocument($thing->id));
+        IndexingTestModel::elastic($elastic);
 
-        $client->verifyInvoked('get', [[
-            'index' => 'things',
-            'type' => 'thing',
-            'id' => 1,
-        ]]);
+        $this->assertEquals($expected, IndexingTestModel::getDocument(1));
     }
 
     public function testUpdateDocument()
     {
-        Models\Thing::updated(function ($thing) {
-            $thing->updateDocument();
+        Models\Thing::updated(function ($instance) {
+            $instance->updateDocument();
         });
 
-        $expectations = [
-            'update' => [
-                '_index' => Models\Thing::indexName(),
-                '_type' => Models\Thing::documentType(),
-                '_id' => 1,
+        $client = m::mock('Client');
+
+        $client->shouldReceive('update')
+            ->with([
+                'index' => 'indexing-test-models',
+                'type' => 'indexing-test-model',
+                'id' => 2,
+                'body' => [
+                    'doc' => [
+                        'title' => 'other title',
+                    ],
+                ],
+            ])
+            ->andReturn([
+                '_index' => 'indexing-test-models',
+                '_type' => 'indexing-test-model',
+                '_id' => 2,
                 '_version' => 2,
-            ],
-        ];
+            ]);
 
-        $client = $this->setClient($expectations);
+        $elastic = m::mock(Elastic::class, [IndexingTestModel::class], [
+            'client' => $client,
+            'indexName' => 'indexing-test-models',
+            'documentType' => 'indexing-test-model',
+        ])->shouldDeferMissing();
 
-        $thing = Models\Thing::first();
-        $thing->title = 'Changed the title';
+        Models\Thing::elastic($elastic);
+
+        $thing = new Models\Thing;
+        $thing->category_id = 1;
+        $thing->title = 'Title';
         $thing->save();
 
-        $client->verifyInvoked('update', [[
-            'index' => 'things',
-            'type' => 'thing',
-            'id' => 1,
-            'body' => [
-                'doc' => [
-                    'title' => 'Changed the title',
-                    'updated_at' => $thing->updated_at->toDateTimeString(),
-                ],
-            ],
-        ]]);
+        $thing->title = 'other title';
+        $thing->save();
     }
 
     public function testUpdateUnchangedDocument()
     {
-        $indexDocument = new stdClass;
-        $thingDouble = test::double(Models\Thing::class, compact('indexDocument'));
+        $thing = new Models\Thing;
 
-        $thing = Models\Thing::first();
-        $thing->update([]);
+        $instance = m::mock($thing)
+            ->shouldReceive('indexing')
+            ->mock();
 
-        $this->assertEquals($indexDocument, $thing->updateDocument());
+        $thing->title = 'Title';
+        $thing->category_id = 1;
+        $thing->save();
 
-        $thingDouble->verifyInvoked('indexDocument', [[]]);
+        $instance->updateDocument();
     }
 
     public function testDeleteDocument()
     {
         $thing = Models\Thing::first();
 
-        $expectations = [
-            'delete' => [
-                '_index' => Models\Thing::indexName(),
-                '_type' => Models\Thing::documentType(),
-                '_id' => 1,
-                '_version' => 2,
-                'found' => true,
-            ],
-        ];
+        $client = m::mock('Client')
+            ->shouldReceive('delete')
+            ->with([
+                'index' => 'things',
+                'type' => 'thing',
+                'id' => 1,
+            ])
+            ->mock();
 
-        $client = $this->setClient($expectations);
+        Models\Thing::elastic()->client($client);
 
-        $this->assertEquals($expectations['delete'], $thing->deleteDocument());
-
-        $client->verifyInvoked('delete', [[
-            'index' => 'things',
-            'type' => 'thing',
-            'id' => 1,
-        ]]);
+        $thing->deleteDocument();
     }
 
     public function testMappingsClass()
