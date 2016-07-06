@@ -2,28 +2,19 @@
 
 trait ArrayDelegate
 {
-    private function &resolveArray()
-    {
-        return $this->{static::$arrayDelegate};
-    }
-
     public function offsetSet($offset, $value) {
-        $array = &$this->resolveArray();
-        array_set($array, $offset, $value);
+        array_set($this->{static::$arrayDelegate}, $offset, $value);
     }
 
     public function offsetExists($offset) {
-        $array = &$this->resolveArray();
-        return array_has($array, $offset);
+        return array_has($this->{static::$arrayDelegate}, $offset);
     }
 
     public function offsetUnset($offset) {
-        $array = &$this->resolveArray();
-        array_forget($array, $offset);
+        array_forget($this->{static::$arrayDelegate}, $offset);
     }
 
     public function offsetGet($offset) {
-        $array = &$this->resolveArray();
-        return array_get($array, $offset);
+        return array_get($this->{static::$arrayDelegate}, $offset);
     }
 }
