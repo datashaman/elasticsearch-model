@@ -11,8 +11,7 @@ install:
   - phpenv config-rm xdebug.ini
   - travis_retry composer install --no-interaction --prefer-dist
 
-script:
-  - php -dzend_extension=xdebug.so composer run coverage
+script: composer run coverage
 
 after_script:
   - vendor/bin/test-reporter
