@@ -12,7 +12,7 @@ install:
   - travis_retry composer install --no-interaction --prefer-dist
 
 script:
-  - php -dzend_extension=xdebug.so `which composer` run coverage
+  - php -dzend_extension=xdebug.so composer run coverage
 
 after_script:
   - vendor/bin/test-reporter
