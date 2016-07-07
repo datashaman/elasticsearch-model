@@ -35,7 +35,7 @@
     "scripts": {
         "test": "phpunit",
         "test-wip": "phpunit --group wip",
-        "coverage": "phpunit --coverage-clover build/logs/clover.xml",
+        "coverage": "php -dzend_extension=xdebug.so `which phpunit` --coverage-clover build/logs/clover.xml",
         "send-coverage": "bash -c 'source .env && vendor/bin/test-reporter'",
         "watch-test": "bash watch-test.sh"
     },

@@ -7,9 +7,12 @@ php:
 
 sudo: false
 
-install: travis_retry composer install --no-interaction --prefer-dist
+install:
+  - phpenv config-rm xdebug.ini
+  - travis_retry composer install --no-interaction --prefer-dist
 
-script: composer run coverage
+script:
+  - php -dzend_extension=xdebug.so `which composer` run coverage
 
 after_script:
   - vendor/bin/test-reporter
