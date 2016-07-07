@@ -2,18 +2,22 @@
 
 class Adapter
 {
+    protected static $default = Adapter\DefaultAdapter::class;
     protected static $adapters;
 
+    protected $class;
+    protected $records;
     protected $adapter;
 
-    public function __construct($class)
+    public function __construct($class, $records)
     {
         $this->class = $class;
+        $this->records = $records;
     }
 
-    public static function fromClass($class)
+    public static function fromClass($class, $records)
     {
-        return new static($class);
+        return new static($class, $records);
     }
 
     public static function register($name, $condition)
@@ -52,9 +56,14 @@ class Adapter
                 $adapter = static::$default;
             }
 
-            $this->adapter = $adapter;
+            $this->adapter = new $adapter($this->class, $this->records);
         }
 
         return $this->adapter;
+    }
+
+    public function records()
+    {
+        return $this->adapter()->records();
     }
 }

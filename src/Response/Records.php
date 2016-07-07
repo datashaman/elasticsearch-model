@@ -1,6 +1,7 @@
 <?php namespace Datashaman\ElasticModel\Response;
 
 use ArrayAccess;
+use Datashaman\ElasticModel\Adapter;
 use Datashaman\ElasticModel\ArrayDelegate;
 use Illuminate\Support\Collection;
 
@@ -15,6 +16,7 @@ class Records extends Base implements ArrayAccess
     public function __construct($class, $response, $options=[])
     {
         parent::__construct($class, $response);
+        $this->adapter = Adapter::fromClass($class, $this);
         $this->options = $options;
     }
 
@@ -28,23 +30,8 @@ class Records extends Base implements ArrayAccess
         case 'results':
             return $this->response->results;
         case 'records':
-            /** TODO: Abstract this so more than Eloquent can be used */
-            $class = $this->class;
-            $records = $class::whereIn('id', $this->ids)->get();
-
-            $ordered = [];
-
-            foreach ($this->ids as $id) {
-                foreach ($records as $index => $record) {
-                    if ($record->id == $id) {
-                        $ordered[] = $record;
-                        array_pull($records, $index);
-                        break;
-                    }
-                }
-            }
-
-            return Collection::make($ordered);
+            $records = $this->adapter->records();
+            return $records;
         default:
             return parent::__get($name);
         }
@@ -55,9 +42,21 @@ class Records extends Base implements ArrayAccess
         return call_user_func_array([ $this->records, $name ], $args);
     }
 
+    private function zip($first, $second)
+    {
+        /** Collection::zip produces incorrect results, believe it or not */
+        $zipped = [];
+
+        $first->each(function ($item, $key) use ($second, &$zipped) {
+            $zipped[] = [ $item, $second[$key] ];
+        });
+
+        return collect($zipped);
+    }
+
     public function eachWithHit(callable $callable)
     {
-        $collection = $this->records->zip($this->results->results);
+        $collection = $this->zip($this->records, $this->results->results);
         return $collection->each(function ($both) use ($callable) {
             call_user_func($callable, $both[0], $both[1]);
         });
@@ -65,7 +64,7 @@ class Records extends Base implements ArrayAccess
 
     public function mapWithHit(callable $callable)
     {
-        $collection = $this->records->zip($this->results->results);
+        $collection = $this->zip($this->records, $this->results->results);
         return $collection->map(function ($both) use ($callable) {
             return call_user_func($callable, $both[0], $both[1]);
         });

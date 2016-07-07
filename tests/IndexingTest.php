@@ -300,9 +300,6 @@ class IndexingTest extends TestCase
         $thing->save();
     }
 
-    /**
-     * @group wip
-     */
     public function testUpdateUnchangedDocument()
     {
         $elastic = m::mock(Elastic::class, [Models\Thing::class], [
