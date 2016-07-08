@@ -29,7 +29,14 @@ class PaginationTest extends TestCase
     public function setUp()
     {
         parent::setUp();
-        $this->response = ModelClass::search('*');
+
+        $search = new SearchRequest(ModelClass::class, '*');
+
+        $this->response = new Response($search, [
+            'hits' => [
+                'hits' => [],
+            ],
+        ]);
     }
 
     public function tearDown()
