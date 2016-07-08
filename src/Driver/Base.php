@@ -2,8 +2,12 @@
 
 class Base
 {
-    public function __construct($response)
+    public $response;
+    public $options;
+
+    public function __construct($response, $options=[])
     {
         $this->response = $response;
+        $this->options = $options;
     }
 }

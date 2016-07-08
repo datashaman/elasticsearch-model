@@ -4,11 +4,11 @@ use ArrayObject;
 
 class Result
 {
-    protected $result;
+    protected $hit;
 
-    public function __construct($attributes=[])
+    public function __construct($hit=[])
     {
-        $this->result = $attributes;
+        $this->hit = $hit;
     }
 
     public function __get($name)
@@ -16,21 +16,16 @@ class Result
         switch ($name) {
         case 'id':
         case 'type':
-            return array_get($this->result, '_'.$name);
+            return array_get($this->hit, '_'.$name);
         default:
-            if(array_has($this->result, $name)) {
-                return array_get($this->result, $name);
+            if(array_has($this->hit, $name)) {
+                return array_get($this->hit, $name);
             }
 
-            if (array_has($this->result, '_source')
-                && array_has($this->result['_source'], $name)) {
-                return array_get($this->result['_source'], $name);
+            if (array_has($this->hit, '_source')
+                && array_has($this->hit['_source'], $name)) {
+                return array_get($this->hit['_source'], $name);
             }
         }
-    }
-
-    public function toArray()
-    {
-        return $this->result;
     }
 }

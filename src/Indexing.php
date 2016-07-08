@@ -87,6 +87,12 @@ trait Indexing
     protected $settings;
     protected $mapping;
 
+    public function refreshIndex($options=[])
+    {
+        $index = array_pull($options, 'index', $this->indexName());
+        return $this->client()->indices()->refresh(compact('index'));
+    }
+
     public function indexExists($options=[])
     {
         $index = array_get($options, 'index', $this->indexName());

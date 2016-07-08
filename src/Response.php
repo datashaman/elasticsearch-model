@@ -2,7 +2,6 @@
 
 use ArrayAccess;
 use Datashaman\ElasticModel\ArrayDelegate;
-use Illuminate\Support\Collection;
 
 class Response implements ArrayAccess
 {
@@ -21,8 +20,17 @@ class Response implements ArrayAccess
         $this->search = $search;
         $this->response = is_null($response) ? $search->execute() : $response;
 
-        $this->results = collect($this->response['hits']['hits'])
-            ->map(function ($hit) { return new Response\Result($hit); });
+        $this->results = collect($this->response['hits']['hits'])->map(function ($hit) {
+            $result = new Response\Result($hit);
+            return $result;
+        });
+
+        /*
+        foreach ($this->response['hits']['hits'] as $hit) {
+            $result = new Response\Result($hit);
+            $this->results[] = $result;
+        }
+         */
     }
 
     public function __call($name, $args)
@@ -35,9 +43,9 @@ class Response implements ArrayAccess
         return $this->results->map(function ($result) { return $result->id; });
     }
 
-    public function records()
+    public function records($options=[])
     {
-        return new Response\Records($this);
+        return new Response\Records($this, $options);
     }
 
     public function took()

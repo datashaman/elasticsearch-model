@@ -2,8 +2,6 @@
 
 class EloquentDriver extends Base
 {
-    public $options = [];
-
     public function records()
     {
         $ids = $this->response->ids();
@@ -12,7 +10,7 @@ class EloquentDriver extends Base
         $records = $class::whereIn('id', $ids);
 
         if (array_has($this->options, 'with')) {
-            $records = call_user_func_array([ $records, 'with' ], $this->options['with']);
+            call_user_func_array([ $records, 'with' ], $this->options['with']);
         }
 
         $records = $records->get();

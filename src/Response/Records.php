@@ -16,7 +16,7 @@ class Records implements ArrayAccess
     {
         $this->response = $response;
         $this->options = $options;
-        $this->driverManager = new DriverManager($response);
+        $this->driverManager = new DriverManager($response, $options);
         $this->records = $this->driverManager->records();
     }
 

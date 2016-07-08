@@ -52,6 +52,25 @@ class ImportingTest extends TestCase
         $elastic->import();
     }
 
+    public function testRefresh()
+    {
+        $client = m::mock('Client', [
+            'indices->refresh' => '',
+            'bulk' => [
+                'items' => [],
+            ],
+        ]);
+
+        $elastic = m::mock(Elastic::class, [ ImportingTestModel::class ], [
+            'client' => $client,
+            'indexExists' => true,
+            'indexName' => 'importing-test-models',
+            'documentType' => 'importing-test-model',
+        ])->shouldDeferMissing();
+
+        $elastic->import([ 'refresh' => true ]);
+    }
+
     public function testReturnsNumberOfErrors()
     {
         $client = m::mock('Client', [
