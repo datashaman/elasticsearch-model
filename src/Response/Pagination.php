@@ -15,7 +15,7 @@ trait Pagination
             'from' => ($currentPage - 1) * $perPage,
         ];
 
-        $this->search()->update($args);
+        $this->search->update($args);
 
         // $results = $this->results->results->all();
         // $paginator = new LengthAwarePaginator($results, $this->results->total, $perPage, $currentPage, $options);
@@ -25,7 +25,7 @@ trait Pagination
 
     public function defaultPerPage()
     {
-        $class = $this->class;
+        $class = $this->search->class;
 
         if (isset($class::$perPage)) {
             return $class::$perPage;
@@ -43,7 +43,7 @@ trait Pagination
     public function perPage($num=null)
     {
         if (is_null($num)) {
-            return array_get($this->search()->definition, 'size', $this->defaultPerPage());
+            return array_get($this->search->definition, 'size', $this->defaultPerPage());
         }
 
         $this->paginate([ 'page' => $this->currentPage(), 'perPage' => $num ]);
@@ -52,7 +52,7 @@ trait Pagination
 
     public function currentPage()
     {
-        $from = array_get($this->search()->definition, 'from');
+        $from = array_get($this->search->definition, 'from');
         $perPage = $this->perPage();
 
         if (!is_null($from) && $perPage) {
@@ -62,6 +62,6 @@ trait Pagination
 
     public function toArray()
     {
-        return $this->results()->results->all();
+        return $this->results->toArray();
     }
 }

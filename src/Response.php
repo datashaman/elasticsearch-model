@@ -1,69 +1,82 @@
 <?php namespace Datashaman\ElasticModel;
 
 use ArrayAccess;
+use Datashaman\ElasticModel\ArrayDelegate;
 use Illuminate\Support\Collection;
 
-class Response extends GetOrSet implements ArrayAccess
+class Response implements ArrayAccess
 {
-    use ArrayDelegate;
     use Response\Pagination;
 
+    use ArrayDelegate;
     protected static $arrayDelegate = 'results';
-    public $class;
 
-    public function __construct($class, $search, $response=null)
+    public $search;
+    public $response;
+
+    protected $results;
+
+    public function __construct($search, $response=null)
     {
-        $this->class = $class;
-        parent::__construct(compact('search', 'response'));
-    }
+        $this->search = $search;
+        $this->response = is_null($response) ? $search->execute() : $response;
 
-    public function __get($name)
-    {
-        if ($name == 'results') {
-            return $this->results();
-        }
-
-        return parent::__get($name);
+        $this->results = collect($this->response['hits']['hits'])
+            ->map(function ($hit) { return new Response\Result($hit); });
     }
 
     public function __call($name, $args)
     {
-        if (count($args) > 0) {
-            $this->attributes[$name] = $args[0];
-            return $this;
-        }
+        return call_user_func_array([ $this->results, $name ], $args);
+    }
 
-        if (isset($this->attributes[$name])) {
-            return $this->attributes[$name];
-        }
+    public function ids()
+    {
+        return $this->results->map(function ($result) { return $result->id; });
+    }
 
-        switch ($name) {
-        case 'response':
-            $response = $this->search()->execute();
-            return $response;
-        case 'results':
-            return new Response\Results($this->class, $this);
-        case 'records':
-            return new Response\Records($this->class, $this);
-        case 'took':
-            return $this->response()['took'];
-        case 'timedOut':
-            return $this->response()['timed_out'];
-        case 'shards':
-            return $this->response()['_shards'];
-        case 'aggregations':
-            return array_get($this->response(), 'aggregations');
-        case 'suggestions':
-            $response = $this->response();
-            return array_has($response, 'suggest') ? new Response\Suggestions($response['suggest']) : null;
-        case 'from':
-            return $this->search()->definition['from'];
-        case 'size':
-            return $this->search()->definition['size'];
-        case 'total':
-            return $this->results()->total();
-        default:
-            return parent::__call($name, $args);
-        }
+    public function records()
+    {
+        return new Response\Records($this);
+    }
+
+    public function took()
+    {
+        return $this->response['took'];
+    }
+
+    public function timedOut()
+    {
+        return $this->response['timed_out'];
+    }
+
+    public function shards()
+    {
+        return $this->response['_shards'];
+    }
+
+    public function aggregations()
+    {
+        return array_get($this->response, 'aggregations');
+    }
+
+    public function suggestions()
+    {
+        return array_has($this->response, 'suggest') ? new Response\Suggestions($this->response['suggest']) : null;
+    }
+
+    public function from()
+    {
+        return $this->search->definition['from'];
+    }
+
+    public function size()
+    {
+        return $this->search->definition['size'];
+    }
+
+    public function total()
+    {
+        return $this->response['hits']['total'];
     }
 }

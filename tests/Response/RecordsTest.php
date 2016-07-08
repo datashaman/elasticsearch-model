@@ -10,7 +10,7 @@ use Illuminate\Support\Collection;
 use Mockery as m;
 use Schema;
 
-class DummyCollection extends Collection
+class RecordsTestCollection extends Collection
 {
     public function __construct()
     {
@@ -21,7 +21,7 @@ class DummyCollection extends Collection
     public $foo = 'BAR';
 }
 
-class DummyModel
+class RecordsTestModel
 {
     use ElasticModel;
     protected static $elasticsearch;
@@ -29,9 +29,16 @@ class DummyModel
     protected static $indexName = 'foo';
     protected static $documentType = 'bar';
 
-    public static function whereIn($ids)
+    public static function whereIn($name, $ids)
     {
-        return new DummyCollection(['FOO']);
+        return m::mock('Builder', [
+            'get' => new Collection([
+                (object) [
+                    'id' => 1,
+                    'foo' => 'BAR',
+                ],
+            ]),
+        ]);
     }
 }
 
@@ -47,9 +54,9 @@ class RecordsTest extends TestCase
     public function setUp()
     {
         parent::setUp();
-        $this->createThings();
+        // $this->createThings();
 
-        $search = m::mock(new SearchRequest(DummyModel::class, '*'), [
+        $search = m::mock(SearchRequest::class, [ RecordsTestModel::class, '*' ], [
             'execute' => [
                 'hits' => [
                     'total' => 123,
@@ -60,41 +67,28 @@ class RecordsTest extends TestCase
                     ]],
                 ],
             ],
-        ]);
+        ])->shouldDeferMissing();
 
-        $response = new Response(DummyModel::class, $search);
-        $this->records = new Records(DummyModel::class, $response);
+        $response = new Response($search);
+        $this->records = new Records($response);
     }
 
     public function testShouldAccessRecords()
     {
-        $records = $this->records->records;
-        $this->assertEquals(1, $records->count());
-        $this->assertEquals('FOO', $records->first());
-    }
-
-    public function testArrayDelegateToRecords()
-    {
-        $this->assertNotEmpty($this->records);
-        $this->assertEquals(1, count($this->records));
-        $this->assertEquals('FOO', $this->records->first());
+        $this->assertEquals(1, $this->records->count());
+        $this->assertEquals((object) [ 'id' => 1, 'foo' => 'BAR' ], $this->records->first());
     }
 
     public function testHasEachWithHitMethod()
     {
         $this->records->eachWithHit(function ($record, $hit) {
-            $this->assertEquals('FOO', $record);
+            $this->assertEquals((object) [ 'id' => 1, 'foo' => 'BAR' ], $record);
             $this->assertEquals('bar', $hit->foo);
         });
     }
 
     public function testHasMapWithHitMethod()
     {
-        $this->assertEquals(['FOO---bar'], $this->records->mapWithHit(function ($record, $hit) { return "{$record}---{$hit->foo}"; })->all());
-    }
-
-    public function testShouldReturnIds()
-    {
-        $this->assertEquals(['1'], $this->records->ids->all());
+        $this->assertEquals(['BAR---bar'], $this->records->mapWithHit(function ($record, $hit) { return "{$record->foo}---{$hit->foo}"; })->all());
     }
 }

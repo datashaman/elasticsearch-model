@@ -1,12 +1,16 @@
 <?php namespace Datashaman\ElasticModel\Response;
 
-class Base
+use Illuminate\Support\Collection;
+
+class Base extends Collection
 {
     protected $class;
     protected $response;
 
     public function __construct($class, $response)
     {
+        parent::__construct();
+
         $this->class = $class;
         $this->response = $response;
     }
@@ -16,10 +20,6 @@ class Base
         switch ($name) {
         case 'results':
             throw new Exception('Implement this method in '.$this->class);
-        case 'total':
-            return $this->response->response['hits']['total'];
-        case 'max_score':
-            return $this->response->response['hits']['max_score'];
         }
     }
 }

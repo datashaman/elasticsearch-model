@@ -8,6 +8,8 @@ use Schema;
 class Article extends Eloquent
 {
     use ElasticModel;
+    protected static $elasticsearch;
+
     protected $fillable = ['title'];
 }
 
@@ -48,15 +50,17 @@ class ReadmeTest extends TestCase
         $this->assertGreaterThan(0, $response[0]->_score);
         $this->assertEquals('Fast black dogs', $response[0]->title);
 
-        $this->assertEquals([ 'Fast black dogs', 'Quick brown fox', ], $response->results()->map(function ($r) { return $r->title; })->all());
+        $this->assertEquals([ 'Fast black dogs', 'Quick brown fox', ], $response->map(function ($r) { return $r->title; })->all());
 
-        $filtered = $response->results()->filter(function ($r) { return preg_match('/^Q/', $r->title); });
+        $filtered = $response->filter(function ($r) { return preg_match('/^Q/', $r->title); });
 
         $this->assertEquals(1, $filtered->count());
         $this->assertEquals('Quick brown fox', $filtered->first()->title);
 
         $this->assertEquals(2, $response->records()->count());
         $this->assertEquals([ 'Fast black dogs', 'Quick brown fox', ], $response->records()->map(function ($r) { return $r->title; })->all());
+
+        return;
 
         $lines = [];
 

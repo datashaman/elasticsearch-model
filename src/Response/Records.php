@@ -1,62 +1,45 @@
 <?php namespace Datashaman\ElasticModel\Response;
 
 use ArrayAccess;
-use Datashaman\ElasticModel\Adapter;
+use Datashaman\ElasticModel\DriverManager;
 use Datashaman\ElasticModel\ArrayDelegate;
 use Illuminate\Support\Collection;
 
-
-class Records extends Base implements ArrayAccess
+class Records implements ArrayAccess
 {
     use ArrayDelegate;
-
     protected static $arrayDelegate = 'records';
+
     protected $options;
 
-    public function __construct($class, $response, $options=[])
+    public function __construct($response, $options=[])
     {
-        parent::__construct($class, $response);
-        $this->adapter = Adapter::fromClass($class, $this);
+        $this->response = $response;
         $this->options = $options;
-    }
-
-    public function __get($name)
-    {
-        switch ($name) {
-        case 'ids':
-            return $this->response->results->map(function ($hit) {
-                return $hit->id;
-            });
-        case 'results':
-            return $this->response->results;
-        case 'records':
-            $records = $this->adapter->records();
-            return $records;
-        default:
-            return parent::__get($name);
-        }
+        $this->driverManager = new DriverManager($response);
+        $this->records = $this->driverManager->records();
     }
 
     public function __call($name, $args)
     {
-        return call_user_func_array([ $this->records, $name ], $args);
+        return call_user_func_array([$this->records, $name], $args);
     }
 
-    private function zip($first, $second)
+    public function realZip($second)
     {
         /** Collection::zip produces incorrect results, believe it or not */
-        $zipped = [];
+        $zipped = collect();
 
-        $first->each(function ($item, $key) use ($second, &$zipped) {
-            $zipped[] = [ $item, $second[$key] ];
+        $this->records->each(function ($item, $key) use ($second, &$zipped) {
+            $zipped->push([ $item, $second[$key] ]);
         });
 
-        return collect($zipped);
+        return $zipped;
     }
 
     public function eachWithHit(callable $callable)
     {
-        $collection = $this->zip($this->records, $this->results->results);
+        $collection = $this->realZip($this->response);
         return $collection->each(function ($both) use ($callable) {
             call_user_func($callable, $both[0], $both[1]);
         });
@@ -64,7 +47,7 @@ class Records extends Base implements ArrayAccess
 
     public function mapWithHit(callable $callable)
     {
-        $collection = $this->zip($this->records, $this->results->results);
+        $collection = $this->realZip($this->response);
         return $collection->map(function ($both) use ($callable) {
             return call_user_func($callable, $both[0], $both[1]);
         });

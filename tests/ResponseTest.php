@@ -48,15 +48,16 @@ class ResponseTest extends TestCase
 
     public function testResponseAttributes()
     {
-        $s = new SearchRequest(Models\Thing::class, '*');
-        $search = m::mock($s, [
+        $this->createThings();
+
+        $search = m::mock(SearchRequest::class, [ Models\Thing::class, '*' ], [
             'execute' => static::$mockResponse,
         ]);
-        $response = new Response(Models\Thing::class, $search);
 
-        $this->assertSame(Models\Thing::class, $response->class);
-        $this->assertSame($search, $response->search());
-        $this->assertSame(static::$mockResponse, $response->response());
+        $response = new Response($search);
+
+        $this->assertSame($search, $response->search);
+        $this->assertSame(static::$mockResponse, $response->response);
         $this->assertSame('5', $response->took());
         $this->assertSame(false, $response->timedOut());
         $this->assertSame('OK', $response->shards()['one']);
@@ -64,21 +65,13 @@ class ResponseTest extends TestCase
         $this->assertSame('Foo', $response->suggestions()['my_suggest'][0]['options'][0]['text']);
         $this->assertSame(['Foo', 'Bar'], $response->suggestions()->terms);
 
-        $this->assertInstanceOf(Results::class, $response->results());
-        $this->assertEquals(1, count($response->results()));
-
-        $this->assertInstanceOf(Records::class, $response->records());
-        $this->assertEquals(1, count($response->records()));
-    }
-
-    public function testDelegateToResults()
-    {
-        $s = new SearchRequest(Models\Thing::class, '*');
-        $search = m::mock($s, ['execute' => static::$mockResponse]);
-        $response = new Response(Models\Thing::class, $search);
+        $this->assertEquals(1, count($response));
 
         $result = $response[0];
-
         $this->assertInstanceOf(Result::class, $result);
+
+        $records = $response->records();
+        $this->assertInstanceOf(Records::class, $records);
+        $this->assertEquals(1, count($records));
     }
 }

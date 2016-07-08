@@ -22,15 +22,31 @@ class SearchingTest extends TestCase
 {
     public function testSearchObject()
     {
+        $client = m::mock('Client')
+            ->shouldReceive('search')
+            ->with([
+                'index' => 'things',
+                'type' => 'thing',
+                'body' => [
+                    'query' => [
+                        'query_string' => [
+                            'query' => 'foo',
+                        ],
+                    ],
+                ],
+                'default_operator' => 'AND',
+            ])
+            ->mock();
+
+        Models\Thing::elastic()->client($client);
+
         $searchOptions = [ 'default_operator' => 'AND' ];
         $response = Models\Thing::search('foo', $searchOptions);
 
-        $search = $response->search();
-
-        $this->assertInstanceOf(SearchRequest::class, $search);
-        $this->assertEquals(Models\Thing::class, $search->class);
-        $this->assertEquals('foo', $search->definition['body']['query']['query_string']['query']);
-        $this->assertEquals($searchOptions, $search->options);
+        $this->assertInstanceOf(SearchRequest::class, $response->search);
+        $this->assertEquals(Models\Thing::class, $response->search->class);
+        $this->assertEquals('foo', $response->search->definition['body']['query']['query_string']['query']);
+        $this->assertEquals($searchOptions, $response->search->options);
     }
 
     public function testSearchWithText()

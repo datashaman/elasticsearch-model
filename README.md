@@ -93,17 +93,12 @@ The returned `response` object is a rich wrapper around the JSON returned from E
 
 Each *hit* is wrapped in the `Result` class.
 
-The `results` object delegates to an internal `Collection`, so it supports all the usual methods: `map`, `filter`, `each`, etc.
+The `response` object delegates to an internal `Collection`, so it supports all the usual methods: `map`, `filter`, `each`, etc.
 
-    $response->results()
-        ->map(function ($r) { return $r->title; })
-        ->all();
+    $response->map(function ($r) { return $r->title; })->all();
     # ["Fast black dogs", "Quick brown fox"]
 
-    $response->results()
-        ->filter(function ($r) { return preg_match('/^Q/', $r->title); })
-        ->map(function ($r) { return $r->title; })
-        ->all();
+    $response->filter(function ($r) { return preg_match('/^Q/', $r->title); })->map(function ($r) { return $r->title; })->all();
     # ["Quick brown fox"]
 
 As you can see in the examples above, use the `Collection::all()` method to get a regular array.
