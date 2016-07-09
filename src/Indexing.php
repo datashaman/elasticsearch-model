@@ -2,6 +2,7 @@
 
 use Elasticsearch\Common\Exceptions\Missing404Exception;
 use Log;
+use Symfony\Component\Yaml\Yaml;
 
 class Mappings
 {
@@ -57,28 +58,6 @@ class Mappings
         $this->options = array_merge($this->options, $options);
     }
 }
-
-class Settings
-{
-    protected $settings;
-
-    public function __construct($settings=[])
-    {
-        $this->settings = $settings;
-    }
-
-    public function merge($settings)
-    {
-        $this->settings = array_merge($this->settings, $settings);
-        return $this->settings;
-    }
-
-    public function toArray()
-    {
-        return $this->settings;
-    }
-}
-
 
 trait Indexing
 {
@@ -139,7 +118,29 @@ trait Indexing
 
     public function settings($settings=[])
     {
-        $this->settings = empty($this->settings) ? new Settings($settings) : $this->settings->merge($settings);
+        if (!isset($this->settings)) {
+            $this->settings = collect();
+        }
+
+        if (is_array($settings)) {
+            $this->settings = $this->settings->merge($settings);
+            return $this->settings;
+        }
+
+        if (is_string($settings)) {
+            if(preg_match('/\.(yml|yaml)$/', $settings)) {
+                $fileSettings = Yaml::parse(file_get_contents($settings));
+                $this->settings = $this->settings->merge($fileSettings);
+                return $this->settings;
+            }
+
+            if(preg_match('/\.(json)$/', $settings)) {
+                $fileSettings = json_decode(file_get_contents($settings));
+                $this->settings = $this->settings->merge($fileSettings);
+                return $this->settings;
+            }
+        }
+
         return $this->settings;
     }
 

@@ -32,6 +32,39 @@ class IndexingTest extends TestCase
     {
         parent::setUp();
         $this->createThings();
+        IndexingTestModel::resetElasticModel();
+    }
+
+    public function testInitializeIndexSettings()
+    {
+        IndexingTestModel::settings([ 'foo' => 'bar' ]);
+        IndexingTestModel::settings([ 'bar' => 'bam' ]);
+
+        $this->assertEquals([ 'foo' => 'bar', 'bar' => 'bam' ], IndexingTestModel::settings()->toArray());
+    }
+
+    public function testInitializeIndexSettingsFromYmlFile()
+    {
+        IndexingTestModel::settings(__DIR__.'/fixtures/model.yml');
+        IndexingTestModel::settings([ 'bar' => 'bam' ]);
+
+        $this->assertEquals([ 'bar' => 'bam', 'baz' => 'qux' ], IndexingTestModel::settings()->toArray());
+    }
+
+    public function testInitializeIndexSettingsFromYamlFile()
+    {
+        IndexingTestModel::settings(__DIR__.'/fixtures/model.yaml');
+        IndexingTestModel::settings([ 'bar' => 'bam' ]);
+
+        $this->assertEquals([ 'bar' => 'bam', 'baz' => 'qux' ], IndexingTestModel::settings()->toArray());
+    }
+
+    public function testInitializeIndexSettingsFromJsonFile()
+    {
+        IndexingTestModel::settings(__DIR__.'/fixtures/model.json');
+        IndexingTestModel::settings([ 'bat' => 'bap' ]);
+
+        $this->assertEquals([ 'bat' => 'bap', 'baz' => 'qux' ], IndexingTestModel::settings()->toArray());
     }
 
     public function testCreateIndex()
