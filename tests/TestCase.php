@@ -3,6 +3,7 @@
 use Datashaman\ElasticModel\Elasticsearch;
 use DB;
 use Elasticsearch\ClientBuilder;
+use Eloquent;
 use Mockery as m;
 use Schema;
 
@@ -21,6 +22,7 @@ class TestCase extends \Orchestra\Testbench\TestCase
     public function setUp()
     {
         parent::setUp();
+        Eloquent::unguard();
         Models\Thing::resetElasticModel();
     }
 

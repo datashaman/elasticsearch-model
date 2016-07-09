@@ -32,6 +32,7 @@ class RecordsTestModel
     public static function whereIn($name, $ids)
     {
         return m::mock('Builder', [
+            'getQuery' => '',
             'get' => new Collection([
                 (object) [
                     'id' => 1,

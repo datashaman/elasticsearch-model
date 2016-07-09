@@ -10,13 +10,16 @@ class Records implements ArrayAccess
     use ArrayDelegate;
     protected static $arrayDelegate = 'records';
 
+    protected $response;
     protected $options;
+    protected $callable;
 
-    public function __construct($response, $options=[])
+    public function __construct($response, $options=[], callable $callable=null)
     {
         $this->response = $response;
         $this->options = $options;
-        $this->driverManager = new DriverManager($response, $options);
+        $this->callable = $callable;
+        $this->driverManager = new DriverManager($response, $options, $callable);
         $this->records = $this->driverManager->records();
     }
 

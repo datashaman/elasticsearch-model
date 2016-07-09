@@ -7,26 +7,28 @@ class EloquentDriver extends Base
         $ids = $this->response->ids();
 
         $class = $this->response->search->class;
-        $records = $class::whereIn('id', $ids);
+        $builder = $class::whereIn('id', $ids);
 
         if (array_has($this->options, 'with')) {
-            call_user_func_array([ $records, 'with' ], $this->options['with']);
+            call_user_func_array([ $builder, 'with' ], $this->options['with']);
         }
 
-        $records = $records->get();
-
-        $sorted = collect();
-
-        foreach($ids as $id) {
-            $record = $records->first(function ($index, $record) use ($id) {
-                return $record->id == $id;
-            });
-
-            if (!empty($record)) {
-                $sorted->push($record);
-            }
+        if (is_callable($this->callable)) {
+            call_user_func($this->callable, $builder);
         }
 
-        return $sorted;
+        if (empty($builder->getQuery()->orders)) {
+            /*
+            # Only MySQL can use this, unfortunately.
+            $idStrings = $ids->map(function ($id) { return "'$id'"; })->implode(', ');
+            $records = $records->orderByRaw("find_in_set(id, $idStrings)")->get();
+            */
+
+            return $builder->get()->sortBy(function ($record) use ($ids) {
+                return $ids->search($record->id);
+            })->values();
+        }
+
+        return $builder->get();
     }
 }

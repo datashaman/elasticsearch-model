@@ -43,9 +43,9 @@ class Response implements ArrayAccess
         return $this->results->map(function ($result) { return $result->id; });
     }
 
-    public function records($options=[])
+    public function records($options=[], callable $callable=null)
     {
-        return new Response\Records($this, $options);
+        return new Response\Records($this, $options, $callable);
     }
 
     public function took()
