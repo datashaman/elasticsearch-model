@@ -40,4 +40,14 @@ class ResultTest extends TestCase
         $this->assertEquals('baz', $result->_source['bar']);
         $this->assertEquals('baz', $result->bar);
     }
+
+    /**
+     * @expectedException ErrorException
+     * @expectedExceptionMessage Undefined property via __get(): foo
+     */
+    public function testGetterEmitsError()
+    {
+        $result = new Result([]);
+        $foo = $result->foo;
+    }
 }
