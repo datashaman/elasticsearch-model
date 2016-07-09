@@ -63,7 +63,7 @@ class ResponseTest extends TestCase
         $this->assertSame('OK', $response->shards()['one']);
         $this->assertSame(10, $response->aggregations()['foo']['bar']);
         $this->assertSame('Foo', $response->suggestions()['my_suggest'][0]['options'][0]['text']);
-        $this->assertSame(['Foo', 'Bar'], $response->suggestions()->terms);
+        $this->assertSame(['Foo', 'Bar'], $response->suggestions()->terms()->all());
 
         $this->assertEquals(1, count($response));
 

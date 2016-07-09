@@ -14,23 +14,23 @@ class Suggestions implements ArrayAccess
         $this->input = $input;
     }
 
-    public function __get($name) {
-        switch ($name) {
-        case 'terms':
-            $input = $this->input;
-
-            $flattened = array_reduce(array_map(function ($value) {
+    public function terms()
+    {
+        $terms = collect($this->input)
+            ->map(function ($value) {
                 return head($value)['options'];
-            }, $input), function ($carry, $item) {
-                $carry += is_array($item) ? $item : [$item];
+            })
+            ->reduce(function ($carry, $item) {
+                collect(is_array($item) ? $item : [$item])->each(function ($item) use ($carry) {
+                    $carry->push($item);
+                });
                 return $carry;
-            }, []);
-
-            $terms = array_unique(array_map(function ($value) {
+            }, collect())
+            ->map(function ($value) {
                 return $value['text'];
-            }, $flattened));
+            })
+            ->unique();
 
-            return $terms;
-        }
+        return $terms;
     }
 }

@@ -13,19 +13,27 @@ class Result
 
     public function __get($name)
     {
-        switch ($name) {
-        case 'id':
-        case 'type':
+        if ($name == 'id' || $name == 'type') {
             return array_get($this->hit, '_'.$name);
-        default:
-            if(array_has($this->hit, $name)) {
-                return array_get($this->hit, $name);
-            }
-
-            if (array_has($this->hit, '_source')
-                && array_has($this->hit['_source'], $name)) {
-                return array_get($this->hit['_source'], $name);
-            }
         }
+
+        if (array_has($this->hit, $name)) {
+            return array_get($this->hit, $name);
+        }
+
+        if (array_has($this->hit, '_source')
+            && array_has($this->hit['_source'], $name)) {
+            return array_get($this->hit['_source'], $name);
+        }
+
+        $trace = debug_backtrace();
+
+        trigger_error(
+            'Undefined property via __get(): ' . $name .
+            ' in ' . $trace[0]['file'] .
+            ' on line ' . $trace[0]['line'],
+            E_USER_NOTICE);
+
+        return null;
     }
 }
