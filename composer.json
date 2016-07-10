@@ -1,5 +1,5 @@
 {
-    "name": "datashaman/elastic-model",
+    "name": "datashaman/elasticsearch-model",
     "description": "Laravel/Eloquent integration with Elasticsearch",
     "keywords": ["elasticsearch"],
     "license": "Apache-2.0",
@@ -25,12 +25,12 @@
     "autoload": {
         "psr-4": {
             "App\\": "app/",
-            "Datashaman\\ElasticModel\\": "src"
+            "Datashaman\\Elasticsearch\\Model\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Datashaman\\ElasticModel\\Tests\\": "tests"
+            "Datashaman\\Elasticsearch\\Model\\Tests\\": "tests"
         }
     },
     "scripts": {

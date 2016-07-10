@@ -1,16 +1,16 @@
-# elastic-model
+# datashaman/elasticsearch-model
 
 Laravel-oriented implementation of [elasticsearch-model](https://github.com/elastic/elasticsearch-rails/tree/master/elasticsearch-model).
 
-[![Build Status](https://travis-ci.org/datashaman/elastic-model.svg?branch=master)](https://travis-ci.org/datashaman/elastic-model)
-[![Code Climate](https://codeclimate.com/github/datashaman/elastic-model/badges/gpa.svg)](https://codeclimate.com/github/datashaman/elastic-model)
-[![Test Coverage](https://codeclimate.com/github/datashaman/elastic-model/badges/coverage.svg)](https://codeclimate.com/github/datashaman/elastic-model/coverage)
+[![Build Status](https://travis-ci.org/datashaman/elasticsearch-model.svg?branch=master)](https://travis-ci.org/datashaman/elasticsearch-model)
+[![Code Climate](https://codeclimate.com/github/datashaman/elasticsearch-model/badges/gpa.svg)](https://codeclimate.com/github/datashaman/elasticsearch-model)
+[![Test Coverage](https://codeclimate.com/github/datashaman/elasticsearch-model/badges/coverage.svg)](https://codeclimate.com/github/datashaman/elasticsearch-model/coverage)
 
 ## Installation
 
 Install the package from packagist.org using composer:
 
-    composer install elastic-model
+    composer install elasticsearch-model
 
 ## Usage
 
@@ -31,13 +31,14 @@ Let's suppose you have an `Article` model:
 
 ## Setup
 
-To add the Elasticsearch integration for this model, use the `Datashaman\ElasticModel\ElasticModel` trait in your class:
+To add the Elasticsearch integration for this model, use the `Datashaman\Elasticsearch\Model\ElasticsearchModel` trait in your class. You must also add a protected static `$elasticsearch` property for storage:
 
-    use Datashaman\ElasticModel\ElasticModel;
+    use Datashaman\Elasticsearch\Model\ElasticsearchModel;
 
     class Article extends Eloquent
     {
-        use ElasticModel;
+        use ElasticsearchModel;
+        protected static $elasticsearch;
     }
 
 This will extend the model with functionality related to Elasticsearch.
@@ -46,18 +47,18 @@ This will extend the model with functionality related to Elasticsearch.
 
 The package contains a big amount of class and instance methods to provide all this functionality.
 
-To prevent polluting your model namespace, *nearly* all functionality is accessed via static method `Article::elastic()`.
+To prevent polluting your model namespace, *nearly* all functionality is accessed via static method `Article::elasticsearch()`.
 
 ### Elasticsearch client
 
 The module will setup a [client](https://github.com/elasticsearch/elasticsearch-ruby/tree/master/elasticsearch), connected to `localhost:9200`, by default. You can access and use it like any other `Elasticsearch::Client`:
 
-    Article::elastic()->client()->cluster()->health();
+    Article::elasticsearch()->client()->cluster()->health();
     # [ "cluster_name" => "elasticsearch", "status" => "yellow", ... ]
 
 To use a client with a different configuration, set a client for the model using `Elasticsearch\ClientBuilder`:
 
-    Article::elastic()->client(ClientBuilder::fromConfig([ 'hosts' => [ 'api.server.org' ] ]));
+    Article::elasticsearch()->client(ClientBuilder::fromConfig([ 'hosts' => [ 'api.server.org' ] ]));
 
 ### Importing the data
 
@@ -81,7 +82,7 @@ For starters, we can try the *simple* type of search:
     $response->total();
     # 2
 
-    $response[0]->score;
+    $response[0]->_score;
     # 0.02250402
 
     $response[0]->title;
@@ -120,14 +121,14 @@ When you want to access both the database `records` and search `results`, use th
 
     $lines = [];
     $response->records()->eachWithHit(function ($record, $hit) {
-        $lines[] = "* {$record->title}: {$hit->score}";
+        $lines[] = "* {$record->title}: {$hit->_score}";
     });
 
     $lines;
     # [ "* Fast black dogs: 0.01125201", "* Quick brown fox: 0.01125201" ]
 
     $lines = $response->records()->mapWithHit(function ($record, $hit) {
-        return "* {$record->title}: {$hit->score}";
+        return "* {$record->title}: {$hit->_score}";
     })->all();
 
     $lines;

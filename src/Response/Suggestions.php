@@ -1,7 +1,7 @@
-<?php namespace Datashaman\ElasticModel\Response;
+<?php namespace Datashaman\Elasticsearch\Model\Response;
 
 use ArrayAccess;
-use Datashaman\ElasticModel\ArrayDelegate;
+use Datashaman\Elasticsearch\Model\ArrayDelegate;
 
 class Suggestions implements ArrayAccess
 {

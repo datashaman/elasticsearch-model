@@ -1,8 +1,8 @@
-<?php namespace Datashaman\ElasticModel;
+<?php namespace Datashaman\Elasticsearch\Model;
 
 use Elasticsearch\ClientBuilder;
 
-class Elastic extends GetOrSet
+class Elasticsearch extends GetOrSet
 {
     use Searching;
     use Importing;
@@ -26,22 +26,23 @@ class Elastic extends GetOrSet
     }
 }
 
-trait Proxy
+trait ElasticsearchModel
 {
-    protected $_dirty;
+    use Serializing;
+    use Importing;
 
-    public static function resetElasticModel()
+    public static function resetElasticsearch()
     {
         static::$elasticsearch = null;
     }
 
-    public static function elastic()
+    public static function elasticsearch()
     {
         $args = func_get_args();
 
         if (count($args) == 0) {
             if (empty(static::$elasticsearch)) {
-                static::$elasticsearch = new Elastic(static::class);
+                static::$elasticsearch = new Elasticsearch(static::class);
             }
 
             return static::$elasticsearch;
@@ -53,17 +54,17 @@ trait Proxy
 
     public static function search($query, $options=[])
     {
-        return static::elastic()->search($query, $options);
+        return static::elasticsearch()->search($query, $options);
     }
 
     public static function mappings($options=[], callable $callback=null)
     {
-        return static::elastic()->mappings($options, $callback);
+        return static::elasticsearch()->mappings($options, $callback);
     }
 
     public static function settings($settings=[])
     {
-        return static::elastic()->settings($settings);
+        return static::elasticsearch()->settings($settings);
     }
 
     public static function indexName()
@@ -80,20 +81,20 @@ trait Proxy
     public static function getDocument($primaryKey, $options=[])
     {
         $options = static::instanceOptions($primaryKey, $options);
-        return static::elastic()->getDocument($options);
+        return static::elasticsearch()->getDocument($options);
     }
 
     public function indexDocument($options=[])
     {
         $options = static::instanceOptions($this->id, $options);
         $options['body'] = $this->toIndexedArray();
-        return static::elastic()->indexDocument($options);
+        return static::elasticsearch()->indexDocument($options);
     }
 
     public function deleteDocument($options=[])
     {
         $options = static::instanceOptions($this->id, $options);
-        return static::elastic()->deleteDocument($options);
+        return static::elasticsearch()->deleteDocument($options);
     }
 
     public function updateDocument($options=[])
@@ -107,23 +108,23 @@ trait Proxy
         $doc = array_only($this->toIndexedArray(), array_keys($dirty));
         $options = static::instanceOptions($this->id);
         $options['body'] = compact('doc');
-        return static::elastic()->updateDocument($options);
+        return static::elasticsearch()->updateDocument($options);
     }
 
     public function updateDocumentAttributes($doc, $options=[])
     {
         $options = array_merge($options, static::instanceOptions($this->id));
         $options['body'] = compact('doc');
-        return static::elastic()->updateDocument($options);
+        return static::elasticsearch()->updateDocument($options);
     }
 
     protected static function getOrSet($name, $args)
     {
         if (count($args) == 0) {
-            return static::elastic()->$name();
+            return static::elasticsearch()->$name();
         }
 
-        return static::elastic()->$name($args[0]);
+        return static::elasticsearch()->$name($args[0]);
     }
 
     public static function instanceOptions($primaryKey, $options=[])

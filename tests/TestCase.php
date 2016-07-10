@@ -1,6 +1,6 @@
-<?php namespace Datashaman\ElasticModel\Tests;
+<?php namespace Datashaman\Elasticsearch\Model\Tests;
 
-use Datashaman\ElasticModel\Elasticsearch;
+use Datashaman\Elasticsearch\Model\Elasticsearch;
 use DB;
 use Elasticsearch\ClientBuilder;
 use Eloquent;
@@ -23,7 +23,7 @@ class TestCase extends \Orchestra\Testbench\TestCase
     {
         parent::setUp();
         Eloquent::unguard();
-        Models\Thing::resetElasticModel();
+        Models\Thing::resetElasticsearch();
     }
 
     protected function createThings()

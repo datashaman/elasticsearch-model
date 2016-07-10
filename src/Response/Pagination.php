@@ -1,4 +1,4 @@
-<?php namespace Datashaman\ElasticModel\Response;
+<?php namespace Datashaman\Elasticsearch\Model\Response;
 
 use Illuminate\Pagination\LengthAwarePaginator;
 

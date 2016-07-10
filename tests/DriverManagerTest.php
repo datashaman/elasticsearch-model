@@ -1,16 +1,16 @@
-<?php namespace Datashaman\ElasticModel\Tests;
+<?php namespace Datashaman\Elasticsearch\Model\Tests;
 
-use Datashaman\ElasticModel\Driver\EloquentDriver;
-use Datashaman\ElasticModel\DriverManager;
-use Datashaman\ElasticModel\Elastic;
-use Datashaman\ElasticModel\ElasticModel;
-use Datashaman\ElasticModel\Response;
-use Datashaman\ElasticModel\SearchRequest;
+use Datashaman\Elasticsearch\Model\Driver\EloquentDriver;
+use Datashaman\Elasticsearch\Model\DriverManager;
+use Datashaman\Elasticsearch\Model\Elasticsearch;
+use Datashaman\Elasticsearch\Model\ElasticsearchModel;
+use Datashaman\Elasticsearch\Model\Response;
+use Datashaman\Elasticsearch\Model\SearchRequest;
 use Mockery as m;
 
 class DummyModel
 {
-    use ElasticModel;
+    use ElasticsearchModel;
     static protected $elasticsearch;
 }
 
@@ -26,7 +26,7 @@ class DriverManagerTest extends TestCase
 {
     public function testReturnDriverInstance()
     {
-        $elastic = m::mock(Elastic::class, [IndexingTestModel::class], [
+        $elastic = m::mock(Elasticsearch::class, [IndexingTestModel::class], [
             'client' => m::mock('Client', [
                 'search' => [ 'hits' => [ 'hits' => [] ] ],
             ]),
@@ -34,7 +34,7 @@ class DriverManagerTest extends TestCase
             'documentType' => 'indexing-test-model',
         ])->shouldDeferMissing();
 
-        DummyModel::elastic($elastic);
+        DummyModel::elasticsearch($elastic);
 
         $search = new SearchRequest(DummyModel::class, '*');
         $response = new Response($search);

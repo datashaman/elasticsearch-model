@@ -1,6 +1,6 @@
-<?php namespace Datashaman\ElasticModel;
+<?php namespace Datashaman\Elasticsearch\Model;
 
-use Datashaman\ElasticModel\Response;
+use Datashaman\Elasticsearch\Model\Response;
 
 class SearchRequest
 {
@@ -36,7 +36,7 @@ class SearchRequest
     public function execute()
     {
         $class = $this->class;
-        $result = $class::elastic()->client()->search($this->definition);
+        $result = $class::elasticsearch()->client()->search($this->definition);
         return $result;
     }
 

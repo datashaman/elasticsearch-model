@@ -1,13 +1,13 @@
-<?php namespace Datashaman\ElasticModel\Tests;
+<?php namespace Datashaman\Elasticsearch\Model\Tests;
 
 use Elasticsearch\Client;
-use Datashaman\ElasticModel\ElasticModel;
-use Datashaman\ElasticModel\SearchRequest;
+use Datashaman\Elasticsearch\Model\ElasticsearchModel;
+use Datashaman\Elasticsearch\Model\SearchRequest;
 use Mockery as m;
 
 class SearchRequestTestModel
 {
-    use ElasticModel;
+    use ElasticsearchModel;
     protected static $elasticsearch;
 
     public static $indexName = 'foo';
@@ -29,7 +29,7 @@ class SearchRequestTest extends TestCase
 {
     public function testSimpleQuery()
     {
-        $client = SearchRequestTestModel::elastic()->client(
+        $client = SearchRequestTestModel::elasticsearch()->client(
             m::mock(Client::class)
                 ->shouldReceive('search')
                 ->with([
@@ -52,7 +52,7 @@ class SearchRequestTest extends TestCase
 
     public function testArray()
     {
-        $client = SearchRequestTestModel::elastic()->client(
+        $client = SearchRequestTestModel::elasticsearch()->client(
             m::mock(Client::class)
                 ->shouldReceive('search')
                 ->with([
@@ -71,7 +71,7 @@ class SearchRequestTest extends TestCase
 
     public function testJsonString()
     {
-        $client = SearchRequestTestModel::elastic()->client(
+        $client = SearchRequestTestModel::elasticsearch()->client(
             m::mock(Client::class)
                 ->shouldReceive('search')
                 ->with([
@@ -88,7 +88,7 @@ class SearchRequestTest extends TestCase
 
     public function testToArray()
     {
-        $client = SearchRequestTestModel::elastic()->client(
+        $client = SearchRequestTestModel::elasticsearch()->client(
             m::mock(Client::class)
                 ->shouldReceive('search')
                 ->with([
@@ -108,7 +108,7 @@ class SearchRequestTest extends TestCase
 
     public function testPassOptionsToClient()
     {
-        $client = SearchRequestTestModel::elastic()->client(
+        $client = SearchRequestTestModel::elasticsearch()->client(
             m::mock(Client::class)
                 ->shouldReceive('search')
                 ->with([

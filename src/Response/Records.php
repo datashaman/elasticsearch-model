@@ -1,8 +1,8 @@
-<?php namespace Datashaman\ElasticModel\Response;
+<?php namespace Datashaman\Elasticsearch\Model\Response;
 
 use ArrayAccess;
-use Datashaman\ElasticModel\DriverManager;
-use Datashaman\ElasticModel\ArrayDelegate;
+use Datashaman\Elasticsearch\Model\DriverManager;
+use Datashaman\Elasticsearch\Model\ArrayDelegate;
 use Illuminate\Support\Collection;
 
 class Records implements ArrayAccess

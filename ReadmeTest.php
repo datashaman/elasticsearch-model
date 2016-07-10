@@ -1,13 +1,13 @@
-<?php namespace Datashaman\ElasticModel\Tests;
+<?php namespace Datashaman\Elasticsearch\Model\Tests;
 
-use Datashaman\ElasticModel\ElasticModel;
+use Datashaman\Elasticsearch\Model\ElasticsearchModel;
 use Illuminate\Database\Eloquent\Model as Eloquent;
 use Illuminate\Database\Schema\Blueprint;
 use Schema;
 
 class Article extends Eloquent
 {
-    use ElasticModel;
+    use ElasticsearchModel;
     protected static $elasticsearch;
 
     protected $fillable = ['title'];
@@ -29,15 +29,15 @@ class ReadmeTest extends TestCase
         Article::create([ 'title' => 'Fast black dogs' ]);
         Article::create([ 'title' => 'Swift green frogs' ]);
 
-        Article::elastic()->createIndex([ 'force' => true ]);
-        Article::elastic()->import();
+        Article::elasticsearch()->createIndex([ 'force' => true ]);
+        Article::elasticsearch()->import();
 
         sleep(1);
     }
 
     public function tearDown()
     {
-        Article::elastic()->deleteIndex();
+        Article::elasticsearch()->deleteIndex();
         parent::tearDown();
     }
 
@@ -60,28 +60,26 @@ class ReadmeTest extends TestCase
         $this->assertEquals(2, $response->records()->count());
         $this->assertEquals([ 'Fast black dogs', 'Quick brown fox', ], $response->records()->map(function ($r) { return $r->title; })->all());
 
-        return;
-
         $lines = [];
 
         $response->records()->eachWithHit(function ($record, $hit) use (&$lines) {
-            $lines[] = "* {$record->title}: {$hit->score}";
+            $lines[] = "* {$record->title}: {$hit->_score}";
         });
 
         $this->assertEquals([
-            '* Fast black dogs: '.$response[0]->score,
-            '* Quick brown fox: '.$response[1]->score,
+            '* Fast black dogs: '.$response[0]->_score,
+            '* Quick brown fox: '.$response[1]->_score,
         ], $lines);
 
         $lines = $response->records()
             ->mapWithHit(function ($record, $hit) {
-                return "* {$record->title}: {$hit->score}";
+                return "* {$record->title}: {$hit->_score}";
             })
             ->all();
 
         $this->assertEquals([
-            '* Fast black dogs: '.$response[0]->score,
-            '* Quick brown fox: '.$response[1]->score,
+            '* Fast black dogs: '.$response[0]->_score,
+            '* Quick brown fox: '.$response[1]->_score,
         ], $lines);
     }
 }

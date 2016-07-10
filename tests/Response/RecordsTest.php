@@ -1,9 +1,9 @@
-<?php namespace Datashaman\ElasticModel\Tests;
+<?php namespace Datashaman\Elasticsearch\Model\Tests;
 
-use Datashaman\ElasticModel\ElasticModel;
-use Datashaman\ElasticModel\SearchRequest;
-use Datashaman\ElasticModel\Response;
-use Datashaman\ElasticModel\Response\Records;
+use Datashaman\Elasticsearch\Model\ElasticsearchModel;
+use Datashaman\Elasticsearch\Model\SearchRequest;
+use Datashaman\Elasticsearch\Model\Response;
+use Datashaman\Elasticsearch\Model\Response\Records;
 use DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -23,7 +23,7 @@ class RecordsTestCollection extends Collection
 
 class RecordsTestModel
 {
-    use ElasticModel;
+    use ElasticsearchModel;
     protected static $elasticsearch;
 
     protected static $indexName = 'foo';

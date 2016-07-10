@@ -1,4 +1,4 @@
-<?php namespace Datashaman\ElasticModel;
+<?php namespace Datashaman\Elasticsearch\Model;
 
 use Illuminate\Support\Manager;
 

@@ -1,4 +1,4 @@
-<?php namespace Datashaman\ElasticModel\Tests\Models;
+<?php namespace Datashaman\Elasticsearch\Model\Tests\Models;
 
 use Illuminate\Database\Eloquent\Model as Eloquent;
 

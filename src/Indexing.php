@@ -1,4 +1,4 @@
-<?php namespace Datashaman\ElasticModel;
+<?php namespace Datashaman\Elasticsearch\Model;
 
 use Elasticsearch\Common\Exceptions\Missing404Exception;
 use Log;

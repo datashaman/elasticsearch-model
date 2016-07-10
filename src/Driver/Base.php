@@ -1,4 +1,4 @@
-<?php namespace Datashaman\ElasticModel\Driver;
+<?php namespace Datashaman\Elasticsearch\Model\Driver;
 
 class Base
 {

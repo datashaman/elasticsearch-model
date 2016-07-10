@@ -1,8 +1,8 @@
-<?php namespace Datashaman\ElasticModel\Tests\Driver;
+<?php namespace Datashaman\Elasticsearch\Model\Tests\Driver;
 
-use Datashaman\ElasticModel\Elastic;
-use Datashaman\ElasticModel\Tests\TestCase;
-use Datashaman\ElasticModel\Tests\Models\Thing;
+use Datashaman\Elasticsearch\Model\Elasticsearch;
+use Datashaman\Elasticsearch\Model\Tests\TestCase;
+use Datashaman\Elasticsearch\Model\Tests\Models\Thing;
 use Mockery as m;
 
 class EloquentDriverTest extends TestCase
@@ -15,7 +15,7 @@ class EloquentDriverTest extends TestCase
 
     public function testRecordsWith()
     {
-        $elastic = m::mock(Elastic::class, [Thing::class], [
+        $elastic = m::mock(Elasticsearch::class, [Thing::class], [
             'client' => m::mock([
                 'search' => [
                     'hits' => [
@@ -34,7 +34,7 @@ class EloquentDriverTest extends TestCase
             'documentType' => 'thing',
         ])->shouldDeferMissing();
 
-        Thing::elastic($elastic);
+        Thing::elasticsearch($elastic);
 
         $response = Thing::search('*');
         $records = $response->records([ 'with' => [ 'category' ]]);
@@ -44,7 +44,7 @@ class EloquentDriverTest extends TestCase
 
     public function testReorderRecordsBasedOnHits()
     {
-        $elastic = m::mock(Elastic::class, [Thing::class], [
+        $elastic = m::mock(Elasticsearch::class, [Thing::class], [
             'client' => m::mock([
                 'search' => [
                     'hits' => [
@@ -69,7 +69,7 @@ class EloquentDriverTest extends TestCase
             'documentType' => 'thing',
         ])->shouldDeferMissing();
 
-        Thing::elastic($elastic);
+        Thing::elasticsearch($elastic);
 
         $thing = Thing::create([
             'title' => 'Thing Thing',
@@ -87,7 +87,7 @@ class EloquentDriverTest extends TestCase
 
     public function testNotReorderWhenOrderingIsPresent()
     {
-        $elastic = m::mock(Elastic::class, [Thing::class], [
+        $elastic = m::mock(Elasticsearch::class, [Thing::class], [
             'client' => m::mock([
                 'search' => [
                     'hits' => [
@@ -112,7 +112,7 @@ class EloquentDriverTest extends TestCase
             'documentType' => 'thing',
         ])->shouldDeferMissing();
 
-        Thing::elastic($elastic);
+        Thing::elasticsearch($elastic);
 
         $thing = Thing::create([
             'title' => 'Thing Thing',

@@ -1,10 +1,10 @@
-<?php namespace Datashaman\ElasticModel\Tests;
+<?php namespace Datashaman\Elasticsearch\Model\Tests;
 
-use Datashaman\ElasticModel\Response;
-use Datashaman\ElasticModel\Response\Records;
-use Datashaman\ElasticModel\Response\Result;
-use Datashaman\ElasticModel\Response\Results;
-use Datashaman\ElasticModel\SearchRequest;
+use Datashaman\Elasticsearch\Model\Response;
+use Datashaman\Elasticsearch\Model\Response\Records;
+use Datashaman\Elasticsearch\Model\Response\Result;
+use Datashaman\Elasticsearch\Model\Response\Results;
+use Datashaman\Elasticsearch\Model\SearchRequest;
 use Mockery as m;
 
 class ResponseTest extends TestCase

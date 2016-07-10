@@ -1,6 +1,6 @@
-<?php namespace Datashaman\ElasticModel\Tests;
+<?php namespace Datashaman\Elasticsearch\Model\Tests;
 
-use Datashaman\ElasticModel\Response\Result;
+use Datashaman\Elasticsearch\Model\Response\Result;
 
 
 /**

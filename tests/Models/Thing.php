@@ -1,11 +1,11 @@
-<?php namespace Datashaman\ElasticModel\Tests\Models;
+<?php namespace Datashaman\Elasticsearch\Model\Tests\Models;
 
-use Datashaman\ElasticModel\ElasticModel;
+use Datashaman\Elasticsearch\Model\ElasticsearchModel;
 use Illuminate\Database\Eloquent\Model as Eloquent;
 
 class Thing extends Eloquent
 {
-    use ElasticModel;
+    use ElasticsearchModel;
     protected static $elasticsearch;
 
     public function category()
