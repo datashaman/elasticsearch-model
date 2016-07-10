@@ -7,12 +7,14 @@ use Elasticsearch\clientBuilder;
 use Elasticsearch\Common\Exceptions\Missing404Exception;
 use Elasticsearch\Namespaces\IndicesNamespace;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Schema\Blueprint;
 use Log;
 use Mockery as m;
 use Schema;
 use stdClass;
+use Storage;
 
-class IndexingTestModel
+class IndexingTestModel extends Model
 {
     use ElasticModel;
     protected static $elasticsearch;
@@ -25,6 +27,20 @@ class EloquentModel extends Model
     protected static $elasticsearch;
 }
 
+class EloquentModelTwo extends Model
+{
+    use ElasticModel;
+    protected static $elasticsearch;
+
+    public function toIndexedArray()
+    {
+        return [
+            'id' => $this->id,
+            'title' => $this->title,
+        ];
+    }
+}
+
 class IndexingTest extends TestCase
 {
 
@@ -32,7 +48,29 @@ class IndexingTest extends TestCase
     {
         parent::setUp();
         $this->createThings();
+
         IndexingTestModel::resetElasticModel();
+        EloquentModel::resetElasticModel();
+        EloquentModelTwo::resetElasticModel();
+
+        Schema::create('indexing_test_models', function(Blueprint $table) {
+            $table->increments('id');
+            $table->string('title');
+            $table->timestamps();
+        });
+
+        Schema::create('eloquent_models', function(Blueprint $table) {
+            $table->increments('id');
+            $table->string('title');
+            $table->timestamps();
+        });
+
+        Schema::create('eloquent_model_twos', function(Blueprint $table) {
+            $table->increments('id');
+            $table->string('title');
+            $table->text('description');
+            $table->timestamps();
+        });
     }
 
     public function testInitializeIndexSettings()
@@ -45,7 +83,10 @@ class IndexingTest extends TestCase
 
     public function testInitializeIndexSettingsFromYmlFile()
     {
-        IndexingTestModel::settings(__DIR__.'/fixtures/model.yml');
+        Storage::shouldReceive('get', 'model.yml')
+            ->andReturn(file_get_contents(__DIR__.'/fixtures/model.yml'));
+
+        IndexingTestModel::settings('model.yml');
         IndexingTestModel::settings([ 'bar' => 'bam' ]);
 
         $this->assertEquals([ 'bar' => 'bam', 'baz' => 'qux' ], IndexingTestModel::settings()->toArray());
@@ -53,7 +94,10 @@ class IndexingTest extends TestCase
 
     public function testInitializeIndexSettingsFromYamlFile()
     {
-        IndexingTestModel::settings(__DIR__.'/fixtures/model.yaml');
+        Storage::shouldReceive('get', 'model.yaml')
+            ->andReturn(file_get_contents(__DIR__.'/fixtures/model.yaml'));
+
+        IndexingTestModel::settings('model.yaml');
         IndexingTestModel::settings([ 'bar' => 'bam' ]);
 
         $this->assertEquals([ 'bar' => 'bam', 'baz' => 'qux' ], IndexingTestModel::settings()->toArray());
@@ -61,10 +105,152 @@ class IndexingTest extends TestCase
 
     public function testInitializeIndexSettingsFromJsonFile()
     {
-        IndexingTestModel::settings(__DIR__.'/fixtures/model.json');
+        Storage::shouldReceive('get', 'model.json')
+            ->andReturn(file_get_contents(__DIR__.'/fixtures/model.json'));
+
+        IndexingTestModel::settings('model.json');
         IndexingTestModel::settings([ 'bat' => 'bap' ]);
 
         $this->assertEquals([ 'bat' => 'bap', 'baz' => 'qux' ], IndexingTestModel::settings()->toArray());
+    }
+
+    public function testMappingsClass()
+    {
+        $mappings = Models\Thing::mappings();
+        $this->assertInstanceOf(Mappings::class, $mappings);
+    }
+
+    public function testMappingsDefineProperties()
+    {
+        $mappings = new Mappings('thing');
+
+        $mappings->indexes('foo', [
+            'type' => 'boolean',
+            'include_in_all' => false,
+        ]);
+
+        $this->assertEquals('boolean', array_get($mappings->toArray(), 'thing.properties.foo.type'));
+    }
+
+    public function testMappingsDefineTypeAsStringByDefault()
+    {
+        $mappings = new Mappings('thing');
+        $mappings->indexes('bar', []);
+
+        $this->assertEquals('string', array_get($mappings->toArray(), 'thing.properties.bar.type'));
+    }
+
+    public function testMappingsDefineMultipleFields()
+    {
+        $mappings = new Mappings('thing');
+
+        $mappings->indexes('foo_1', [ 'type' => 'string' ], function ($m, $parent) {
+            $m->indexes("$parent.raw", [ 'analyzer' => 'keyword' ]);
+        });
+
+        $mappings->indexes('foo_2', [ 'type' => 'multi_field' ], function ($m, $parent) {
+            $m->indexes("$parent.raw", [ 'analyzer' => 'keyword' ]);
+        });
+
+        $array = $mappings->toArray();
+
+        $this->assertEquals('string', array_get($array, 'thing.properties.foo_1.type'));
+        $this->assertEquals('string', array_get($array, 'thing.properties.foo_1.fields.raw.type'));
+        $this->assertEquals('keyword', array_get($array, 'thing.properties.foo_1.fields.raw.analyzer'));
+        $this->assertNull(array_get($array, 'thing.properties.foo_1.properties'));
+
+        $this->assertEquals('multi_field', array_get($array, 'thing.properties.foo_2.type'));
+        $this->assertEquals('string', array_get($array, 'thing.properties.foo_2.fields.raw.type'));
+        $this->assertEquals('keyword', array_get($array, 'thing.properties.foo_2.fields.raw.analyzer'));
+        $this->assertNull(array_get($array, 'thing.properties.foo_2.properties'));
+    }
+
+    public function testMappingsDefineEmbeddedProperties()
+    {
+        $mappings = new Mappings('thing');
+
+        $mappings->indexes('foo', [], function ($m, $parent) {
+            $m->indexes("$parent.bar");
+        });
+
+        $mappings->indexes('foo_object', ['type' => 'object'], function ($m, $parent) {
+            $m->indexes("$parent.bar");
+        });
+
+        $mappings->indexes('foo_nested', ['type' => 'nested'], function ($m, $parent) {
+            $m->indexes("$parent.bar");
+        });
+
+        $array = $mappings->toArray();
+
+        $this->assertEquals('object', array_get($array, 'thing.properties.foo.type'));
+        $this->assertEquals('string', array_get($array, 'thing.properties.foo.properties.bar.type'));
+        $this->assertNull(array_get($array, 'thing.properties.foo.fields'));
+
+        $this->assertEquals('object', array_get($array, 'thing.properties.foo_object.type'));
+        $this->assertEquals('string', array_get($array, 'thing.properties.foo_object.properties.bar.type'));
+        $this->assertNull(array_get($array, 'thing.properties.foo_object.fields'));
+
+        $this->assertEquals('nested', array_get($array, 'thing.properties.foo_nested.type'));
+        $this->assertEquals('string', array_get($array, 'thing.properties.foo_nested.properties.bar.type'));
+        $this->assertNull(array_get($array, 'thing.properties.foo_object.fields'));
+    }
+
+    public function testMappingsToArray()
+    {
+        $mappings = new Mappings('thing');
+
+        $this->assertEquals([], $mappings->toArray());
+
+        $mappings->indexes('foo', [], function ($m, $parent) {
+            $m->indexes("$parent.bar");
+        });
+
+        $this->assertEquals([
+            "thing" => [
+                "properties" => [
+                    "foo" => [
+                        "type" => "object",
+                        "properties" => [
+                            "bar" => [
+                                "type" => "string",
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ], $mappings->toArray());
+    }
+
+    public function testMappingsUpdateAndReturn()
+    {
+        Models\Thing::elastic()->mapping([ 'foo' => 'boo' ]);
+        Models\Thing::elastic()->mapping([ 'bar' => 'bam' ]);
+
+        $this->assertEquals([
+            'thing' => [
+                'foo' => 'boo',
+                'bar' => 'bam',
+                'properties' => [],
+            ],
+        ], Models\Thing::mappings()->toArray());
+    }
+
+    public function testMappingsCallable()
+    {
+        Models\Thing::mappings([], function ($m) {
+            $m->indexes('foo');
+        });
+
+        $this->assertEquals([
+            'thing' => [
+                'properties' => [
+                    'foo' => [
+                        'type' => 'string',
+                    ],
+                ],
+            ],
+        ], Models\Thing::mappings()->toArray());
     }
 
     public function testCreateIndex()
@@ -322,10 +508,9 @@ class IndexingTest extends TestCase
             'documentType' => 'indexing-test-model',
         ])->shouldDeferMissing();
 
-        Models\Thing::elastic($elastic);
+        IndexingTestModel::elastic($elastic);
 
-        $thing = new Models\Thing;
-        $thing->category_id = 1;
+        $thing = new IndexingTestModel;
         $thing->title = 'Title';
         $thing->save();
 
@@ -333,7 +518,7 @@ class IndexingTest extends TestCase
         $thing->save();
     }
 
-    public function testUpdateUnchangedDocument()
+    public function testUpdateUnchangedDocumentByReindexing()
     {
         $elastic = m::mock(Elastic::class, [Models\Thing::class], [
             'indexDocument' => '',
@@ -345,6 +530,131 @@ class IndexingTest extends TestCase
 
         $instance = new Models\Thing;
         $instance->updateDocument();
+    }
+
+    public function testExcludeAttributesNotInIndexedArray()
+    {
+        EloquentModelTwo::updated(function ($instance) {
+            $instance->updateDocument();
+        });
+
+        $client = m::mock('Client');
+
+        $client->shouldReceive('update')
+            ->with([
+                'index' => 'eloquent-model-twos',
+                'type' => 'eloquent-model-two',
+                'id' => 1,
+                'body' => [
+                    'doc' => [
+                        'title' => 'A new title',
+                    ],
+                ],
+            ])
+            ->andReturn([
+                '_index' => 'eloquent-model-twos',
+                '_type' => 'eloquent-model-two',
+                '_id' => 1,
+                '_version' => 2,
+            ]);
+
+        $elastic = m::mock(Elastic::class, [EloquentModelTwo::class], [
+            'client' => $client,
+            'indexName' => 'eloquent-model-twos',
+            'documentType' => 'eloquent-model-two',
+        ])->shouldDeferMissing();
+
+        EloquentModelTwo::elastic($elastic);
+
+        $instance = new EloquentModelTwo;
+        $instance->title = 'A title';
+        $instance->description = 'A description';
+        $instance->save();
+
+        $instance->title = 'A new title';
+        $instance->description = 'A new description';
+        $instance->save();
+    }
+
+    public function testUpdateSpecificAttributes()
+    {
+        $client = m::mock('Client');
+
+        $client->shouldReceive('update')
+            ->with([
+                'index' => 'eloquent-model-twos',
+                'type' => 'eloquent-model-two',
+                'id' => 1,
+                'body' => [
+                    'doc' => [
+                        'title' => 'A green title',
+                    ],
+                ],
+                'refresh' => true,
+            ])
+            ->andReturn([
+                '_index' => 'eloquent-model-twos',
+                '_type' => 'eloquent-model-two',
+                '_id' => 1,
+                '_version' => 2,
+            ]);
+
+        $elastic = m::mock(Elastic::class, [EloquentModelTwo::class], [
+            'client' => $client,
+            'indexName' => 'eloquent-model-twos',
+            'documentType' => 'eloquent-model-two',
+        ])->shouldDeferMissing();
+
+        EloquentModelTwo::elastic($elastic);
+
+        $instance = new EloquentModelTwo;
+        $instance->title = 'A title';
+        $instance->description = 'A description';
+        $instance->save();
+
+        $instance->updateDocumentAttributes([ 'title' => 'A green title' ], [ 'refresh' => true ]);
+
+        $this->assertEquals('A title', $instance->title);
+    }
+
+    public function testPassOptionsToUpdateSpecificAttributes()
+    {
+        $client = m::mock('Client');
+
+        $client->shouldReceive('update')
+            ->with([
+                'index' => 'eloquent-model-twos',
+                'type' => 'eloquent-model-two',
+                'id' => 1,
+                'body' => [
+                    'doc' => [
+                        'title' => 'A green title',
+                    ],
+                ],
+            ])
+            ->andReturn([
+                '_index' => 'eloquent-model-twos',
+                '_type' => 'eloquent-model-two',
+                '_id' => 1,
+                '_version' => 2,
+            ]);
+
+        $elastic = m::mock(Elastic::class, [EloquentModelTwo::class], [
+            'client' => $client,
+            'indexName' => 'eloquent-model-twos',
+            'documentType' => 'eloquent-model-two',
+        ])->shouldDeferMissing();
+
+        EloquentModelTwo::elastic($elastic);
+
+        $instance = new EloquentModelTwo;
+        $instance->title = 'A title';
+        $instance->description = 'A description';
+        $instance->save();
+
+        $instance->updateDocumentAttributes([ 'title' => 'A green title' ]);
+
+        $this->assertEquals('A title', $instance->title);
     }
 
     public function testDeleteDocument()
@@ -365,142 +675,4 @@ class IndexingTest extends TestCase
         $thing->deleteDocument();
     }
 
-    public function testMappingsClass()
-    {
-        $mappings = Models\Thing::mappings();
-        $this->assertInstanceOf(Mappings::class, $mappings);
-    }
-
-    public function testMappingsDefineProperties()
-    {
-        $mappings = new Mappings('thing');
-
-        $mappings->indexes('foo', [
-            'type' => 'boolean',
-            'include_in_all' => false,
-        ]);
-
-        $this->assertEquals('boolean', array_get($mappings->toArray(), 'thing.properties.foo.type'));
-    }
-
-    public function testMappingsDefineTypeAsStringByDefault()
-    {
-        $mappings = new Mappings('thing');
-        $mappings->indexes('bar', []);
-
-        $this->assertEquals('string', array_get($mappings->toArray(), 'thing.properties.bar.type'));
-    }
-
-    public function testMappingsDefineMultipleFields()
-    {
-        $mappings = new Mappings('thing');
-
-        $mappings->indexes('foo_1', [ 'type' => 'string' ], function ($m, $parent) {
-            $m->indexes("$parent.raw", [ 'analyzer' => 'keyword' ]);
-        });
-
-        $mappings->indexes('foo_2', [ 'type' => 'multi_field' ], function ($m, $parent) {
-            $m->indexes("$parent.raw", [ 'analyzer' => 'keyword' ]);
-        });
-
-        $array = $mappings->toArray();
-
-        $this->assertEquals('string', array_get($array, 'thing.properties.foo_1.type'));
-        $this->assertEquals('string', array_get($array, 'thing.properties.foo_1.fields.raw.type'));
-        $this->assertEquals('keyword', array_get($array, 'thing.properties.foo_1.fields.raw.analyzer'));
-        $this->assertNull(array_get($array, 'thing.properties.foo_1.properties'));
-
-        $this->assertEquals('multi_field', array_get($array, 'thing.properties.foo_2.type'));
-        $this->assertEquals('string', array_get($array, 'thing.properties.foo_2.fields.raw.type'));
-        $this->assertEquals('keyword', array_get($array, 'thing.properties.foo_2.fields.raw.analyzer'));
-        $this->assertNull(array_get($array, 'thing.properties.foo_2.properties'));
-    }
-
-    public function testMappingsDefineEmbeddedProperties()
-    {
-        $mappings = new Mappings('thing');
-
-        $mappings->indexes('foo', [], function ($m, $parent) {
-            $m->indexes("$parent.bar");
-        });
-
-        $mappings->indexes('foo_object', ['type' => 'object'], function ($m, $parent) {
-            $m->indexes("$parent.bar");
-        });
-
-        $mappings->indexes('foo_nested', ['type' => 'nested'], function ($m, $parent) {
-            $m->indexes("$parent.bar");
-        });
-
-        $array = $mappings->toArray();
-
-        $this->assertEquals('object', array_get($array, 'thing.properties.foo.type'));
-        $this->assertEquals('string', array_get($array, 'thing.properties.foo.properties.bar.type'));
-        $this->assertNull(array_get($array, 'thing.properties.foo.fields'));
-
-        $this->assertEquals('object', array_get($array, 'thing.properties.foo_object.type'));
-        $this->assertEquals('string', array_get($array, 'thing.properties.foo_object.properties.bar.type'));
-        $this->assertNull(array_get($array, 'thing.properties.foo_object.fields'));
-
-        $this->assertEquals('nested', array_get($array, 'thing.properties.foo_nested.type'));
-        $this->assertEquals('string', array_get($array, 'thing.properties.foo_nested.properties.bar.type'));
-        $this->assertNull(array_get($array, 'thing.properties.foo_object.fields'));
-    }
-
-    public function testMappingsToArray()
-    {
-        $mappings = new Mappings('thing');
-
-        $this->assertEquals([], $mappings->toArray());
-
-        $mappings->indexes('foo', [], function ($m, $parent) {
-            $m->indexes("$parent.bar");
-        });
-
-        $this->assertEquals([
-            "thing" => [
-                "properties" => [
-                    "foo" => [
-                        "type" => "object",
-                        "properties" => [
-                            "bar" => [
-                                "type" => "string",
-                            ],
-                        ],
-                    ],
-                ],
-            ],
-        ], $mappings->toArray());
-    }
-
-    public function testMappingsUpdateAndReturn()
-    {
-        Models\Thing::elastic()->mapping([ 'foo' => 'boo' ]);
-        Models\Thing::elastic()->mapping([ 'bar' => 'bam' ]);
-
-        $this->assertEquals([
-            'thing' => [
-                'foo' => 'boo',
-                'bar' => 'bam',
-                'properties' => [],
-            ],
-        ], Models\Thing::mappings()->toArray());
-    }
-
-    public function testMappingsCallable()
-    {
-        Models\Thing::mappings([], function ($m) {
-            $m->indexes('foo');
-        });
-
-        $this->assertEquals([
-            'thing' => [
-                'properties' => [
-                    'foo' => [
-                        'type' => 'string',
-                    ],
-                ],
-            ],
-        ], Models\Thing::mappings()->toArray());
-    }
 }

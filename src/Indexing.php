@@ -2,6 +2,7 @@
 
 use Elasticsearch\Common\Exceptions\Missing404Exception;
 use Log;
+use Storage;
 use Symfony\Component\Yaml\Yaml;
 
 class Mappings
@@ -129,13 +130,15 @@ trait Indexing
 
         if (is_string($settings)) {
             if(preg_match('/\.(yml|yaml)$/', $settings)) {
-                $fileSettings = Yaml::parse(file_get_contents($settings));
+                $contents = Storage::get($settings);
+                $fileSettings = Yaml::parse($contents);
                 $this->settings = $this->settings->merge($fileSettings);
                 return $this->settings;
             }
 
             if(preg_match('/\.(json)$/', $settings)) {
-                $fileSettings = json_decode(file_get_contents($settings));
+                $contents = Storage::get($settings);
+                $fileSettings = json_decode($contents);
                 $this->settings = $this->settings->merge($fileSettings);
                 return $this->settings;
             }

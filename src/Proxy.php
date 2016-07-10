@@ -112,8 +112,8 @@ trait Proxy
 
     public function updateDocumentAttributes($doc, $options=[])
     {
-        $options = static::instanceOptions($this->id);
-        $options['body'] = array_merge(compact('doc'), $options);
+        $options = array_merge($options, static::instanceOptions($this->id));
+        $options['body'] = compact('doc');
         return static::elastic()->updateDocument($options);
     }
 
