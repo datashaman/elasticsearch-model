@@ -45,6 +45,18 @@ class PaginationTest extends TestCase
         parent::tearDown();
     }
 
+    public function testDefaultPerPageWithStaticAttribute()
+    {
+        $this->assertEquals(33, $this->response->defaultPerPage());
+    }
+
+    public function testDefaultPerPageWithoutStaticAttribute()
+    {
+        ModelClass::$perPage = null;
+        $this->assertEquals(15, $this->response->defaultPerPage());
+        ModelClass::$perPage = 33;
+    }
+
     public function testPageParameters()
     {
         ModelClass::elastic()->client(m::mock('Client', [

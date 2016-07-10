@@ -45,9 +45,9 @@ class ResultTest extends TestCase
      * @expectedException ErrorException
      * @expectedExceptionMessage Undefined property via __get(): foo
      */
-    public function testGetterEmitsError()
+    public function testGetterEmitsErrorAndReturnsNull()
     {
         $result = new Result([]);
-        $foo = $result->foo;
+        $this->assertNull($result->foo);
     }
 }

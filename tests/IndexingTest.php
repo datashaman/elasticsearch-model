@@ -257,16 +257,35 @@ class IndexingTest extends TestCase
     {
         $create = new stdClass;
 
+        $client = m::mock('Client');
+
+        $client->shouldReceive('indices->create')
+            ->with([
+                'index' => 'indexing-test-models',
+                'body' => [
+                    'settings' => [ 'foo' => 'bar' ],
+                    'mappings' => [
+                        'indexing-test-model' => [
+                            'bom' => 'dia',
+                            'properties' => [],
+                        ],
+                    ],
+                ],
+            ])
+            ->andReturn($create);
+
         $elastic = m::mock(Elastic::class, [IndexingTestModel::class], [
-            'client' => m::mock('Client', [
-                'indices->create' => $create,
-            ]),
+            'client' => $client,
             'indexExists' => false,
             'indexName' => 'indexing-test-models',
             'documentType' => 'indexing-test-model',
         ])->shouldDeferMissing();
 
-        $this->assertSame($create, $elastic->createIndex());
+        IndexingTestModel::elastic($elastic);
+        IndexingTestModel::settings([ 'foo' => 'bar' ]);
+        IndexingTestModel::mappings([ 'bom' => 'dia' ]);
+
+        $this->assertSame($create, IndexingTestModel::elastic()->createIndex());
     }
 
     public function testCreateIndexThatExists()

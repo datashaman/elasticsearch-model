@@ -117,7 +117,7 @@ trait Indexing
         return $this->mappings($options, $callable);
     }
 
-    public function settings($settings=[])
+    public function settings($settings=null)
     {
         if (!isset($this->settings)) {
             $this->settings = collect();
