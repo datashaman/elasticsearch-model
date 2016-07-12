@@ -2,37 +2,77 @@
 
 use ArrayAccess;
 use Datashaman\Elasticsearch\Model\ArrayDelegate;
+use Illuminate\Contracts\Pagination\Paginator;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class Response implements ArrayAccess
 {
-    use Response\Pagination;
-
     use ArrayDelegate;
     protected static $arrayDelegate = 'results';
 
+    use Response\Pagination;
+
     public $search;
-    public $response;
 
-    protected $results;
+    protected $_response;
+    protected $_results;
+    protected $_paginator;
 
-    public function __construct($search, $response=null)
+    /**
+     * Create a response instance
+     *
+     * @param  SearchRequest $search
+     * @param  array         $response Dummy response (used by testing)
+     */
+    public function __construct(SearchRequest $search, $response=null)
     {
         $this->search = $search;
-        $this->response = is_null($response) ? $search->execute() : $response;
-
-        $this->results = collect($this->response['hits']['hits'])->map(function ($hit) {
-            $result = new Response\Result($hit);
-            return $result;
-        });
-
-        /*
-        foreach ($this->response['hits']['hits'] as $hit) {
-            $result = new Response\Result($hit);
-            $this->results[] = $result;
-        }
-         */
+        $this->_response = $response;
     }
 
+    /**
+     * Attribute getters (for lazy loading)
+     *
+     * @param  string $name
+     * @return mixed
+     */
+    public function __get($name)
+    {
+        if ($name == 'response') {
+            if (empty($this->_response)) {
+                $this->_response = $this->search->execute();
+            }
+
+            return $this->_response;
+        }
+
+        if ($name == 'results') {
+            if (!isset($this->_results)) {
+                $this->_results = collect($this->response['hits']['hits'])->map(function ($hit) {
+                    $result = new Response\Result($hit);
+                    return $result;
+                });
+            }
+
+            return $this->_results;
+        }
+
+        if ($name == 'paginator') {
+            if (!isset($this->_paginator)) {
+                $this->_paginator = new LengthAwarePaginator($this->results, $this->total(), $this->perPage(), $this->currentPage());
+            }
+
+            return $this->_paginator;
+        }
+    }
+
+    /**
+     * Delegate all unknown calls to the results collection
+     *
+     * @param string $name
+     * @param array  $args
+     * @return mixed
+     */
     public function __call($name, $args)
     {
         return call_user_func_array([ $this->results, $name ], $args);
@@ -50,17 +90,17 @@ class Response implements ArrayAccess
 
     public function took()
     {
-        return $this->response['took'];
+        return array_get($this->response, 'took');
     }
 
     public function timedOut()
     {
-        return $this->response['timed_out'];
+        return array_get($this->response, 'timed_out');
     }
 
     public function shards()
     {
-        return $this->response['_shards'];
+        return array_get($this->response, '_shards');
     }
 
     public function aggregations()
@@ -70,21 +110,27 @@ class Response implements ArrayAccess
 
     public function suggestions()
     {
-        return array_has($this->response, 'suggest') ? new Response\Suggestions($this->response['suggest']) : null;
+        return array_has($this->response, 'suggest') ? new Response\Suggestions(array_get($this->response, 'suggest')) : null;
     }
 
     public function from()
     {
-        return $this->search->definition['from'];
+        return array_get($this->search->definition, 'from');
     }
 
     public function size()
     {
-        return $this->search->definition['size'];
+        return array_get($this->search->definition, 'size');
     }
 
     public function total()
     {
-        return $this->response['hits']['total'];
+        return array_get($this->response, 'hits.total');
+    }
+
+    public function setPath($path)
+    {
+        $this->paginator->setPath($path);
+        return $this;
     }
 }

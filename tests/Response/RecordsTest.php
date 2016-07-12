@@ -50,7 +50,6 @@ class RecordsTest extends TestCase
 {
     protected $search;
     protected $response;
-    protected $results;
 
     public function setUp()
     {

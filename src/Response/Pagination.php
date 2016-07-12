@@ -1,5 +1,8 @@
 <?php namespace Datashaman\Elasticsearch\Model\Response;
 
+use Eloquent;
+use Illuminate\Contracts\Pagination\Presenter;
+use Illuminate\Pagination\BootstrapThreePresenter;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 trait Pagination
@@ -17,9 +20,6 @@ trait Pagination
 
         $this->search->update($args);
 
-        // $results = $this->results->results->all();
-        // $paginator = new LengthAwarePaginator($results, $this->results->total, $perPage, $currentPage, $options);
-
         return $this;
     }
 
@@ -29,6 +29,12 @@ trait Pagination
 
         if (isset($class::$perPage)) {
             return $class::$perPage;
+        }
+
+        $instance = new $class;
+
+        if ($instance instanceof Eloquent) {
+            return $instance->getPerPage();
         }
 
         return 15;
@@ -50,18 +56,59 @@ trait Pagination
         return $this;
     }
 
-    public function currentPage()
+    public function from()
     {
         $from = array_get($this->search->definition, 'from');
+        return $from;
+    }
+
+    public function currentPage()
+    {
+        $from = $this->from();
         $perPage = $this->perPage();
 
-        if (!is_null($from) && $perPage) {
+        if (!is_null($from) && !empty($perPage)) {
             return $from / $perPage + 1;
+        }
+    }
+
+    public function lastPage()
+    {
+        $from = $this->from();
+        $perPage = $this->perPage();
+
+        if (!is_null($from) && !empty($perPage)) {
+            return ceil($this->total() / $perPage);
         }
     }
 
     public function toArray()
     {
         return $this->results->toArray();
+
+        /*
+        $from = $this->from();
+        $total = $this->total();
+        $perPage = $this->perPage();
+
+        return [
+            'total' => $total,
+            'per_page' => $perPage,
+            'current_page' => $this->currentPage(),
+            'last_page' => $this->lastPage(),
+            'from' => $from,
+            'to' => min(($from + 1) * $perPage - 1, $total),
+            'data' => $this->results->toArray(),
+        ];
+         */
+    }
+
+    public function render(Presenter $presenter = null)
+    {
+        if (is_null($presenter) && isset(static::$presenterResolver)) {
+            $presenter = call_user_func(static::$presenterResolver, $this);
+        }
+        $presenter = $presenter ?: new BootstrapThreePresenter($this->paginator);
+        return $presenter->render();
     }
 }
