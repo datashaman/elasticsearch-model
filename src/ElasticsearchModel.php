@@ -1,4 +1,6 @@
-<?php namespace Datashaman\Elasticsearch\Model;
+<?php
+
+namespace Datashaman\Elasticsearch\Model;
 
 use Elasticsearch\ClientBuilder;
 
@@ -49,20 +51,21 @@ trait ElasticsearchModel
         }
 
         static::$elasticsearch = $args[0];
+
         return static::$elasticsearch;
     }
 
-    public static function search($query, $options=[])
+    public static function search($query, $options = [])
     {
         return static::elasticsearch()->search($query, $options);
     }
 
-    public static function mappings($options=[], callable $callback=null)
+    public static function mappings($options = [], callable $callback = null)
     {
         return static::elasticsearch()->mappings($options, $callback);
     }
 
-    public static function settings($settings=[])
+    public static function settings($settings = [])
     {
         return static::elasticsearch()->settings($settings);
     }
@@ -70,6 +73,7 @@ trait ElasticsearchModel
     public static function indexName()
     {
         $result = static::getOrSet('indexName', func_get_args());
+
         return $result;
     }
 
@@ -78,26 +82,29 @@ trait ElasticsearchModel
         return static::getOrSet('documentType', func_get_args());
     }
 
-    public static function getDocument($primaryKey, $options=[])
+    public static function getDocument($primaryKey, $options = [])
     {
         $options = static::instanceOptions($primaryKey, $options);
+
         return static::elasticsearch()->getDocument($options);
     }
 
-    public function indexDocument($options=[])
+    public function indexDocument($options = [])
     {
         $options = static::instanceOptions($this->id, $options);
         $options['body'] = $this->toIndexedArray();
+
         return static::elasticsearch()->indexDocument($options);
     }
 
-    public function deleteDocument($options=[])
+    public function deleteDocument($options = [])
     {
         $options = static::instanceOptions($this->id, $options);
+
         return static::elasticsearch()->deleteDocument($options);
     }
 
-    public function updateDocument($options=[])
+    public function updateDocument($options = [])
     {
         $dirty = $this->getDirty();
 
@@ -108,13 +115,15 @@ trait ElasticsearchModel
         $doc = array_only($this->toIndexedArray(), array_keys($dirty));
         $options = static::instanceOptions($this->id);
         $options['body'] = compact('doc');
+
         return static::elasticsearch()->updateDocument($options);
     }
 
-    public function updateDocumentAttributes($doc, $options=[])
+    public function updateDocumentAttributes($doc, $options = [])
     {
         $options = array_merge($options, static::instanceOptions($this->id));
         $options['body'] = compact('doc');
+
         return static::elasticsearch()->updateDocument($options);
     }
 
@@ -127,13 +136,14 @@ trait ElasticsearchModel
         return static::elasticsearch()->$name($args[0]);
     }
 
-    public static function instanceOptions($primaryKey, $options=[])
+    public static function instanceOptions($primaryKey, $options = [])
     {
         $options = array_merge([
             'index' => static::indexName(),
             'type' => static::documentType(),
             'id' => $primaryKey,
         ], $options);
+
         return $options;
     }
 }

@@ -1,4 +1,6 @@
-<?php namespace Datashaman\Elasticsearch\Model\Driver;
+<?php
+
+namespace Datashaman\Elasticsearch\Model\Driver;
 
 class Base
 {
@@ -6,7 +8,7 @@ class Base
     public $options;
     public $callable;
 
-    public function __construct($response, $options=[], callable $callable=null)
+    public function __construct($response, $options = [], callable $callable = null)
     {
         $this->response = $response;
         $this->options = $options;

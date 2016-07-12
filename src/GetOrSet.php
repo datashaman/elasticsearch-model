@@ -1,10 +1,12 @@
-<?php namespace Datashaman\Elasticsearch\Model;
+<?php
+
+namespace Datashaman\Elasticsearch\Model;
 
 class GetOrSet
 {
     protected $attributes;
 
-    public function __construct($attributes=[])
+    public function __construct($attributes = [])
     {
         $this->attributes = $attributes;
     }

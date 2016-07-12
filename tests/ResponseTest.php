@@ -1,9 +1,10 @@
-<?php namespace Datashaman\Elasticsearch\Model\Tests;
+<?php
+
+namespace Datashaman\Elasticsearch\Model\Tests;
 
 use Datashaman\Elasticsearch\Model\Response;
 use Datashaman\Elasticsearch\Model\Response\Records;
 use Datashaman\Elasticsearch\Model\Response\Result;
-use Datashaman\Elasticsearch\Model\Response\Results;
 use Datashaman\Elasticsearch\Model\SearchRequest;
 use Mockery as m;
 
@@ -13,7 +14,7 @@ class ResponseTest extends TestCase
         'took' => '5',
         'timed_out' => false,
         '_shards' => [
-            'one' => 'OK'
+            'one' => 'OK',
         ],
         'hits' => [
             'hits' => [
@@ -26,7 +27,7 @@ class ResponseTest extends TestCase
                         'title' => 'A Title',
                     ],
                 ],
-            ]
+            ],
         ],
         'aggregations' => [
             'foo' => [
@@ -38,11 +39,11 @@ class ResponseTest extends TestCase
                 [
                     'text' => 'foo',
                     'options' => [
-                        [ 'text' => 'Foo', 'score' => 2.0 ],
-                        [ 'text' => 'Bar', 'score' => 1.0 ],
+                        ['text' => 'Foo', 'score' => 2.0],
+                        ['text' => 'Bar', 'score' => 1.0],
                     ],
                 ],
-            ]
+            ],
         ],
     ];
 
@@ -50,7 +51,7 @@ class ResponseTest extends TestCase
     {
         $this->createThings();
 
-        $search = m::mock(SearchRequest::class, [ Models\Thing::class, '*' ], [
+        $search = m::mock(SearchRequest::class, [Models\Thing::class, '*'], [
             'execute' => static::$mockResponse,
         ]);
 

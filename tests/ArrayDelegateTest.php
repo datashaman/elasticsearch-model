@@ -1,4 +1,6 @@
-<?php namespace Datashaman\Elasticsearch\Model\Tests;
+<?php
+
+namespace Datashaman\Elasticsearch\Model\Tests;
 
 use ArrayAccess;
 use Datashaman\Elasticsearch\Model\ArrayDelegate;

@@ -1,4 +1,6 @@
-<?php namespace Datashaman\Elasticsearch\Model\Response;
+<?php
+
+namespace Datashaman\Elasticsearch\Model\Response;
 
 use ArrayAccess;
 use Datashaman\Elasticsearch\Model\ArrayDelegate;
@@ -9,7 +11,7 @@ class Suggestions implements ArrayAccess
 
     protected static $arrayDelegate = 'input';
 
-    public function __construct($input=[])
+    public function __construct($input = [])
     {
         $this->input = $input;
     }
@@ -24,6 +26,7 @@ class Suggestions implements ArrayAccess
                 collect(is_array($item) ? $item : [$item])->each(function ($item) use ($carry) {
                     $carry->push($item);
                 });
+
                 return $carry;
             }, collect())
             ->map(function ($value) {

@@ -1,7 +1,8 @@
-<?php namespace Datashaman\Elasticsearch\Model;
+<?php
+
+namespace Datashaman\Elasticsearch\Model;
 
 use ArrayAccess;
-use Datashaman\Elasticsearch\Model\ArrayDelegate;
 use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -16,23 +17,23 @@ class Response implements ArrayAccess
     protected $attributes;
 
     /**
-     * Create a response instance
+     * Create a response instance.
      *
      * @param  SearchRequest $search
      * @param  array         $response Dummy response (used by testing)
      */
-    public function __construct(SearchRequest $search, $response=null)
+    public function __construct(SearchRequest $search, $response = null)
     {
         $this->search = $search;
         $this->attributes = collect();
 
-        if (!is_null($response)) {
+        if (! is_null($response)) {
             $this->attributes->put('response', $response);
         }
     }
 
     /**
-     * Attribute getters (for lazy loading)
+     * Attribute getters (for lazy loading).
      *
      * @param  string $name
      * @return mixed
@@ -40,7 +41,7 @@ class Response implements ArrayAccess
     public function __get($name)
     {
         if ($name == 'response') {
-            if (!$this->attributes->has('response')) {
+            if (! $this->attributes->has('response')) {
                 $this->attributes->put('response', $this->search->execute());
             }
 
@@ -48,9 +49,10 @@ class Response implements ArrayAccess
         }
 
         if ($name == 'results') {
-            if (!$this->attributes->has('results')) {
+            if (! $this->attributes->has('results')) {
                 $this->attributes->put('results', collect($this->response['hits']['hits'])->map(function ($hit) {
                     $result = new Response\Result($hit);
+
                     return $result;
                 }));
             }
@@ -59,7 +61,7 @@ class Response implements ArrayAccess
         }
 
         if ($name == 'paginator') {
-            if (!$this->attributes->has('paginator')) {
+            if (! $this->attributes->has('paginator')) {
                 $this->attributes->put('paginator', new LengthAwarePaginator($this->results, $this->total(), $this->perPage(), $this->currentPage()));
             }
 
@@ -68,7 +70,7 @@ class Response implements ArrayAccess
     }
 
     /**
-     * Delegate all unknown calls to the results collection
+     * Delegate all unknown calls to the results collection.
      *
      * @param string $name
      * @param array  $args
@@ -76,15 +78,17 @@ class Response implements ArrayAccess
      */
     public function __call($name, $args)
     {
-        return call_user_func_array([ $this->results, $name ], $args);
+        return call_user_func_array([$this->results, $name], $args);
     }
 
     public function ids()
     {
-        return $this->results->map(function ($result) { return $result->id; });
+        return $this->results->map(function ($result) {
+            return $result->id;
+        });
     }
 
-    public function records($options=[], callable $callable=null)
+    public function records($options = [], callable $callable = null)
     {
         return new Response\Records($this, $options, $callable);
     }
@@ -132,6 +136,7 @@ class Response implements ArrayAccess
     public function setPath($path)
     {
         $this->paginator->setPath($path);
+
         return $this;
     }
 }

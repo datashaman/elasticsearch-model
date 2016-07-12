@@ -1,6 +1,6 @@
-<?php namespace Datashaman\Elasticsearch\Model;
+<?php
 
-use Datashaman\Elasticsearch\Model\Response;
+namespace Datashaman\Elasticsearch\Model;
 
 class SearchRequest
 {
@@ -8,7 +8,7 @@ class SearchRequest
     public $options;
     public $definition;
 
-    public function __construct($class, $query, $options=[])
+    public function __construct($class, $query, $options = [])
     {
         $this->class = $class;
         $this->options = $options;
@@ -37,6 +37,7 @@ class SearchRequest
     {
         $class = $this->class;
         $result = $class::elasticsearch()->client()->search($this->definition);
+
         return $result;
     }
 
@@ -50,10 +51,11 @@ class SearchRequest
 
 trait Searching
 {
-    public function search($query, $options=[])
+    public function search($query, $options = [])
     {
         $search = new SearchRequest($this->class, $query, $options);
         $response = new Response($search);
+
         return $response;
     }
 }

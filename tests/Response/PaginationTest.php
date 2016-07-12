@@ -1,9 +1,10 @@
-<?php namespace Datashaman\Elasticsearch\Model\Tests;
+<?php
+
+namespace Datashaman\Elasticsearch\Model\Tests;
 
 use Datashaman\Elasticsearch\Model\ElasticsearchModel;
 use Datashaman\Elasticsearch\Model\Response;
 use Datashaman\Elasticsearch\Model\SearchRequest;
-use DB;
 use Mockery as m;
 
 class ModelClass
@@ -18,7 +19,7 @@ class ModelClass
 
 $models = [];
 
-for($index=1; $index <= 100; $index++) {
+for ($index = 1; $index <= 100; $index++) {
     $models[] = [
         'title' => 'Model #'.$index,
     ];
@@ -96,7 +97,7 @@ class PaginationTest extends TestCase
         $this->assertNull(array_get($this->response->search->definition, 'size'));
         $this->assertNull(array_get($this->response->search->definition, 'from'));
 
-        $this->response->paginate([ 'page' => 2 ])->toArray();
+        $this->response->paginate(['page' => 2])->toArray();
 
         $this->assertEquals(33, $this->response->search->definition['size']);
         $this->assertEquals(33, $this->response->search->definition['from']);
@@ -126,7 +127,7 @@ class PaginationTest extends TestCase
         $this->assertNull(array_get($this->response->search->definition, 'size'));
         $this->assertNull(array_get($this->response->search->definition, 'from'));
 
-        $this->response->paginate([ 'page' => 3, 'perPage' => 9 ])->toArray();
+        $this->response->paginate(['page' => 3, 'perPage' => 9])->toArray();
 
         $this->assertEquals(9, $this->response->search->definition['size']);
         $this->assertEquals(18, $this->response->search->definition['from']);
@@ -156,7 +157,7 @@ class PaginationTest extends TestCase
         $this->assertNull(array_get($this->response->search->definition, 'size'));
         $this->assertNull(array_get($this->response->search->definition, 'from'));
 
-        $this->response->paginate([ 'page' => "-1" ])->toArray();
+        $this->response->paginate(['page' => '-1'])->toArray();
 
         $this->assertEquals(33, $this->response->search->definition['size']);
         $this->assertEquals(0, $this->response->search->definition['from']);
@@ -183,7 +184,7 @@ class PaginationTest extends TestCase
 
         ModelClass::elasticsearch()->client($client);
 
-        $this->response->paginate([ 'myPage' => 2, 'perPage' => 10, 'pageName' => 'myPage' ])->toArray();
+        $this->response->paginate(['myPage' => 2, 'perPage' => 10, 'pageName' => 'myPage'])->toArray();
     }
 
     public function testFromSizeUsingDefaultPerPage()
@@ -215,19 +216,19 @@ class PaginationTest extends TestCase
 
     public function testReturnCurrentPage()
     {
-        $this->response->paginate([ 'page' => 3, 'perPage' => 9 ]);
+        $this->response->paginate(['page' => 3, 'perPage' => 9]);
         $this->assertEquals(3, $this->response->currentPage());
     }
 
     public function testReturnPerPag()
     {
-        $this->response->paginate([ 'perPage' => 8 ]);
+        $this->response->paginate(['perPage' => 8]);
         $this->assertEquals(8, $this->response->perPage());
     }
 
     public function testTotal()
     {
-        $response = [ 'hits' => [ 'total' => 100, 'hits' => [] ] ];
+        $response = ['hits' => ['total' => 100, 'hits' => []]];
         $search = new SearchRequest(ModelClass::class, '*');
         $response = new Response($search, $response);
         $this->assertEquals(100, $response->total());
