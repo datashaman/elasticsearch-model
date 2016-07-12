@@ -13,10 +13,7 @@ class Response implements ArrayAccess
     use Response\Pagination;
 
     public $search;
-
-    protected $_response;
-    protected $_results;
-    protected $_paginator;
+    protected $attributes;
 
     /**
      * Create a response instance
@@ -27,7 +24,11 @@ class Response implements ArrayAccess
     public function __construct(SearchRequest $search, $response=null)
     {
         $this->search = $search;
-        $this->_response = $response;
+        $this->attributes = collect();
+
+        if (!is_null($response)) {
+            $this->attributes->put('response', $response);
+        }
     }
 
     /**
@@ -39,30 +40,30 @@ class Response implements ArrayAccess
     public function __get($name)
     {
         if ($name == 'response') {
-            if (empty($this->_response)) {
-                $this->_response = $this->search->execute();
+            if (!$this->attributes->has('response')) {
+                $this->attributes->put('response', $this->search->execute());
             }
 
-            return $this->_response;
+            return $this->attributes->get('response');
         }
 
         if ($name == 'results') {
-            if (!isset($this->_results)) {
-                $this->_results = collect($this->response['hits']['hits'])->map(function ($hit) {
+            if (!$this->attributes->has('results')) {
+                $this->attributes->put('results', collect($this->response['hits']['hits'])->map(function ($hit) {
                     $result = new Response\Result($hit);
                     return $result;
-                });
+                }));
             }
 
-            return $this->_results;
+            return $this->attributes->get('results');
         }
 
         if ($name == 'paginator') {
-            if (!isset($this->_paginator)) {
-                $this->_paginator = new LengthAwarePaginator($this->results, $this->total(), $this->perPage(), $this->currentPage());
+            if (!$this->attributes->has('paginator')) {
+                $this->attributes->put('paginator', new LengthAwarePaginator($this->results, $this->total(), $this->perPage(), $this->currentPage()));
             }
 
-            return $this->_paginator;
+            return $this->attributes->get('paginator');
         }
     }
 
