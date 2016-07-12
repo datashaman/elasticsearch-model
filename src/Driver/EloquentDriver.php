@@ -1,4 +1,6 @@
-<?php namespace Datashaman\Elasticsearch\Model\Driver;
+<?php
+
+namespace Datashaman\Elasticsearch\Model\Driver;
 
 class EloquentDriver extends Base
 {
@@ -10,7 +12,7 @@ class EloquentDriver extends Base
         $builder = $class::whereIn('id', $ids);
 
         if (array_has($this->options, 'with')) {
-            call_user_func_array([ $builder, 'with' ], $this->options['with']);
+            call_user_func_array([$builder, 'with'], $this->options['with']);
         }
 
         if (is_callable($this->callable)) {

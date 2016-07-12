@@ -1,4 +1,6 @@
-<?php namespace Datashaman\Elasticsearch\Model\Tests\Driver;
+<?php
+
+namespace Datashaman\Elasticsearch\Model\Tests\Driver;
 
 use Datashaman\Elasticsearch\Model\Elasticsearch;
 use Datashaman\Elasticsearch\Model\Tests\TestCase;
@@ -37,7 +39,7 @@ class EloquentDriverTest extends TestCase
         Thing::elasticsearch($elastic);
 
         $response = Thing::search('*');
-        $records = $response->records([ 'with' => [ 'category' ]]);
+        $records = $response->records(['with' => ['category']]);
 
         $this->assertTrue($records[0]->relationLoaded('category'));
     }
@@ -76,13 +78,17 @@ class EloquentDriverTest extends TestCase
             'category_id' => 1,
         ]);
 
-        $this->assertEquals([ 1, 2 ], Thing::all()->lists('id')->all());
+        $this->assertEquals([1, 2], Thing::all()->lists('id')->all());
 
         $response = Thing::search('Thing');
-        $this->assertEquals([ 2, 1 ], $response->map(function ($r) { return $r->id; })->all());
+        $this->assertEquals([2, 1], $response->map(function ($r) {
+            return $r->id;
+        })->all());
 
         $records = $response->records();
-        $this->assertEquals([ 2, 1 ], $records->map(function ($r) { return $r->id; })->all());
+        $this->assertEquals([2, 1], $records->map(function ($r) {
+            return $r->id;
+        })->all());
     }
 
     public function testNotReorderWhenOrderingIsPresent()
@@ -119,15 +125,17 @@ class EloquentDriverTest extends TestCase
             'category_id' => 1,
         ]);
 
-        $this->assertEquals([ 1, 2 ], Thing::all()->lists('id')->all());
+        $this->assertEquals([1, 2], Thing::all()->lists('id')->all());
 
         $response = Thing::search('Thing');
-        $this->assertEquals([ 2, 1 ], $response->ids()->all());
+        $this->assertEquals([2, 1], $response->ids()->all());
 
         $records = $response->records([], function ($query) {
             $query->orderBy('id');
         });
 
-        $this->assertEquals([ 1, 2 ], $records->map(function ($r) { return $r->id; })->all());
+        $this->assertEquals([1, 2], $records->map(function ($r) {
+            return $r->id;
+        })->all());
     }
 }

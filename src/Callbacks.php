@@ -1,4 +1,6 @@
-<?php namespace Datashaman\Elasticsearch\Model;
+<?php
+
+namespace Datashaman\Elasticsearch\Model;
 
 trait Callbacks
 {

@@ -1,7 +1,8 @@
-<?php namespace Datashaman\Elasticsearch\Model\Tests;
+<?php
+
+namespace Datashaman\Elasticsearch\Model\Tests;
 
 use Datashaman\Elasticsearch\Model\Response\Result;
-
 
 /**
  * @group passing
@@ -10,7 +11,7 @@ class ResultTest extends TestCase
 {
     public function testAccessToProperties()
     {
-        $result = new Result([ 'foo' => 'bar', 'bar' => [ 'bam' => 'baz' ] ]);
+        $result = new Result(['foo' => 'bar', 'bar' => ['bam' => 'baz']]);
 
         $this->assertEquals('bar', $result->foo);
         $this->assertEquals('baz', $result->bar['bam']);
@@ -18,7 +19,7 @@ class ResultTest extends TestCase
 
     public function testReturnIdCorrectly()
     {
-        $result = new Result([ 'foo' => 'bar', '_id' => 42, '_source' => [ 'id' => 12 ] ]);
+        $result = new Result(['foo' => 'bar', '_id' => 42, '_source' => ['id' => 12]]);
 
         $this->assertEquals(42, $result->id);
         $this->assertEquals(12, $result->_source['id']);
@@ -26,7 +27,7 @@ class ResultTest extends TestCase
 
     public function testReturnTypeCorrectly()
     {
-        $result = new Result([ 'foo' => 'bar', '_type' => 'baz', '_source' => [ 'type' => 'BAM' ] ]);
+        $result = new Result(['foo' => 'bar', '_type' => 'baz', '_source' => ['type' => 'BAM']]);
 
         $this->assertEquals('baz', $result->type);
         $this->assertEquals('BAM', $result->_source['type']);
@@ -34,7 +35,7 @@ class ResultTest extends TestCase
 
     public function testDelegateToSourceWhenAvailable()
     {
-        $result = new Result([ 'foo' => 'bar', '_source' => [ 'bar' => 'baz' ] ]);
+        $result = new Result(['foo' => 'bar', '_source' => ['bar' => 'baz']]);
 
         $this->assertEquals('bar', $result->foo);
         $this->assertEquals('baz', $result->_source['bar']);

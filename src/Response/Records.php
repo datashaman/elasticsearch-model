@@ -1,4 +1,6 @@
-<?php namespace Datashaman\Elasticsearch\Model\Response;
+<?php
+
+namespace Datashaman\Elasticsearch\Model\Response;
 
 use ArrayAccess;
 use Datashaman\Elasticsearch\Model\DriverManager;
@@ -14,7 +16,7 @@ class Records implements ArrayAccess
     protected $options;
     protected $callable;
 
-    public function __construct($response, $options=[], callable $callable=null)
+    public function __construct($response, $options = [], callable $callable = null)
     {
         $this->response = $response;
         $this->options = $options;
@@ -30,11 +32,11 @@ class Records implements ArrayAccess
 
     public function realZip($second)
     {
-        /** Collection::zip produces incorrect results, believe it or not */
+        /* Collection::zip produces incorrect results, believe it or not */
         $zipped = collect();
 
         $this->records->each(function ($item, $key) use ($second, &$zipped) {
-            $zipped->push([ $item, $second[$key] ]);
+            $zipped->push([$item, $second[$key]]);
         });
 
         return $zipped;
@@ -43,6 +45,7 @@ class Records implements ArrayAccess
     public function eachWithHit(callable $callable)
     {
         $collection = $this->realZip($this->response);
+
         return $collection->each(function ($both) use ($callable) {
             call_user_func($callable, $both[0], $both[1]);
         });
@@ -51,6 +54,7 @@ class Records implements ArrayAccess
     public function mapWithHit(callable $callable)
     {
         $collection = $this->realZip($this->response);
+
         return $collection->map(function ($both) use ($callable) {
             return call_user_func($callable, $both[0], $both[1]);
         });

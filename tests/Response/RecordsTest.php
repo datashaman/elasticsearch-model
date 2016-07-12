@@ -1,14 +1,13 @@
-<?php namespace Datashaman\Elasticsearch\Model\Tests;
+<?php
+
+namespace Datashaman\Elasticsearch\Model\Tests;
 
 use Datashaman\Elasticsearch\Model\ElasticsearchModel;
 use Datashaman\Elasticsearch\Model\SearchRequest;
 use Datashaman\Elasticsearch\Model\Response;
 use Datashaman\Elasticsearch\Model\Response\Records;
-use DB;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Mockery as m;
-use Schema;
 
 class RecordsTestCollection extends Collection
 {
@@ -56,7 +55,7 @@ class RecordsTest extends TestCase
         parent::setUp();
         // $this->createThings();
 
-        $search = m::mock(SearchRequest::class, [ RecordsTestModel::class, '*' ], [
+        $search = m::mock(SearchRequest::class, [RecordsTestModel::class, '*'], [
             'execute' => [
                 'hits' => [
                     'total' => 123,
@@ -76,19 +75,21 @@ class RecordsTest extends TestCase
     public function testShouldAccessRecords()
     {
         $this->assertEquals(1, $this->records->count());
-        $this->assertEquals((object) [ 'id' => 1, 'foo' => 'BAR' ], $this->records->first());
+        $this->assertEquals((object) ['id' => 1, 'foo' => 'BAR'], $this->records->first());
     }
 
     public function testHasEachWithHitMethod()
     {
         $this->records->eachWithHit(function ($record, $hit) {
-            $this->assertEquals((object) [ 'id' => 1, 'foo' => 'BAR' ], $record);
+            $this->assertEquals((object) ['id' => 1, 'foo' => 'BAR'], $record);
             $this->assertEquals('bar', $hit->foo);
         });
     }
 
     public function testHasMapWithHitMethod()
     {
-        $this->assertEquals(['BAR---bar'], $this->records->mapWithHit(function ($record, $hit) { return "{$record->foo}---{$hit->foo}"; })->all());
+        $this->assertEquals(['BAR---bar'], $this->records->mapWithHit(function ($record, $hit) {
+            return "{$record->foo}---{$hit->foo}";
+        })->all());
     }
 }
