@@ -1,19 +1,27 @@
 language: php
+
 php:
 - 5.5
 - 5.6
 - 7.0
+
 sudo: false
+
 install:
 - phpenv config-rm xdebug.ini
+- travis_retry composer self-update
 - travis_retry composer install --no-interaction --prefer-dist
+
 script: composer run coverage
+
 after_script:
 - vendor/bin/test-reporter
+
 cache:
   directories:
   - vendor
   - "$HOME/.composer/cache"
+
 notifications:
   slack:
     secure: ODPo7KQ7N+gQv4thY6Y8oDvvWt95tHpc19w018K9dTrY5+OWUp4LYimAwBTJ0YJxa/e3L+mRXXFl5R6i++SZGEqidmes4tPQB1ApP6ru4InIF6bQ0b0rvpxtWSUJZ1iVMvSQSFsp5C+1I75lfKDw4trnSarJ2jIQqa7z4uMrp4nLW/cVuYgoC44ehFiW3Uhzm+EtEOtbTgOvgZr+hLiUVE1x1VGIVcalSDbz+AnAiYmLBARwhKXMmL39/89O/eXucJALp3yLlmLKYjp5MaIh5EjFmAAWuvqayEbW3gb4U70XGvMf3FRORxnQn+pPcU55ULSy+6JeH3t4tZt48Wq29RQhY296klspW8bSXvry7Ot6/L2DiKAOOx6yBOIWMTUfMlOhKCT4HZoHZ4LCl74UqnmWaHlsdq2X+coNlD/XvdGgqd9QFKLoVfAwdGlaP3Lt5wDX9Ihce1m9Ncm4xNv5dbwG3hlfA/oY8Ntakc3u4IWH8ujELv0Vbc940zBlOK4YL6xRR3+2Ek2CYf6do7iNpHhLlcZXQeA0XK+ELhXKtIJxDIiTUt6ZRv0TrSsiAq2h95NUSLjw/LuwLlKQp22CUkj4L870/wC6kf67HuFXlPFau5L8hS++3dBghe8CJnySZTfrCMb7EJCCfr9TmkD63/W+xCN83S2071bjbpkqE8Y=
