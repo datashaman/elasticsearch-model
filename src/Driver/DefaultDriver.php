@@ -1,4 +1,6 @@
-<?php namespace Datashaman\Elasticsearch\Model\Driver;
+<?php
+
+namespace Datashaman\Elasticsearch\Model\Driver;
 
 class DefaultDriver extends Base
 {
@@ -6,6 +8,7 @@ class DefaultDriver extends Base
     {
         $class = $this->class;
         $records = $class::whereIn('id', $this->records->ids);
+
         return $records;
     }
 }

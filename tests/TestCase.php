@@ -1,8 +1,8 @@
-<?php namespace Datashaman\Elasticsearch\Model\Tests;
+<?php
 
-use Datashaman\Elasticsearch\Model\Elasticsearch;
+namespace Datashaman\Elasticsearch\Model\Tests;
+
 use DB;
-use Elasticsearch\ClientBuilder;
 use Eloquent;
 use Mockery as m;
 use Schema;
@@ -46,8 +46,8 @@ class TestCase extends \Orchestra\Testbench\TestCase
         });
 
         DB::table('categories')->insert([
-            [ 'title' => 'Category #1' ],
-            [ 'title' => 'Category #2' ],
+            ['title' => 'Category #1'],
+            ['title' => 'Category #2'],
         ]);
 
         DB::table('things')->insert([
@@ -63,5 +63,4 @@ class TestCase extends \Orchestra\Testbench\TestCase
         m::close();
         parent::tearDown();
     }
-
 }

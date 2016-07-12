@@ -1,4 +1,6 @@
-<?php namespace Datashaman\Elasticsearch\Model\Tests;
+<?php
+
+namespace Datashaman\Elasticsearch\Model\Tests;
 
 use Datashaman\Elasticsearch\Model\SearchRequest;
 use Elasticsearch\Client;
@@ -11,7 +13,7 @@ class SearchingModel
         return [
             'query' => [
                 'match' => [
-                    'foo' => 'bar'
+                    'foo' => 'bar',
                 ],
             ],
         ];
@@ -40,7 +42,7 @@ class SearchingTest extends TestCase
 
         Models\Thing::elasticsearch()->client($client);
 
-        $searchOptions = [ 'default_operator' => 'AND' ];
+        $searchOptions = ['default_operator' => 'AND'];
         $response = Models\Thing::search('foo', $searchOptions);
 
         $this->assertInstanceOf(SearchRequest::class, $response->search);
@@ -101,7 +103,7 @@ class SearchingTest extends TestCase
         $body = json_encode([
             'query' => [
                 'match' => [
-                    'foo' => 'bar'
+                    'foo' => 'bar',
                 ],
             ],
         ]);
@@ -141,7 +143,7 @@ class SearchingTest extends TestCase
 
         Models\Thing::elasticsearch()->client($client);
 
-        $s = new SearchRequest(Models\Thing::class, 'foo', [ 'size' => 15 ]);
+        $s = new SearchRequest(Models\Thing::class, 'foo', ['size' => 15]);
         $s->execute();
     }
 }

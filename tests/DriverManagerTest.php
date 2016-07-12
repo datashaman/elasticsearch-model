@@ -1,4 +1,6 @@
-<?php namespace Datashaman\Elasticsearch\Model\Tests;
+<?php
+
+namespace Datashaman\Elasticsearch\Model\Tests;
 
 use Datashaman\Elasticsearch\Model\Driver\EloquentDriver;
 use Datashaman\Elasticsearch\Model\DriverManager;
@@ -11,7 +13,7 @@ use Mockery as m;
 class DummyModel
 {
     use ElasticsearchModel;
-    static protected $elasticsearch;
+    protected static $elasticsearch;
 }
 
 class DummyDriverClass
@@ -28,7 +30,7 @@ class DriverManagerTest extends TestCase
     {
         $elastic = m::mock(Elasticsearch::class, [IndexingTestModel::class], [
             'client' => m::mock('Client', [
-                'search' => [ 'hits' => [ 'hits' => [] ] ],
+                'search' => ['hits' => ['hits' => []]],
             ]),
             'indexName' => 'indexing-test-models',
             'documentType' => 'indexing-test-model',

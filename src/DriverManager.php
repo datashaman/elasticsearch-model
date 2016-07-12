@@ -1,4 +1,6 @@
-<?php namespace Datashaman\Elasticsearch\Model;
+<?php
+
+namespace Datashaman\Elasticsearch\Model;
 
 use Illuminate\Support\Manager;
 
@@ -7,7 +9,7 @@ class DriverManager extends Manager
     private $response;
     private $options;
 
-    public function __construct($response, $options=[], callable $callable=null)
+    public function __construct($response, $options = [], callable $callable = null)
     {
         parent::__construct(null);
         $this->response = $response;

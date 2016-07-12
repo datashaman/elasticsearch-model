@@ -1,4 +1,6 @@
-<?php namespace Datashaman\Elasticsearch\Model;
+<?php
+
+namespace Datashaman\Elasticsearch\Model;
 
 use Elasticsearch\Common\Exceptions\Missing404Exception;
 use Log;
@@ -16,14 +18,14 @@ class Mappings
         'nested',
     ];
 
-    public function __construct($type, $options=[])
+    public function __construct($type, $options = [])
     {
         $this->type = $type;
         $this->options = $options;
         $this->mapping = [];
     }
 
-    public function indexes($name, $options=[], callable $callable=null)
+    public function indexes($name, $options = [], callable $callable = null)
     {
         array_set($this->mapping, $name, $options);
 
@@ -51,7 +53,8 @@ class Mappings
 
         $properties = $this->mapping;
         $type = array_merge($this->options, compact('properties'));
-        return [ $this->type => $type ];
+
+        return [$this->type => $type];
     }
 
     public function mergeOptions($options)
@@ -67,19 +70,21 @@ trait Indexing
     protected $settings;
     protected $mapping;
 
-    public function refreshIndex($options=[])
+    public function refreshIndex($options = [])
     {
         $index = array_pull($options, 'index', $this->indexName());
+
         return $this->client()->indices()->refresh(compact('index'));
     }
 
-    public function indexExists($options=[])
+    public function indexExists($options = [])
     {
         $index = array_get($options, 'index', $this->indexName());
+
         return $this->client()->indices()->exists(compact('index'));
     }
 
-    public function deleteIndex($options=[])
+    public function deleteIndex($options = [])
     {
         $index = array_get($options, 'index', $this->indexName());
         try {
@@ -87,6 +92,7 @@ trait Indexing
         } catch (Missing404Exception $e) {
             if (array_get($options, 'force')) {
                 Log::error($e->getMessage(), compact('index'));
+
                 return false;
             }
 
@@ -94,52 +100,56 @@ trait Indexing
         }
     }
 
-    public function mappings($options=[], callable $callable=null)
+    public function mappings($options = [], callable $callable = null)
     {
         if (empty($this->mapping)) {
             $this->mapping = new Mappings($this->documentType());
         }
 
-        if (!empty($options)) {
+        if (! empty($options)) {
             $this->mapping->mergeOptions($options);
         }
 
-        if (!is_callable($callable)) {
+        if (! is_callable($callable)) {
             return $this->mapping;
         }
 
         call_user_func($callable, $this->mapping);
+
         return $this->mapping;
     }
 
-    public function mapping($options=[], callable $callable=null)
+    public function mapping($options = [], callable $callable = null)
     {
         return $this->mappings($options, $callable);
     }
 
-    public function settings($settings=null)
+    public function settings($settings = null)
     {
-        if (!isset($this->settings)) {
+        if (! isset($this->settings)) {
             $this->settings = collect();
         }
 
         if (is_array($settings)) {
             $this->settings = $this->settings->merge($settings);
+
             return $this->settings;
         }
 
         if (is_string($settings)) {
-            if(preg_match('/\.(yml|yaml)$/', $settings)) {
+            if (preg_match('/\.(yml|yaml)$/', $settings)) {
                 $contents = Storage::get($settings);
                 $fileSettings = Yaml::parse($contents);
                 $this->settings = $this->settings->merge($fileSettings);
+
                 return $this->settings;
             }
 
-            if(preg_match('/\.(json)$/', $settings)) {
+            if (preg_match('/\.(json)$/', $settings)) {
                 $contents = Storage::get($settings);
                 $fileSettings = json_decode($contents);
                 $this->settings = $this->settings->merge($fileSettings);
+
                 return $this->settings;
             }
         }
@@ -147,7 +157,7 @@ trait Indexing
         return $this->settings;
     }
 
-    public function createIndex($options=[])
+    public function createIndex($options = [])
     {
         $index = array_get($options, 'index', $this->indexName());
 
@@ -163,34 +173,34 @@ trait Indexing
         $body = [];
 
         $settings = $this->settings()->toArray();
-        if (!empty($settings)) {
+        if (! empty($settings)) {
             $body['settings'] = $settings;
         }
 
         $mappings = $this->mappings()->toArray();
-        if (!empty($mappings)) {
+        if (! empty($mappings)) {
             $body['mappings'] = $mappings;
         }
 
         return $this->client()->indices()->create(compact('index', 'body'));
     }
 
-    public function getDocument($options=[])
+    public function getDocument($options = [])
     {
         return $this->client()->get($options);
     }
 
-    public function deleteDocument($options=[])
+    public function deleteDocument($options = [])
     {
         return $this->client()->delete($options);
     }
 
-    public function indexDocument($options=[])
+    public function indexDocument($options = [])
     {
         return $this->client()->index($options);
     }
 
-    public function updateDocument($options=[])
+    public function updateDocument($options = [])
     {
         return $this->client()->update($options);
     }

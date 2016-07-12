@@ -1,4 +1,6 @@
-<?php namespace Datashaman\Elasticsearch\Model\Tests;
+<?php
+
+namespace Datashaman\Elasticsearch\Model\Tests;
 
 use Elasticsearch\Client;
 use Datashaman\Elasticsearch\Model\ElasticsearchModel;
@@ -18,7 +20,7 @@ class SearchRequestQueryBuilder
 {
     public function toArray()
     {
-        return [ 'foo' => 'bar' ];
+        return ['foo' => 'bar'];
     }
 }
 
@@ -65,7 +67,7 @@ class SearchRequestTest extends TestCase
                 ->mock()
         );
 
-        $search = new SearchRequest(SearchRequestTestModel::class, [ 'foo' => 'bar' ]);
+        $search = new SearchRequest(SearchRequestTestModel::class, ['foo' => 'bar']);
         $search->execute();
     }
 
@@ -127,7 +129,7 @@ class SearchRequestTest extends TestCase
                 ->mock()
         );
 
-        $search = new SearchRequest(SearchRequestTestModel::class, 'foo', [ 'from' => 33, 'size' => 33 ]);
+        $search = new SearchRequest(SearchRequestTestModel::class, 'foo', ['from' => 33, 'size' => 33]);
         $search->execute();
     }
 }

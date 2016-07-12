@@ -1,9 +1,10 @@
-<?php namespace Datashaman\Elasticsearch\Model\Response;
+<?php
+
+namespace Datashaman\Elasticsearch\Model\Response;
 
 use Eloquent;
 use Illuminate\Contracts\Pagination\Presenter;
 use Illuminate\Pagination\BootstrapThreePresenter;
-use Illuminate\Pagination\LengthAwarePaginator;
 
 trait Pagination
 {
@@ -42,23 +43,26 @@ trait Pagination
 
     public function page($num)
     {
-        $this->paginate([ 'page' => $num, 'perPage' => $this->perPage() ]);
+        $this->paginate(['page' => $num, 'perPage' => $this->perPage()]);
+
         return $this;
     }
 
-    public function perPage($num=null)
+    public function perPage($num = null)
     {
         if (is_null($num)) {
             return array_get($this->search->definition, 'size', $this->defaultPerPage());
         }
 
-        $this->paginate([ 'page' => $this->currentPage(), 'perPage' => $num ]);
+        $this->paginate(['page' => $this->currentPage(), 'perPage' => $num]);
+
         return $this;
     }
 
     public function from()
     {
         $from = array_get($this->search->definition, 'from');
+
         return $from;
     }
 
@@ -67,7 +71,7 @@ trait Pagination
         $from = $this->from();
         $perPage = $this->perPage();
 
-        if (!is_null($from) && !empty($perPage)) {
+        if (! is_null($from) && ! empty($perPage)) {
             return $from / $perPage + 1;
         }
     }
@@ -77,7 +81,7 @@ trait Pagination
         $from = $this->from();
         $perPage = $this->perPage();
 
-        if (!is_null($from) && !empty($perPage)) {
+        if (! is_null($from) && ! empty($perPage)) {
             return ceil($this->total() / $perPage);
         }
     }
@@ -109,6 +113,7 @@ trait Pagination
             $presenter = call_user_func(static::$presenterResolver, $this);
         }
         $presenter = $presenter ?: new BootstrapThreePresenter($this->paginator);
+
         return $presenter->render();
     }
 }

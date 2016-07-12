@@ -1,11 +1,11 @@
-<?php namespace Datashaman\Elasticsearch\Model\Tests;
+<?php
+
+namespace Datashaman\Elasticsearch\Model\Tests;
 
 use Datashaman\Elasticsearch\Model\Elasticsearch;
 use Datashaman\Elasticsearch\Model\ElasticsearchModel;
 use Datashaman\Elasticsearch\Model\Mappings;
-use Elasticsearch\clientBuilder;
 use Elasticsearch\Common\Exceptions\Missing404Exception;
-use Elasticsearch\Namespaces\IndicesNamespace;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Log;
@@ -43,7 +43,6 @@ class EloquentModelTwo extends Model
 
 class IndexingTest extends TestCase
 {
-
     public function setUp()
     {
         parent::setUp();
@@ -53,19 +52,19 @@ class IndexingTest extends TestCase
         EloquentModel::resetElasticsearch();
         EloquentModelTwo::resetElasticsearch();
 
-        Schema::create('indexing_test_models', function(Blueprint $table) {
+        Schema::create('indexing_test_models', function (Blueprint $table) {
             $table->increments('id');
             $table->string('title');
             $table->timestamps();
         });
 
-        Schema::create('eloquent_models', function(Blueprint $table) {
+        Schema::create('eloquent_models', function (Blueprint $table) {
             $table->increments('id');
             $table->string('title');
             $table->timestamps();
         });
 
-        Schema::create('eloquent_model_twos', function(Blueprint $table) {
+        Schema::create('eloquent_model_twos', function (Blueprint $table) {
             $table->increments('id');
             $table->string('title');
             $table->text('description');
@@ -75,10 +74,10 @@ class IndexingTest extends TestCase
 
     public function testInitializeIndexSettings()
     {
-        IndexingTestModel::settings([ 'foo' => 'bar' ]);
-        IndexingTestModel::settings([ 'bar' => 'bam' ]);
+        IndexingTestModel::settings(['foo' => 'bar']);
+        IndexingTestModel::settings(['bar' => 'bam']);
 
-        $this->assertEquals([ 'foo' => 'bar', 'bar' => 'bam' ], IndexingTestModel::settings()->toArray());
+        $this->assertEquals(['foo' => 'bar', 'bar' => 'bam'], IndexingTestModel::settings()->toArray());
     }
 
     public function testInitializeIndexSettingsFromYmlFile()
@@ -87,9 +86,9 @@ class IndexingTest extends TestCase
             ->andReturn(file_get_contents(__DIR__.'/fixtures/model.yml'));
 
         IndexingTestModel::settings('model.yml');
-        IndexingTestModel::settings([ 'bar' => 'bam' ]);
+        IndexingTestModel::settings(['bar' => 'bam']);
 
-        $this->assertEquals([ 'bar' => 'bam', 'baz' => 'qux' ], IndexingTestModel::settings()->toArray());
+        $this->assertEquals(['bar' => 'bam', 'baz' => 'qux'], IndexingTestModel::settings()->toArray());
     }
 
     public function testInitializeIndexSettingsFromYamlFile()
@@ -98,9 +97,9 @@ class IndexingTest extends TestCase
             ->andReturn(file_get_contents(__DIR__.'/fixtures/model.yaml'));
 
         IndexingTestModel::settings('model.yaml');
-        IndexingTestModel::settings([ 'bar' => 'bam' ]);
+        IndexingTestModel::settings(['bar' => 'bam']);
 
-        $this->assertEquals([ 'bar' => 'bam', 'baz' => 'qux' ], IndexingTestModel::settings()->toArray());
+        $this->assertEquals(['bar' => 'bam', 'baz' => 'qux'], IndexingTestModel::settings()->toArray());
     }
 
     public function testInitializeIndexSettingsFromJsonFile()
@@ -109,9 +108,9 @@ class IndexingTest extends TestCase
             ->andReturn(file_get_contents(__DIR__.'/fixtures/model.json'));
 
         IndexingTestModel::settings('model.json');
-        IndexingTestModel::settings([ 'bat' => 'bap' ]);
+        IndexingTestModel::settings(['bat' => 'bap']);
 
-        $this->assertEquals([ 'bat' => 'bap', 'baz' => 'qux' ], IndexingTestModel::settings()->toArray());
+        $this->assertEquals(['bat' => 'bap', 'baz' => 'qux'], IndexingTestModel::settings()->toArray());
     }
 
     public function testMappingsClass()
@@ -144,12 +143,12 @@ class IndexingTest extends TestCase
     {
         $mappings = new Mappings('thing');
 
-        $mappings->indexes('foo_1', [ 'type' => 'string' ], function ($m, $parent) {
-            $m->indexes("$parent.raw", [ 'analyzer' => 'keyword' ]);
+        $mappings->indexes('foo_1', ['type' => 'string'], function ($m, $parent) {
+            $m->indexes("$parent.raw", ['analyzer' => 'keyword']);
         });
 
-        $mappings->indexes('foo_2', [ 'type' => 'multi_field' ], function ($m, $parent) {
-            $m->indexes("$parent.raw", [ 'analyzer' => 'keyword' ]);
+        $mappings->indexes('foo_2', ['type' => 'multi_field'], function ($m, $parent) {
+            $m->indexes("$parent.raw", ['analyzer' => 'keyword']);
         });
 
         $array = $mappings->toArray();
@@ -207,13 +206,13 @@ class IndexingTest extends TestCase
         });
 
         $this->assertEquals([
-            "thing" => [
-                "properties" => [
-                    "foo" => [
-                        "type" => "object",
-                        "properties" => [
-                            "bar" => [
-                                "type" => "string",
+            'thing' => [
+                'properties' => [
+                    'foo' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'bar' => [
+                                'type' => 'string',
                             ],
                         ],
                     ],
@@ -224,8 +223,8 @@ class IndexingTest extends TestCase
 
     public function testMappingsUpdateAndReturn()
     {
-        Models\Thing::elasticsearch()->mapping([ 'foo' => 'boo' ]);
-        Models\Thing::elasticsearch()->mapping([ 'bar' => 'bam' ]);
+        Models\Thing::elasticsearch()->mapping(['foo' => 'boo']);
+        Models\Thing::elasticsearch()->mapping(['bar' => 'bam']);
 
         $this->assertEquals([
             'thing' => [
@@ -263,7 +262,7 @@ class IndexingTest extends TestCase
             ->with([
                 'index' => 'indexing-test-models',
                 'body' => [
-                    'settings' => [ 'foo' => 'bar' ],
+                    'settings' => ['foo' => 'bar'],
                     'mappings' => [
                         'indexing-test-model' => [
                             'bom' => 'dia',
@@ -282,8 +281,8 @@ class IndexingTest extends TestCase
         ])->shouldDeferMissing();
 
         IndexingTestModel::elasticsearch($elastic);
-        IndexingTestModel::settings([ 'foo' => 'bar' ]);
-        IndexingTestModel::mappings([ 'bom' => 'dia' ]);
+        IndexingTestModel::settings(['foo' => 'bar']);
+        IndexingTestModel::mappings(['bom' => 'dia']);
 
         $this->assertSame($create, IndexingTestModel::elasticsearch()->createIndex());
     }
@@ -319,12 +318,12 @@ class IndexingTest extends TestCase
         ])->shouldDeferMissing();
 
         $elastic->shouldReceive('deleteIndex')
-            ->with([ 'force' => true, 'index' => 'indexing-test-models' ]);
+            ->with(['force' => true, 'index' => 'indexing-test-models']);
 
         $elastic->shouldReceive('indexExists')
-            ->with([ 'index' => 'indexing-test-models' ]);
+            ->with(['index' => 'indexing-test-models']);
 
-        $this->assertSame($create, $elastic->createIndex([ 'force' => true ]));
+        $this->assertSame($create, $elastic->createIndex(['force' => true]));
     }
 
     public function testCreateIndexWithForceThatExists()
@@ -335,13 +334,13 @@ class IndexingTest extends TestCase
         ])->shouldDeferMissing();
 
         $elastic->shouldReceive('deleteIndex')
-            ->with([ 'force' => true, 'index' => 'indexing-test-models' ]);
+            ->with(['force' => true, 'index' => 'indexing-test-models']);
 
         $elastic->shouldReceive('indexExists')
-            ->with([ 'index' => 'indexing-test-models' ])
+            ->with(['index' => 'indexing-test-models'])
             ->andReturn(true);
 
-        $this->assertFalse($elastic->createIndex([ 'force' => true ]));
+        $this->assertFalse($elastic->createIndex(['force' => true]));
     }
 
     public function testIndexExists()
@@ -411,9 +410,9 @@ class IndexingTest extends TestCase
         ])->shouldDeferMissing();
 
         Log::shouldReceive('error')
-            ->with('Index is missing', [ 'index' => 'indexing-test-models' ]);
+            ->with('Index is missing', ['index' => 'indexing-test-models']);
 
-        $this->assertFalse($elastic->deleteIndex([ 'force' => true ]));
+        $this->assertFalse($elastic->deleteIndex(['force' => true]));
     }
 
     public function testIndexDocument()
@@ -428,7 +427,7 @@ class IndexingTest extends TestCase
                 'body' => [
                     'id' => 1,
                     'foo' => 'bar',
-                ]
+                ],
             ]);
 
         $elastic = m::mock(Elasticsearch::class, [IndexingTestModel::class], [
@@ -461,7 +460,7 @@ class IndexingTest extends TestCase
             '_source' => [
                 'id' => 1,
                 'foo' => 'bar',
-            ]
+            ],
         ];
 
         $client = m::mock('Client');
@@ -481,7 +480,7 @@ class IndexingTest extends TestCase
                 '_source' => [
                     'id' => 1,
                     'foo' => 'bar',
-                ]
+                ],
             ]);
 
         $elastic = m::mock(Elasticsearch::class, [IndexingTestModel::class], [
@@ -631,7 +630,7 @@ class IndexingTest extends TestCase
         $instance->description = 'A description';
         $instance->save();
 
-        $instance->updateDocumentAttributes([ 'title' => 'A green title' ], [ 'refresh' => true ]);
+        $instance->updateDocumentAttributes(['title' => 'A green title'], ['refresh' => true]);
 
         $this->assertEquals('A title', $instance->title);
     }
@@ -671,7 +670,7 @@ class IndexingTest extends TestCase
         $instance->description = 'A description';
         $instance->save();
 
-        $instance->updateDocumentAttributes([ 'title' => 'A green title' ]);
+        $instance->updateDocumentAttributes(['title' => 'A green title']);
 
         $this->assertEquals('A title', $instance->title);
     }
@@ -693,5 +692,4 @@ class IndexingTest extends TestCase
 
         $thing->deleteDocument();
     }
-
 }
