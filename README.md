@@ -3,6 +3,7 @@
 Laravel-oriented implementation of [elasticsearch-model](https://github.com/elastic/elasticsearch-rails/tree/master/elasticsearch-model).
 
 [![Build Status](https://travis-ci.org/datashaman/elasticsearch-model.svg?branch=master)](https://travis-ci.org/datashaman/elasticsearch-model)
+[![StyleCI](https://styleci.io/repos/61363628/shield)](https://styleci.io/repos/61363628)
 [![Code Climate](https://codeclimate.com/github/datashaman/elasticsearch-model/badges/gpa.svg)](https://codeclimate.com/github/datashaman/elasticsearch-model)
 [![Test Coverage](https://codeclimate.com/github/datashaman/elasticsearch-model/badges/coverage.svg)](https://codeclimate.com/github/datashaman/elasticsearch-model/coverage)
 
