@@ -82,7 +82,7 @@ class Response implements ArrayAccess
     }
 
     /**
-     * Return a collection of the IDs of the results
+     * Return a collection of the IDs of the results.
      *
      * @return \Illuminate\Support\Collection
      */
