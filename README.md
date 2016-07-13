@@ -17,30 +17,34 @@ Install the package from packagist.org using composer:
 
 Let's suppose you have an `Article` model:
 
-    Schema::create('articles', function (Blueprint $table) {
-        $table->increments('id');
-        $table->string('title');
-    });
+```php
+Schema::create('articles', function (Blueprint $table) {
+    $table->increments('id');
+    $table->string('title');
+});
 
-    class Article extends Eloquent
-    {
-    }
+class Article extends Eloquent
+{
+}
 
-    Article::create([ 'title' => 'Quick brown fox' ]);
-    Article::create([ 'title' => 'Fast black dogs' ]);
-    Article::create([ 'title' => 'Swift green frogs' ]);
+Article::create([ 'title' => 'Quick brown fox' ]);
+Article::create([ 'title' => 'Fast black dogs' ]);
+Article::create([ 'title' => 'Swift green frogs' ]);
+```
 
 ## Setup
 
 To add the Elasticsearch integration for this model, use the `Datashaman\Elasticsearch\Model\ElasticsearchModel` trait in your class. You must also add a protected static `$elasticsearch` property for storage:
 
-    use Datashaman\Elasticsearch\Model\ElasticsearchModel;
+```php
+use Datashaman\Elasticsearch\Model\ElasticsearchModel;
 
-    class Article extends Eloquent
-    {
-        use ElasticsearchModel;
-        protected static $elasticsearch;
-    }
+class Article extends Eloquent
+{
+    use ElasticsearchModel;
+    protected static $elasticsearch;
+}
+```
 
 This will extend the model with functionality related to Elasticsearch.
 
@@ -54,18 +58,24 @@ To prevent polluting your model namespace, *nearly* all functionality is accesse
 
 The module will setup a [client](https://github.com/elasticsearch/elasticsearch-ruby/tree/master/elasticsearch), connected to `localhost:9200`, by default. You can access and use it like any other `Elasticsearch::Client`:
 
-    Article::elasticsearch()->client()->cluster()->health();
-    # [ "cluster_name" => "elasticsearch", "status" => "yellow", ... ]
+```php
+Article::elasticsearch()->client()->cluster()->health();
+=> [ "cluster_name" => "elasticsearch", "status" => "yellow", ... ]
+```
 
 To use a client with a different configuration, set a client for the model using `Elasticsearch\ClientBuilder`:
 
-    Article::elasticsearch()->client(ClientBuilder::fromConfig([ 'hosts' => [ 'api.server.org' ] ]));
+```php
+Article::elasticsearch()->client(ClientBuilder::fromConfig([ 'hosts' => [ 'api.server.org' ] ]));
+```
 
 ### Importing the data
 
 The first thing you'll want to do is import your data to the index:
 
-    Article::elasticsearch()->import([ 'force' => true ]);
+```php
+Article::elasticsearch()->import([ 'force' => true ]);
+```
 
 It's possible to import only records from a specific scope or query, transform the batch with the transform and preprocess options,
 or re-create the index by deleting it and creating it with correct mapping with the force option -- look for examples in the method documentation.
@@ -76,19 +86,21 @@ No errors were reported during importing, so... let's search the index!
 
 For starters, we can try the *simple* type of search:
 
-    $response = Article::search('fox dogs');
+```php
+$response = Article::search('fox dogs');
 
-    $response->took();
-    # 3
+$response->took();
+=> 3
 
-    $response->total();
-    # 2
+$response->total();
+=> 2
 
-    $response[0]->_score;
-    # 0.02250402
+$response[0]->_score;
+=> 0.02250402
 
-    $response[0]->title;
-    # "Fast black dogs"
+$response[0]->title;
+=> "Fast black dogs"
+```
 
 ### Search results
 
@@ -98,11 +110,13 @@ Each *hit* is wrapped in the `Result` class.
 
 The `response` object delegates to an internal `Collection`, so it supports all the usual methods: `map`, `filter`, `each`, etc.
 
-    $response->map(function ($r) { return $r->title; })->all();
-    # ["Fast black dogs", "Quick brown fox"]
+```php
+$response->map(function ($r) { return $r->title; })->all();
+=> ["Fast black dogs", "Quick brown fox"]
 
-    $response->filter(function ($r) { return preg_match('/^Q/', $r->title); })->map(function ($r) { return $r->title; })->all();
-    # ["Quick brown fox"]
+$response->filter(function ($r) { return preg_match('/^Q/', $r->title); })->map(function ($r) { return $r->title; })->all();
+=> ["Quick brown fox"]
+```
 
 As you can see in the examples above, use the `Collection::all()` method to get a regular array.
 
@@ -110,10 +124,12 @@ As you can see in the examples above, use the `Collection::all()` method to get 
 
 Instead of returning documents from Elasticsearch, the records method will return a collection of model instances, fetched from the primary database, ordered by score:
 
-    $response->records()
-        ->map(function ($article) { return $article->title; })
-        ->all();
-    # ["Fast black dogs", "Quick brown fox"]
+```php
+$response->records()
+    ->map(function ($article) { return $article->title; })
+    ->all();
+=> ["Fast black dogs", "Quick brown fox"]
+```
 
 The returned object is a `Collection` of model instances returned by your database, i.e. the `Eloquent` instance.
 
@@ -123,28 +139,28 @@ In most cases, working with results coming from Elasticsearch is sufficient, and
 
 When you want to access both the database `records` and search `results`, use the `eachWithHit` (or `mapWithHit`) iterator:
 
-```
+```php
 $lines = [];
 $response->records()->eachWithHit(function ($record, $hit) {
     $lines[] = "* {$record->title}: {$hit->_score}";
 });
 
 $lines;
-# [ "* Fast black dogs: 0.01125201", "* Quick brown fox: 0.01125201" ]
+=> [ "* Fast black dogs: 0.01125201", "* Quick brown fox: 0.01125201" ]
 
 $lines = $response->records()->mapWithHit(function ($record, $hit) {
     return "* {$record->title}: {$hit->_score}";
 })->all();
 
 $lines;
-# [ "* Fast black dogs: 0.01125201", "* Quick brown fox: 0.01125201" ]
+=> [ "* Fast black dogs: 0.01125201", "* Quick brown fox: 0.01125201" ]
 ```
 
 Note the use `Collection::all()` to convert to a regular array in the `mapWithHit` example. `Collection` methods prefer to return `Collection` instances instead of regular arrays.
 
 The first argument to `records` is an `options` array, the second argument is a callback which is passed the query builder to modify it on-the-fly. For example, to re-order the records differently to the results (from above):
 
-```
+```php
 $response
     ->records([], function ($query) {
         $query->orderBy('title', 'desc');
