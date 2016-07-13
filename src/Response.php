@@ -72,8 +72,8 @@ class Response implements ArrayAccess
     /**
      * Delegate all unknown calls to the results collection.
      *
-     * @param string $name
-     * @param array  $args
+     * @param  string $name
+     * @param  array  $args
      * @return mixed
      */
     public function __call($name, $args)
@@ -81,6 +81,11 @@ class Response implements ArrayAccess
         return call_user_func_array([$this->results, $name], $args);
     }
 
+    /**
+     * Return a collection of the IDs of the results
+     *
+     * @return \Illuminate\Support\Collection
+     */
     public function ids()
     {
         return $this->results->map(function ($result) {
@@ -88,6 +93,13 @@ class Response implements ArrayAccess
         });
     }
 
+    /**
+     * Return a records object for this response.
+     *
+     * @param  array    $options
+     * @param  callable $callable Called with the query to modify it on-the-fly.
+     * @return Response\Records
+     */
     public function records($options = [], callable $callable = null)
     {
         return new Response\Records($this, $options, $callable);

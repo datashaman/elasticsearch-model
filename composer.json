@@ -38,7 +38,8 @@
         "test-wip": "phpunit --group wip",
         "coverage": "php -dzend_extension=xdebug.so `which phpunit` --coverage-clover build/logs/clover.xml",
         "send-coverage": "bash -c 'source .env && vendor/bin/test-reporter'",
-        "watch-test": "bash watch-test.sh"
+        "watch-test": "bash watch-test.sh",
+        "docs": "phpdoc -d ./src -t ./docs/api"
     },
     "config": {
         "preferred-install": "dist"
