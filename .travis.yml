@@ -11,6 +11,7 @@ install:
 - phpenv config-rm xdebug.ini
 - travis_retry composer self-update
 - travis_retry composer install --no-interaction --prefer-dist
+- travis_retry composer require symfony/yaml --no-interaction --prefer-dist
 
 script: composer run coverage
 

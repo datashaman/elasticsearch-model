@@ -9,9 +9,19 @@ Laravel-oriented implementation of [elasticsearch-model](https://github.com/elas
 
 ## Installation
 
-Install the package from packagist.org using composer:
+Install the package from packagist.org by editing composer.json to include the following (only published on github for now):
 
-    composer install datashaman/elasticsearch-model:dev-master
+    {
+        "repositories": [
+            {
+                "type": "vcs",
+                "url": "https://github.com/datashaman/elasticsearch-model"
+            }
+        ],
+        "require": {
+            "datashaman/elasticsearch-model": "dev-master"
+        }
+    }
 
 *NB* This is currently *ALPHA* quality software. Not for production use yet.
 
