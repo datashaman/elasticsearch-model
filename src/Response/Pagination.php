@@ -3,8 +3,6 @@
 namespace Datashaman\Elasticsearch\Model\Response;
 
 use Eloquent;
-use Illuminate\Contracts\Pagination\Presenter;
-use Illuminate\Pagination\BootstrapThreePresenter;
 
 trait Pagination
 {

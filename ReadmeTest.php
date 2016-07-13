@@ -91,8 +91,8 @@ class ReadmeTest extends TestCase
         ], $lines);
 
         $ordered = $response->records([], function ($query) {
-                $query->orderBy('title', 'desc');
-            })
+            $query->orderBy('title', 'desc');
+        })
             ->map(function ($record) {
                 return $record->title;
             })
