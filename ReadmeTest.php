@@ -89,5 +89,18 @@ class ReadmeTest extends TestCase
             '* Fast black dogs: '.$response[0]->_score,
             '* Quick brown fox: '.$response[1]->_score,
         ], $lines);
+
+        $ordered = $response->records([], function ($query) {
+                $query->orderBy('title', 'desc');
+            })
+            ->map(function ($record) {
+                return $record->title;
+            })
+            ->all();
+
+        $this->assertEquals([
+            'Quick brown fox',
+            'Fast black dogs',
+        ], $ordered);
     }
 }

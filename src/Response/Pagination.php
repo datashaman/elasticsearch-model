@@ -82,7 +82,7 @@ trait Pagination
         $perPage = $this->perPage();
 
         if (! is_null($from) && ! empty($perPage)) {
-            return ceil($this->total() / $perPage);
+            return (int) ceil($this->total() / $perPage);
         }
     }
 
@@ -105,15 +105,5 @@ trait Pagination
             'data' => $this->results->toArray(),
         ];
          */
-    }
-
-    public function render(Presenter $presenter = null)
-    {
-        if (is_null($presenter) && isset(static::$presenterResolver)) {
-            $presenter = call_user_func(static::$presenterResolver, $this);
-        }
-        $presenter = $presenter ?: new BootstrapThreePresenter($this->paginator);
-
-        return $presenter->render();
     }
 }

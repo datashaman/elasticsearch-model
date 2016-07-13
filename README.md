@@ -65,9 +65,10 @@ To use a client with a different configuration, set a client for the model using
 
 The first thing you'll want to do is import your data to the index:
 
-    Article::import();
+    Article::elasticsearch()->import([ 'force' => true ]);
 
-It's possible to import only records from a specific scope or query, transform the batch with the transform and preprocess options, or re-create the index by deleting it and creating it with correct mapping with the force option -- look for examples in the method documentation.
+It's possible to import only records from a specific scope or query, transform the batch with the transform and preprocess options,
+or re-create the index by deleting it and creating it with correct mapping with the force option -- look for examples in the method documentation.
 
 No errors were reported during importing, so... let's search the index!
 
@@ -116,26 +117,43 @@ Instead of returning documents from Elasticsearch, the records method will retur
 
 The returned object is a `Collection` of model instances returned by your database, i.e. the `Eloquent` instance.
 
-The records method returns the real instances of your model, which is useful when you want to access your model methods - at the expense of slowing down your application, of course. In most cases, working with results coming from Elasticsearch is sufficient, and much faster.
+The records method returns the real instances of your model, which is useful when you want to access your model methods - at the expense of slowing down your application, of course.
+
+In most cases, working with results coming from Elasticsearch is sufficient, and much faster.
 
 When you want to access both the database `records` and search `results`, use the `eachWithHit` (or `mapWithHit`) iterator:
 
-    $lines = [];
-    $response->records()->eachWithHit(function ($record, $hit) {
-        $lines[] = "* {$record->title}: {$hit->_score}";
-    });
+```
+$lines = [];
+$response->records()->eachWithHit(function ($record, $hit) {
+    $lines[] = "* {$record->title}: {$hit->_score}";
+});
 
-    $lines;
-    # [ "* Fast black dogs: 0.01125201", "* Quick brown fox: 0.01125201" ]
+$lines;
+# [ "* Fast black dogs: 0.01125201", "* Quick brown fox: 0.01125201" ]
 
-    $lines = $response->records()->mapWithHit(function ($record, $hit) {
-        return "* {$record->title}: {$hit->_score}";
-    })->all();
+$lines = $response->records()->mapWithHit(function ($record, $hit) {
+    return "* {$record->title}: {$hit->_score}";
+})->all();
 
-    $lines;
-    # [ "* Fast black dogs: 0.01125201", "* Quick brown fox: 0.01125201" ]
+$lines;
+# [ "* Fast black dogs: 0.01125201", "* Quick brown fox: 0.01125201" ]
+```
 
 Note the use `Collection::all()` to convert to a regular array in the `mapWithHit` example. `Collection` methods prefer to return `Collection` instances instead of regular arrays.
+
+The first argument to `records` is an `options` array, the second argument is a callback which is passed the query builder to modify it on-the-fly. For example, to re-order the records differently to the results (from above):
+
+```
+$response
+    ->records([], function ($query) {
+        $query->orderBy('title', 'desc');
+    })
+    ->map(function ($article) { return $article->title; })
+    ->all();
+
+=> [ 'Quick brown fox', 'Fast black dogs' ]
+```
 
 ## Attribution
 

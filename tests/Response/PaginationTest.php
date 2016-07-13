@@ -5,7 +5,16 @@ namespace Datashaman\Elasticsearch\Model\Tests;
 use Datashaman\Elasticsearch\Model\ElasticsearchModel;
 use Datashaman\Elasticsearch\Model\Response;
 use Datashaman\Elasticsearch\Model\SearchRequest;
+use Illuminate\Database\Eloquent\Model;
 use Mockery as m;
+
+class PaginationEloquentModel extends Model
+{
+    use ElasticsearchModel;
+    protected static $elasticsearch;
+    protected $perPage = 99;
+}
+
 
 class ModelClass
 {
@@ -35,6 +44,7 @@ class PaginationTest extends TestCase
 
         $this->response = new Response($search, [
             'hits' => [
+                'total' => 99,
                 'hits' => [],
             ],
         ]);
@@ -58,6 +68,19 @@ class PaginationTest extends TestCase
         ModelClass::$perPage = 33;
     }
 
+    public function testDefaultPerPageWithEloquentModel()
+    {
+        $search = new SearchRequest(PaginationEloquentModel::class, '*');
+
+        $response = new Response($search, [
+            'hits' => [
+                'hits' => [],
+            ],
+        ]);
+
+        $this->assertEquals(99, $response->defaultPerPage());
+    }
+
     public function testPageParameters()
     {
         ModelClass::elasticsearch()->client(m::mock('Client', [
@@ -71,6 +94,18 @@ class PaginationTest extends TestCase
 
         $this->assertEquals(6, $this->response->from());
         $this->assertEquals(3, $this->response->size());
+    }
+
+    public function testFromGetter()
+    {
+        $this->response->paginate(['page' => 2])->toArray();
+        $this->assertEquals(33, $this->response->from());
+    }
+
+    public function testLastPageGetter()
+    {
+        $this->response->paginate(['page' => 2])->toArray();
+        $this->assertEquals(3, $this->response->lastPage());
     }
 
     public function testFromSizeWithDefaults()
