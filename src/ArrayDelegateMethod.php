@@ -2,25 +2,30 @@
 
 namespace Datashaman\Elasticsearch\Model;
 
+use Exception;
+
 trait ArrayDelegateMethod
 {
     public function offsetSet($offset, $value)
     {
-        array_set(call_user_func([$this, static::$arrayDelegate]), $offset, $value);
+        throw new Exception('Not implemented');
     }
 
     public function offsetExists($offset)
     {
-        return array_has(call_user_func([$this, static::$arrayDelegate]), $offset);
+        $array = call_user_func([$this, static::$arrayDelegate]);
+        return isset($array[$offset]);
     }
 
     public function offsetUnset($offset)
     {
-        array_forget(call_user_func([$this, static::$arrayDelegate]), $offset);
+        throw new Exception('Not implemented');
     }
 
     public function offsetGet($offset)
     {
-        return array_get(call_user_func([$this, static::$arrayDelegate]), $offset);
+        $array = call_user_func([$this, static::$arrayDelegate]);
+        $item = $array[$offset];
+        return $item;
     }
 }
