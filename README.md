@@ -123,11 +123,11 @@ Each *hit* is wrapped in the `Result` class.
 `Result` has a dynamic getter:
 
 * index, type, id, score and source are pulled from the top-level of the hit.
-  e.g. index is hit[_index], type is hit[_type], etc
+  e.g. index is hit\[_index\], type is hit\[_type\], etc
 * if not one of the above, it looks for an existing item in the top-level hit.
-  e.g. _version is hit[_version], etc
-* if not one of the above, it looks for an existing item in hit[_source] (the document).
-  e.g. title is hit[_source][title]
+  e.g. _version is hit\[_version\], etc
+* if not one of the above, it looks for an existing item in hit\[_source\] \(the document\).
+  e.g. title is hit\[_source\]\[title\]
 * if nothing resolves from above, it triggers a notice and returns null
 
 The `response` object delegates to an internal `Collection`, so it supports all the usual methods: `map`, `filter`, `each`, etc.
