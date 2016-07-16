@@ -214,6 +214,7 @@ $response->page(2)->lastPage();
 
 $response->page(2)->paginator();
 => object(Illuminate\Pagination\LengthAwarePaginator) ...
+```
 
 For the rest, you can use the `paginator` object. For example, to render the pagination links you would do this:
 
