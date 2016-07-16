@@ -5,7 +5,7 @@ namespace Datashaman\Elasticsearch\Model\Response;
 trait Delegates
 {
     /**
-     * Delegate methods to the results paginator
+     * Delegate methods to the results paginator.
      */
     public function __call($name, $args)
     {

@@ -100,5 +100,4 @@ class Response implements ArrayAccess
     {
         return array_has($this->response(), 'suggest') ? new Response\Suggestions(array_get($this->response(), 'suggest')) : null;
     }
-
 }
