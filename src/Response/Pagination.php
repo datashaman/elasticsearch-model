@@ -8,6 +8,8 @@ trait Pagination
 {
     public function paginate($options)
     {
+        $this->attributes = collect();
+
         $pageName = array_pull($options, 'pageName', 'page');
         $currentPage = max((int) array_pull($options, $pageName), 1);
         $perPage = (int) array_pull($options, 'perPage', $this->defaultPerPage());

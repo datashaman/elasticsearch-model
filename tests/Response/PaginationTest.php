@@ -6,6 +6,7 @@ use Datashaman\Elasticsearch\Model\ElasticsearchModel;
 use Datashaman\Elasticsearch\Model\Response;
 use Datashaman\Elasticsearch\Model\SearchRequest;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Mockery as m;
 
 class PaginationEloquentModel extends Model
@@ -40,14 +41,16 @@ class PaginationTest extends TestCase
     {
         parent::setUp();
 
-        $search = new SearchRequest(ModelClass::class, '*');
-
-        $this->response = new Response($search, [
-            'hits' => [
-                'total' => 99,
-                'hits' => [],
+        $search = m::mock(SearchRequest::class, [ ModelClass::class, '*' ], [
+            'execute' => [
+                'hits' => [
+                    'total' => 99,
+                    'hits' => [],
+                ],
             ],
-        ]);
+        ])->shouldDeferMissing();
+
+        $this->response = new Response($search);
     }
 
     public function tearDown()
@@ -71,13 +74,7 @@ class PaginationTest extends TestCase
     public function testDefaultPerPageWithEloquentModel()
     {
         $search = new SearchRequest(PaginationEloquentModel::class, '*');
-
-        $response = new Response($search, [
-            'hits' => [
-                'hits' => [],
-            ],
-        ]);
-
+        $response = new Response($search);
         $this->assertEquals(99, $response->defaultPerPage());
     }
 
@@ -255,7 +252,7 @@ class PaginationTest extends TestCase
         $this->assertEquals(3, $this->response->currentPage());
     }
 
-    public function testReturnPerPag()
+    public function testReturnPerPage()
     {
         $this->response->paginate(['perPage' => 8]);
         $this->assertEquals(8, $this->response->perPage());
@@ -263,9 +260,22 @@ class PaginationTest extends TestCase
 
     public function testTotal()
     {
-        $response = ['hits' => ['total' => 100, 'hits' => []]];
-        $search = new SearchRequest(ModelClass::class, '*');
-        $response = new Response($search, $response);
-        $this->assertEquals(100, $response->total());
+        $this->assertEquals(99, $this->response->total());
+    }
+
+    public function testPaginator()
+    {
+        $paginator = $this->response->page(2)->paginator;
+
+        $this->assertInstanceOf(LengthAwarePaginator::class, $paginator);
+
+        $this->assertEquals($this->response->results->toArray(), $paginator->items());
+        $this->assertEquals(99, $paginator->total());
+        $this->assertEquals(33, $paginator->perPage());
+        $this->assertEquals(2, $paginator->currentPage());
+
+        $this->response->setPath('/articles');
+
+        $this->assertEquals('<ul class="pagination"><li><a href="/articles?page=1" rel="prev">&laquo;</a></li> <li><a href="/articles?page=1">1</a></li><li class="active"><span>2</span></li><li><a href="/articles?page=3">3</a></li> <li><a href="/articles?page=3" rel="next">&raquo;</a></li></ul>', $this->response->paginator->render());
     }
 }

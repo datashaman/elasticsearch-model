@@ -188,6 +188,48 @@ $response
 => [ 'Quick brown fox', 'Fast black dogs' ]
 ```
 
+Notice that adding an `orderBy` call to the query overrides the ordering of the records, so that it is no longer the same as the results.
+
+### Searching multiple models
+
+TBD
+
+### Pagination
+
+You can implement pagination with the `from` and `size` search parameters. However, search results can be automatically paginated much like Laravel does.
+
+```php
+$response->page(2)->results;
+$response->page(2)->records;
+```
+
+You have access to basic pagination methods directly on the `Response` instance:
+
+```php
+$response->page(2)->currentPage();
+=> 2
+
+$response->page(2)->lastPage();
+=> 3
+
+$response->page(2)->paginator;
+=> object(Illuminate\Pagination\LengthAwarePaginator) ...
+
+For the rest, you can use the `paginator` object. For example, to render the pagination links you would do this (using a shortcut `setPath` method which delegates to the `paginator`):
+
+```php
+$response->page(2)->setPath('articles');
+$response->page(2)->paginator->render();
+=> <ul class="pagination">
+    <li><a href="/articles?page=1" rel="prev">&laquo;</a></li>
+    <li><a href="/articles?page=1">1</a></li>
+    <li class="active"><span>2</span></li>
+    <li><a href="/articles?page=3">3</a></li>
+    <li><a href="/articles?page=3" rel="next">&raquo;</a></li>
+</ul>
+
+The rendered HTML was tidied up slightly for readability.
+
 ## Attribution
 
 Original design from [elasticsearch-model](https://github.com/elastic/elasticsearch-rails/tree/master/elasticsearch-model) which is:

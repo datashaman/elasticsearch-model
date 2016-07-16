@@ -22,14 +22,10 @@ class Response implements ArrayAccess
      * @param  SearchRequest $search
      * @param  array         $response Dummy response (used by testing)
      */
-    public function __construct(SearchRequest $search, $response = null)
+    public function __construct(SearchRequest $search)
     {
         $this->search = $search;
         $this->attributes = collect();
-
-        if (! is_null($response)) {
-            $this->attributes->put('response', $response);
-        }
     }
 
     /**
