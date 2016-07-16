@@ -199,8 +199,17 @@ Notice that adding an `orderBy` call to the query overrides the ordering of the 
 You can implement pagination with the `from` and `size` search parameters. However, search results can be automatically paginated much like Laravel does.
 
 ```php
+# Delegates to the results on page 2 with 20 per page
+$response->perPage(20)->page(2);
+
+# Records on page 2 with 20 per page (in the same order as results)
+$response->page(2)->perPage(20)->records();
+
+# Results on page 2 with (default) 15 results per page
 $response->page(2)->results();
-$response->page(2)->records();
+
+# Records on (default) page 1 with 10 records per page
+$response->perPage(10)->records();
 ```
 
 You have access to basic pagination methods directly on the `Response` instance:
