@@ -38,7 +38,8 @@ trait Pagination
             return $instance->getPerPage();
         }
 
-        return 15;
+        /** Same as Elasticsearch's default */
+        return 10;
     }
 
     public function page($num)
@@ -57,30 +58,5 @@ trait Pagination
         $this->paginate(['page' => $this->currentPage(), 'perPage' => $num]);
 
         return $this;
-    }
-
-    public function currentPage()
-    {
-        $from = $this->from();
-        $perPage = $this->perPage();
-
-        if (! is_null($from) && ! empty($perPage)) {
-            return $from / $perPage + 1;
-        }
-    }
-
-    public function lastPage()
-    {
-        $from = $this->from();
-        $perPage = $this->perPage();
-
-        if (! is_null($from) && ! empty($perPage)) {
-            return (int) ceil($this->total() / $perPage);
-        }
-    }
-
-    public function toArray()
-    {
-        return $this->paginator()->toArray();
     }
 }

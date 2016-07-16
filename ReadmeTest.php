@@ -125,11 +125,11 @@ class ReadmeTest extends TestCase
         })->all());
 
         /* Response can be used as an array (of the results) */
-        $page = $response->perPage(1)->page(2);
+        $response = $response->perPage(1)->page(2);
 
-        $this->assertEquals(1, count($page));
+        $this->assertEquals(1, count($response));
 
-        $this->assertInstanceOf(Result::class, $page[0]);
+        $this->assertInstanceOf(Result::class, $response[0]);
 
         /*
          * Result has a dynamic getter:
@@ -145,8 +145,21 @@ class ReadmeTest extends TestCase
          *
          * if nothing resolves from above, it triggers a notice and returns null
          */
-        $article = $page[0];
+        $article = $response[0];
 
         $this->assertEquals('Quick brown fox', $article->title);
+
+        $this->assertEquals('<ul class="pagination">'.
+            '<li><a href="/?page=1" rel="prev">&laquo;</a></li> '.
+            '<li><a href="/?page=1">1</a></li>'.
+            '<li class="active"><span>2</span></li>'.
+            '<li><a href="/?page=3">3</a></li> '.
+            '<li><a href="/?page=3" rel="next">&raquo;</a></li>'.
+            '</ul>', $response->render());
+
+        $this->assertEquals(3, $response->total());
+        $this->assertEquals(1, $response->perPage());
+        $this->assertEquals(2, $response->currentPage());
+        $this->assertEquals(3, $response->lastPage());
     }
 }

@@ -5,8 +5,8 @@ namespace Datashaman\Elasticsearch\Model;
 class SearchRequest
 {
     public $class;
-    public $options;
     public $definition;
+    public $options;
 
     public function __construct($class, $query, $options = [])
     {

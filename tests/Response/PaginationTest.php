@@ -6,7 +6,6 @@ use Datashaman\Elasticsearch\Model\ElasticsearchModel;
 use Datashaman\Elasticsearch\Model\Response;
 use Datashaman\Elasticsearch\Model\SearchRequest;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Mockery as m;
 
 class PaginationEloquentModel extends Model
@@ -67,7 +66,7 @@ class PaginationTest extends TestCase
     public function testDefaultPerPageWithoutStaticAttribute()
     {
         ModelClass::$perPage = null;
-        $this->assertEquals(15, $this->response->defaultPerPage());
+        $this->assertEquals(10, $this->response->defaultPerPage());
         ModelClass::$perPage = 33;
     }
 
@@ -263,18 +262,15 @@ class PaginationTest extends TestCase
         $this->assertEquals(99, $this->response->total());
     }
 
-    public function testPaginator()
+    public function testResults()
     {
-        $paginator = $this->response->page(2)->paginator();
+        $results = $this->response->page(2)->results();
 
-        $this->assertInstanceOf(LengthAwarePaginator::class, $paginator);
+        $this->assertEquals(99, $results->total());
+        $this->assertEquals(33, $results->perPage());
+        $this->assertEquals(2, $results->currentPage());
 
-        $this->assertEquals($this->response->results()->toArray(), $paginator->items());
-        $this->assertEquals(99, $paginator->total());
-        $this->assertEquals(33, $paginator->perPage());
-        $this->assertEquals(2, $paginator->currentPage());
-
-        $this->response->paginator()->setPath('/articles');
-        $this->assertEquals('<ul class="pagination"><li><a href="/articles?page=1" rel="prev">&laquo;</a></li> <li><a href="/articles?page=1">1</a></li><li class="active"><span>2</span></li><li><a href="/articles?page=3">3</a></li> <li><a href="/articles?page=3" rel="next">&raquo;</a></li></ul>', $this->response->paginator()->render());
+        $results->setPath('/articles');
+        $this->assertEquals('<ul class="pagination"><li><a href="/articles?page=1" rel="prev">&laquo;</a></li> <li><a href="/articles?page=1">1</a></li><li class="active"><span>2</span></li><li><a href="/articles?page=3">3</a></li> <li><a href="/articles?page=3" rel="next">&raquo;</a></li></ul>', $results->render());
     }
 }

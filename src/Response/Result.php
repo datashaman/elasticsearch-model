@@ -2,7 +2,9 @@
 
 namespace Datashaman\Elasticsearch\Model\Response;
 
-class Result
+use Illuminate\Contracts\Support\Arrayable;
+
+class Result implements Arrayable
 {
     protected $hit;
 
@@ -13,8 +15,9 @@ class Result
 
     public function __get($name)
     {
-        if (in_array($name, ['index', 'type', 'id', 'score', 'source'])) {
-            return array_get($this->hit, '_'.$name);
+        if (in_array($name, ['index', 'type', 'id', 'score', 'source'])
+            && array_has($this->hit, "_$name")) {
+            return array_get($this->hit, "_$name");
         }
 
         if (array_has($this->hit, $name)) {

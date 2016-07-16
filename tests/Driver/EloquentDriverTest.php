@@ -81,7 +81,7 @@ class EloquentDriverTest extends TestCase
         $this->assertEquals([1, 2], Thing::all()->lists('id')->all());
 
         $response = Thing::search('Thing');
-        $this->assertEquals([2, 1], $response->map(function ($r) {
+        $this->assertEquals([2, 1], $response->getCollection()->map(function ($r) {
             return $r->id;
         })->all());
 

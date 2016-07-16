@@ -118,27 +118,15 @@ $response[0]->title;
 
 The returned `response` object is a rich wrapper around the JSON returned from Elasticsearch, providing access to response metadata and the actual results (*hits*).
 
-Each *hit* is wrapped in the `Result` class.
-
-`Result` has a dynamic getter:
-
-* index, type, id, score and source are pulled from the top-level of the hit.
-  e.g. index is hit\[_index\], type is hit\[_type\], etc
-* if not one of the above, it looks for an existing item in the top-level hit.
-  e.g. _version is hit\[_version\], etc
-* if not one of the above, it looks for an existing item in hit\[_source\] \(the document\).
-  e.g. title is hit\[_source\]\[title\]
-* if nothing resolves from above, it triggers a notice and returns null
-
-The `response` object delegates to an internal `Collection`, so it supports all the usual methods: `map`, `filter`, `each`, etc.
+The `response` object delegates to an internal `LengthAwarePaginator`. You can get a `Collection` via the delegate `getCollection` method:
 
 ```php
-$response
+$response->getCollection()
     ->map(function ($r) { return $r->title; })
     ->all();
 => ["Fast black dogs", "Quick brown fox"]
 
-$response
+$response->getCollection()
     ->filter(function ($r) { return preg_match('/^Q/', $r->title); })
     ->map(function ($r) { return $r->title; })
     ->all();
@@ -146,6 +134,20 @@ $response
 ```
 
 As you can see in the examples above, use the `Collection::all()` method to get a regular array.
+
+Each Elasticsearch *hit* is wrapped in the `Result` class.
+
+`Result` has a dynamic getter:
+
+* *index*, *type*, *id*, *score* and *source* are pulled from the top-level of the *hit*.
+  e.g. *index* is *hit\[_index\]*, *type* is *hit\[_type\]*, etc
+* if not one of the above, it looks for an existing item in the top-level hit.
+  e.g. *_version* is *hit\[_version\]* (if defined)
+* if not one of the above, it looks for an existing item in *hit\[_source\]* \(the document\).
+  e.g. *title* is *hit\[_source\]\[title\]* (if defined)
+* if nothing resolves from above, it triggers a notice and returns null
+
+It also has a `toArray` method which returns the hit as an array.
 
 #### Search results as database records
 
@@ -223,24 +225,16 @@ $response->page(2)->results();
 $response->perPage(10)->records();
 ```
 
-You have access to basic pagination methods directly on the `Response` instance:
+You have access to a length-aware paginator (delegated internally to the `results()` call):
 
 ```php
-$response->page(2)->currentPage();
-=> 2
-
-$response->page(2)->lastPage();
-=> 3
-
-$response->page(2)->paginator();
+$response->page(2)->results();
 => object(Illuminate\Pagination\LengthAwarePaginator) ...
-```
 
-For the rest, you can use the `paginator` object. For example, to render the pagination links you would do this:
+$results = response->page(2);
 
-```php
-$response->page(2)->paginator()->setPath('/articles');
-$response->page(2)->paginator()->render();
+$results->setPath('/articles');
+$results->render();
 => <ul class="pagination">
     <li><a href="/articles?page=1" rel="prev">&laquo;</a></li>
     <li><a href="/articles?page=1">1</a></li>
