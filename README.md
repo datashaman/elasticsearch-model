@@ -225,7 +225,7 @@ $response->page(2)->results();
 $response->perPage(10)->records();
 ```
 
-You have access to a length-aware paginator (delegated internally to the `results()` call):
+You have access to a length-aware paginator (the response delegates internally to the `results()` call, so you don't need to call results() on the chain):
 
 ```php
 $response->page(2)->results();
