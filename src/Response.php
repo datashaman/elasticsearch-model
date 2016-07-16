@@ -47,11 +47,11 @@ class Response implements ArrayAccess
         if (! $this->attributes->has('results')) {
             $response = $this->response();
 
-            $results  = collect($response['hits']['hits'])->map(function ($hit) {
+            $results = collect($response['hits']['hits'])->map(function ($hit) {
                 return new Response\Result($hit);
             });
 
-            /**
+            /*
              * Must calculate current page manually here, can't use method because it uses the paginator for its result (infinite loop)
              */
             $from = $this->from();
