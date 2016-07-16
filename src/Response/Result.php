@@ -13,7 +13,7 @@ class Result
 
     public function __get($name)
     {
-        if ($name == 'id' || $name == 'type') {
+        if (in_array($name, ['index', 'type', 'id', 'score', 'source'])) {
             return array_get($this->hit, '_'.$name);
         }
 
@@ -33,5 +33,12 @@ class Result
             ' in '.$trace[0]['file'].
             ' on line '.$trace[0]['line'],
             E_USER_NOTICE);
+
+        return null;
+    }
+
+    public function toArray()
+    {
+        return $this->hit;
     }
 }

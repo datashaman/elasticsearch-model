@@ -120,6 +120,16 @@ The returned `response` object is a rich wrapper around the JSON returned from E
 
 Each *hit* is wrapped in the `Result` class.
 
+`Result` has a dynamic getter:
+
+* index, type, id, score and source are pulled from the top-level of the hit.
+  e.g. index is hit[_index], type is hit[_type], etc
+* if not one of the above, it looks for an existing item in the top-level hit.
+  e.g. _version is hit[_version], etc
+* if not one of the above, it looks for an existing item in hit[_source] (the document).
+  e.g. title is hit[_source][title]
+* if nothing resolves from above, it triggers a notice and returns null
+
 The `response` object delegates to an internal `Collection`, so it supports all the usual methods: `map`, `filter`, `each`, etc.
 
 ```php
@@ -202,7 +212,8 @@ You can implement pagination with the `from` and `size` search parameters. Howev
 # Delegates to the results on page 2 with 20 per page
 $response->perPage(20)->page(2);
 
-# Records on page 2 with 20 per page (in the same order as results)
+# Records on page 2 with 20 per page; records ordered the same as results
+# Order of the `page` and `perPage` calls doesn't matter
 $response->page(2)->perPage(20)->records();
 
 # Results on page 2 with (default) 15 results per page

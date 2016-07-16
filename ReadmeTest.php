@@ -3,6 +3,7 @@
 namespace Datashaman\Elasticsearch\Model\Tests;
 
 use Datashaman\Elasticsearch\Model\ElasticsearchModel;
+use Datashaman\Elasticsearch\Model\Response\Result;
 use Illuminate\Database\Eloquent\Model as Eloquent;
 use Illuminate\Database\Schema\Blueprint;
 use Schema;
@@ -102,5 +103,48 @@ class ReadmeTest extends TestCase
             'Quick brown fox',
             'Fast black dogs',
         ], $ordered);
+
+        /**
+         * Only have 3 results so perPage is going to be 1 for all these examples.
+         */
+        $response = Article::search('*', [
+            'sort' => [
+                'title',
+            ],
+        ]);
+
+        /**
+         * Just so it's clear these are in the expected title order,
+         */
+        $this->assertEquals([
+            'Fast black dogs',
+            'Quick brown fox',
+            'Swift green frogs',
+        ], $response->map(function ($a) { return $a->title; })->all());
+
+        /** Response can be used as an array (of the results) */
+        $page = $response->perPage(1)->page(2);
+
+        $this->assertEquals(1, count($page));
+
+        $this->assertInstanceOf(Result::class, $page[0]);
+
+        /**
+         * Result has a dynamic getter:
+         *
+         * index, type, id, score and source are pulled from the top-level of the hit.
+         * e.g. index is hit[_index], type is hit[_type], etc
+         *
+         * if not one of the above, it looks for an existing item in the top-level hit.
+         * e.g. _version is hit[_version], etc
+         *
+         * if not one of the above, it looks for an existing item in hit[_source] (the document).
+         * e.g. title is hit[_source][title]
+         *
+         * if nothing resolves from above, it triggers a notice and returns null
+         */
+        $article = $page[0];
+
+        $this->assertEquals('Quick brown fox', $article->title);
     }
 }

@@ -51,4 +51,10 @@ class ResultTest extends TestCase
         $result = new Result([]);
         $this->assertNull($result->foo);
     }
+
+    public function testToArray()
+    {
+        $result = new Result(['foo' => 'bar', '_id' => 1]);
+        $this->assertEquals(['foo' => 'bar', '_id' => 1], $result->toArray());
+    }
 }
