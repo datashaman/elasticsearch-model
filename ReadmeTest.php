@@ -104,7 +104,7 @@ class ReadmeTest extends TestCase
             'Fast black dogs',
         ], $ordered);
 
-        /**
+        /*
          * Only have 3 results so perPage is going to be 1 for all these examples.
          */
         $response = Article::search('*', [
@@ -113,23 +113,25 @@ class ReadmeTest extends TestCase
             ],
         ]);
 
-        /**
+        /*
          * Just so it's clear these are in the expected title order,
          */
         $this->assertEquals([
             'Fast black dogs',
             'Quick brown fox',
             'Swift green frogs',
-        ], $response->map(function ($a) { return $a->title; })->all());
+        ], $response->map(function ($a) {
+            return $a->title;
+        })->all());
 
-        /** Response can be used as an array (of the results) */
+        /* Response can be used as an array (of the results) */
         $page = $response->perPage(1)->page(2);
 
         $this->assertEquals(1, count($page));
 
         $this->assertInstanceOf(Result::class, $page[0]);
 
-        /**
+        /*
          * Result has a dynamic getter:
          *
          * index, type, id, score and source are pulled from the top-level of the hit.
