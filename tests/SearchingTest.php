@@ -45,10 +45,12 @@ class SearchingTest extends TestCase
         $searchOptions = ['default_operator' => 'AND'];
         $response = Models\Thing::search('foo', $searchOptions);
 
-        $this->assertInstanceOf(SearchRequest::class, $response->search);
-        $this->assertEquals(Models\Thing::class, $response->search->class);
-        $this->assertEquals('foo', $response->search->definition['body']['query']['query_string']['query']);
-        $this->assertEquals($searchOptions, $response->search->options);
+        $search = $response->search();
+
+        $this->assertInstanceOf(SearchRequest::class, $search);
+        $this->assertEquals(Models\Thing::class, $search->class);
+        $this->assertEquals('foo', $search->definition['body']['query']['query_string']['query']);
+        $this->assertEquals($searchOptions, $search->options);
     }
 
     public function testSearchWithText()

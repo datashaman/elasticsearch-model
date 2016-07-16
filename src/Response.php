@@ -13,7 +13,7 @@ class Response implements ArrayAccess
 
     use Response\Pagination;
 
-    public $search;
+    protected $search;
     protected $attributes;
 
     /**
@@ -26,6 +26,11 @@ class Response implements ArrayAccess
     {
         $this->search = $search;
         $this->attributes = collect();
+    }
+
+    public function search()
+    {
+        return $this->search;
     }
 
     public function response()
@@ -133,10 +138,5 @@ class Response implements ArrayAccess
     public function total()
     {
         return array_get($this->response(), 'hits.total');
-    }
-
-    public function setPath($path)
-    {
-        return $this->paginator()->setPath($path);
     }
 }

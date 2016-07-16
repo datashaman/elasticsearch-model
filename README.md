@@ -215,10 +215,10 @@ $response->page(2)->lastPage();
 $response->page(2)->paginator();
 => object(Illuminate\Pagination\LengthAwarePaginator) ...
 
-For the rest, you can use the `paginator` object. For example, to render the pagination links you would do this (using a shortcut `setPath` method which delegates to the `paginator`):
+For the rest, you can use the `paginator` object. For example, to render the pagination links you would do this:
 
 ```php
-$response->page(2)->setPath('/articles'); # The same as $response->page(2)->paginator()->setPath('/articles');
+$response->page(2)->paginator()->setPath('/articles');
 $response->page(2)->paginator()->render();
 => <ul class="pagination">
     <li><a href="/articles?page=1" rel="prev">&laquo;</a></li>

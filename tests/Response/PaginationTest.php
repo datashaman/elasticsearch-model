@@ -126,13 +126,13 @@ class PaginationTest extends TestCase
 
         ModelClass::elasticsearch()->client($client);
 
-        $this->assertNull(array_get($this->response->search->definition, 'size'));
-        $this->assertNull(array_get($this->response->search->definition, 'from'));
+        $this->assertNull(array_get($this->response->search()->definition, 'size'));
+        $this->assertNull(array_get($this->response->search()->definition, 'from'));
 
         $this->response->paginate(['page' => 2])->toArray();
 
-        $this->assertEquals(33, $this->response->search->definition['size']);
-        $this->assertEquals(33, $this->response->search->definition['from']);
+        $this->assertEquals(33, $this->response->search()->definition['size']);
+        $this->assertEquals(33, $this->response->search()->definition['from']);
     }
 
     public function testFromSizeUsingCustom()
@@ -156,13 +156,13 @@ class PaginationTest extends TestCase
 
         ModelClass::elasticsearch()->client($client);
 
-        $this->assertNull(array_get($this->response->search->definition, 'size'));
-        $this->assertNull(array_get($this->response->search->definition, 'from'));
+        $this->assertNull(array_get($this->response->search()->definition, 'size'));
+        $this->assertNull(array_get($this->response->search()->definition, 'from'));
 
         $this->response->paginate(['page' => 3, 'perPage' => 9])->toArray();
 
-        $this->assertEquals(9, $this->response->search->definition['size']);
-        $this->assertEquals(18, $this->response->search->definition['from']);
+        $this->assertEquals(9, $this->response->search()->definition['size']);
+        $this->assertEquals(18, $this->response->search()->definition['from']);
     }
 
     public function testSearchForFirstPageIfLessThanOne()
@@ -186,13 +186,13 @@ class PaginationTest extends TestCase
 
         ModelClass::elasticsearch()->client($client);
 
-        $this->assertNull(array_get($this->response->search->definition, 'size'));
-        $this->assertNull(array_get($this->response->search->definition, 'from'));
+        $this->assertNull(array_get($this->response->search()->definition, 'size'));
+        $this->assertNull(array_get($this->response->search()->definition, 'from'));
 
         $this->response->paginate(['page' => '-1'])->toArray();
 
-        $this->assertEquals(33, $this->response->search->definition['size']);
-        $this->assertEquals(0, $this->response->search->definition['from']);
+        $this->assertEquals(33, $this->response->search()->definition['size']);
+        $this->assertEquals(0, $this->response->search()->definition['from']);
     }
 
     public function testUseCustomName()
@@ -222,22 +222,22 @@ class PaginationTest extends TestCase
     public function testFromSizeUsingDefaultPerPage()
     {
         $this->response->page(5);
-        $this->assertEquals(132, $this->response->search->definition['from']);
-        $this->assertEquals(33, $this->response->search->definition['size']);
+        $this->assertEquals(132, $this->response->search()->definition['from']);
+        $this->assertEquals(33, $this->response->search()->definition['size']);
     }
 
     public function testFromSizeUsingPageThenPerPage()
     {
         $this->response->page(5)->perPage(3);
-        $this->assertEquals(12, $this->response->search->definition['from']);
-        $this->assertEquals(3, $this->response->search->definition['size']);
+        $this->assertEquals(12, $this->response->search()->definition['from']);
+        $this->assertEquals(3, $this->response->search()->definition['size']);
     }
 
     public function testFromSizeUsingPerPageThenPage()
     {
         $this->response->perPage(3)->page(5);
-        $this->assertEquals(12, $this->response->search->definition['from']);
-        $this->assertEquals(3, $this->response->search->definition['size']);
+        $this->assertEquals(12, $this->response->search()->definition['from']);
+        $this->assertEquals(3, $this->response->search()->definition['size']);
     }
 
     public function testReturnDefaultPageOne()
@@ -274,8 +274,7 @@ class PaginationTest extends TestCase
         $this->assertEquals(33, $paginator->perPage());
         $this->assertEquals(2, $paginator->currentPage());
 
-        $this->response->setPath('/articles');
-
+        $this->response->paginator()->setPath('/articles');
         $this->assertEquals('<ul class="pagination"><li><a href="/articles?page=1" rel="prev">&laquo;</a></li> <li><a href="/articles?page=1">1</a></li><li class="active"><span>2</span></li><li><a href="/articles?page=3">3</a></li> <li><a href="/articles?page=3" rel="next">&raquo;</a></li></ul>', $this->response->paginator()->render());
     }
 }

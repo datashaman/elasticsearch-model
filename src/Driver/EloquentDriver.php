@@ -8,7 +8,7 @@ class EloquentDriver extends Base
     {
         $ids = $this->response->ids();
 
-        $class = $this->response->search->class;
+        $class = $this->response->search()->class;
         $builder = $class::whereIn('id', $ids);
 
         if (array_has($this->options, 'with')) {
