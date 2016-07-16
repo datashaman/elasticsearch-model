@@ -37,6 +37,7 @@ class SearchRequest
     {
         $class = $this->class;
         $result = $class::elasticsearch()->client()->search($this->definition);
+
         return $result;
     }
 
@@ -54,6 +55,7 @@ trait Searching
     {
         $search = new SearchRequest($this->class, $query, $options);
         $response = new Response($search);
+
         return $response;
     }
 }
