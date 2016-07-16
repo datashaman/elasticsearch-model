@@ -38,7 +38,7 @@ trait Pagination
             return $instance->getPerPage();
         }
 
-        /** Same as Elasticsearch's default */
+        /* Same as Elasticsearch's default */
         return 10;
     }
 

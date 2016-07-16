@@ -3,10 +3,7 @@
 namespace Datashaman\Elasticsearch\Model;
 
 use ArrayAccess;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator as LengthAwarePaginatorContract;
 use Illuminate\Contracts\Pagination\Presenter;
-use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Contracts\Support\Jsonable;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class Response implements ArrayAccess
@@ -50,11 +47,11 @@ class Response implements ArrayAccess
         if (! $this->attributes->has('results')) {
             $response = $this->response();
 
-            $results  = collect($response['hits']['hits'])->map(function ($hit) {
+            $results = collect($response['hits']['hits'])->map(function ($hit) {
                 return new Response\Result($hit);
             });
 
-            /**
+            /*
              * Must calculate current page manually here, can't use method because it uses the paginator for its result (infinite loop)
              */
             $from = $this->from();
@@ -140,7 +137,7 @@ class Response implements ArrayAccess
     }
 
     /**
-     * Delegates
+     * Delegates.
      */
     public function __call($name, $args)
     {
