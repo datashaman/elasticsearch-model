@@ -265,17 +265,17 @@ class PaginationTest extends TestCase
 
     public function testPaginator()
     {
-        $paginator = $this->response->page(2)->paginator;
+        $paginator = $this->response->page(2)->paginator();
 
         $this->assertInstanceOf(LengthAwarePaginator::class, $paginator);
 
-        $this->assertEquals($this->response->results->toArray(), $paginator->items());
+        $this->assertEquals($this->response->results()->toArray(), $paginator->items());
         $this->assertEquals(99, $paginator->total());
         $this->assertEquals(33, $paginator->perPage());
         $this->assertEquals(2, $paginator->currentPage());
 
         $this->response->setPath('/articles');
 
-        $this->assertEquals('<ul class="pagination"><li><a href="/articles?page=1" rel="prev">&laquo;</a></li> <li><a href="/articles?page=1">1</a></li><li class="active"><span>2</span></li><li><a href="/articles?page=3">3</a></li> <li><a href="/articles?page=3" rel="next">&raquo;</a></li></ul>', $this->response->paginator->render());
+        $this->assertEquals('<ul class="pagination"><li><a href="/articles?page=1" rel="prev">&laquo;</a></li> <li><a href="/articles?page=1">1</a></li><li class="active"><span>2</span></li><li><a href="/articles?page=3">3</a></li> <li><a href="/articles?page=3" rel="next">&raquo;</a></li></ul>', $this->response->paginator()->render());
     }
 }

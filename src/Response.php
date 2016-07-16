@@ -8,7 +8,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class Response implements ArrayAccess
 {
-    use ArrayDelegate;
+    use ArrayDelegateMethod;
     protected static $arrayDelegate = 'results';
 
     use Response\Pagination;
@@ -28,41 +28,35 @@ class Response implements ArrayAccess
         $this->attributes = collect();
     }
 
-    /**
-     * Attribute getters (for lazy loading).
-     *
-     * @param  string $name
-     * @return mixed
-     */
-    public function __get($name)
+    public function response()
     {
-        if ($name == 'response') {
-            if (! $this->attributes->has('response')) {
-                $this->attributes->put('response', $this->search->execute());
-            }
-
-            return $this->attributes->get('response');
+        if (! $this->attributes->has('response')) {
+            $this->attributes->put('response', $this->search->execute());
         }
 
-        if ($name == 'results') {
-            if (! $this->attributes->has('results')) {
-                $this->attributes->put('results', collect($this->response['hits']['hits'])->map(function ($hit) {
-                    $result = new Response\Result($hit);
+        return $this->attributes->get('response');
+    }
 
-                    return $result;
-                }));
-            }
+    public function results()
+    {
+        if (! $this->attributes->has('results')) {
+            $response = $this->response();
 
-            return $this->attributes->get('results');
+            $this->attributes->put('results', collect($response['hits']['hits'])->map(function ($hit) {
+                return new Response\Result($hit);
+            }));
         }
 
-        if ($name == 'paginator') {
-            if (! $this->attributes->has('paginator')) {
-                $this->attributes->put('paginator', new LengthAwarePaginator($this->results, $this->total(), $this->perPage(), $this->currentPage()));
-            }
+        return $this->attributes->get('results');
+    }
 
-            return $this->attributes->get('paginator');
+    public function paginator()
+    {
+        if (! $this->attributes->has('paginator')) {
+            $this->attributes->put('paginator', new LengthAwarePaginator($this->results(), $this->total(), $this->perPage(), $this->currentPage()));
         }
+
+        return $this->attributes->get('paginator');
     }
 
     /**
@@ -74,7 +68,7 @@ class Response implements ArrayAccess
      */
     public function __call($name, $args)
     {
-        return call_user_func_array([$this->results, $name], $args);
+        return call_user_func_array([$this->results(), $name], $args);
     }
 
     /**
@@ -84,7 +78,7 @@ class Response implements ArrayAccess
      */
     public function ids()
     {
-        return $this->results->map(function ($result) {
+        return $this->results()->map(function ($result) {
             return $result->id;
         });
     }
@@ -103,27 +97,27 @@ class Response implements ArrayAccess
 
     public function took()
     {
-        return array_get($this->response, 'took');
+        return array_get($this->response(), 'took');
     }
 
     public function timedOut()
     {
-        return array_get($this->response, 'timed_out');
+        return array_get($this->response(), 'timed_out');
     }
 
     public function shards()
     {
-        return array_get($this->response, '_shards');
+        return array_get($this->response(), '_shards');
     }
 
     public function aggregations()
     {
-        return array_get($this->response, 'aggregations');
+        return array_get($this->response(), 'aggregations');
     }
 
     public function suggestions()
     {
-        return array_has($this->response, 'suggest') ? new Response\Suggestions(array_get($this->response, 'suggest')) : null;
+        return array_has($this->response(), 'suggest') ? new Response\Suggestions(array_get($this->response(), 'suggest')) : null;
     }
 
     public function from()
@@ -138,13 +132,11 @@ class Response implements ArrayAccess
 
     public function total()
     {
-        return array_get($this->response, 'hits.total');
+        return array_get($this->response(), 'hits.total');
     }
 
     public function setPath($path)
     {
-        $this->paginator->setPath($path);
-
-        return $this;
+        return $this->paginator()->setPath($path);
     }
 }

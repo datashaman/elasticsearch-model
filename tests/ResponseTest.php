@@ -58,7 +58,7 @@ class ResponseTest extends TestCase
         $response = new Response($search);
 
         $this->assertSame($search, $response->search);
-        $this->assertSame(static::$mockResponse, $response->response);
+        $this->assertSame(static::$mockResponse, $response->response());
         $this->assertSame('5', $response->took());
         $this->assertSame(false, $response->timedOut());
         $this->assertSame('OK', $response->shards()['one']);

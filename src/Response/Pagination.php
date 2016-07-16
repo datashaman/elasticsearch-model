@@ -59,13 +59,6 @@ trait Pagination
         return $this;
     }
 
-    public function from()
-    {
-        $from = array_get($this->search->definition, 'from');
-
-        return $from;
-    }
-
     public function currentPage()
     {
         $from = $this->from();
@@ -88,22 +81,6 @@ trait Pagination
 
     public function toArray()
     {
-        return $this->results->toArray();
-
-        /*
-        $from = $this->from();
-        $total = $this->total();
-        $perPage = $this->perPage();
-
-        return [
-            'total' => $total,
-            'per_page' => $perPage,
-            'current_page' => $this->currentPage(),
-            'last_page' => $this->lastPage(),
-            'from' => $from,
-            'to' => min(($from + 1) * $perPage - 1, $total),
-            'data' => $this->results->toArray(),
-        ];
-         */
+        return $this->paginator()->toArray();
     }
 }
