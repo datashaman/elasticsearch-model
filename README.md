@@ -118,16 +118,20 @@ $response[0]->title;
 
 The returned `response` object is a rich wrapper around the JSON returned from Elasticsearch, providing access to response metadata and the actual results (*hits*).
 
-The `response` object delegates to an internal `LengthAwarePaginator`. You can get a `Collection` via the delegate `getCollection` method:
+The `response` object delegates to an internal `LengthAwarePaginator`. You can get a `Collection` via the delegate `getCollection` method, althought the paginator also delegates mmethods to its `Collection` so either of these work:
 
 ```php
-$response->getCollection()
+$response->results()
     ->map(function ($r) { return $r->title; })
     ->all();
 => ["Fast black dogs", "Quick brown fox"]
 
 $response->getCollection()
-    ->filter(function ($r) { return preg_match('/^Q/', $r->title); })
+    ->map(function ($r) { return $r->title; })
+    ->all();
+=> ["Fast black dogs", "Quick brown fox"]
+
+$response->filter(function ($r) { return preg_match('/^Q/', $r->title); })
     ->map(function ($r) { return $r->title; })
     ->all();
 => ["Quick brown fox"]

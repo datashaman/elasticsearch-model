@@ -57,11 +57,7 @@ class Response implements ArrayAccess
             $from = $this->from();
             $perPage = $this->perPage();
 
-            if (! is_null($from) && ! empty($perPage)) {
-                $currentPage = $from / $perPage + 1;
-            } else {
-                $currentPage = null;
-            }
+            $currentPage = (! is_null($from) && ! empty($perPage)) ? $from / $perPage + 1 : null;
 
             $this->attributes->put('results', new LengthAwarePaginator($results, $this->total(), $perPage, $currentPage));
         }

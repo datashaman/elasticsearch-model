@@ -53,7 +53,7 @@ class ReadmeTest extends TestCase
         $this->assertGreaterThan(0, $response[0]->_score);
         $this->assertEquals('Fast black dogs', $response[0]->title);
 
-        $this->assertEquals(['Fast black dogs', 'Quick brown fox'], $response->map(function ($r) {
+        $this->assertEquals(['Fast black dogs', 'Quick brown fox'], $response->results()->map(function ($r) {
             return $r->title;
         })->all());
 
@@ -63,6 +63,11 @@ class ReadmeTest extends TestCase
 
         $this->assertEquals(1, $filtered->count());
         $this->assertEquals('Quick brown fox', $filtered->first()->title);
+    }
+
+    public function testRecords()
+    {
+        $response = Article::search('fox dogs');
 
         $this->assertEquals(2, $response->records()->count());
         $this->assertEquals(['Fast black dogs', 'Quick brown fox'], $response->records()->map(function ($r) {
@@ -103,7 +108,10 @@ class ReadmeTest extends TestCase
             'Quick brown fox',
             'Fast black dogs',
         ], $ordered);
+    }
 
+    public function testPaginationAndESSorting()
+    {
         /*
          * Only have 3 results so perPage is going to be 1 for all these examples.
          */
@@ -131,22 +139,7 @@ class ReadmeTest extends TestCase
 
         $this->assertInstanceOf(Result::class, $response[0]);
 
-        /*
-         * Result has a dynamic getter:
-         *
-         * index, type, id, score and source are pulled from the top-level of the hit.
-         * e.g. index is hit[_index], type is hit[_type], etc
-         *
-         * if not one of the above, it looks for an existing item in the top-level hit.
-         * e.g. _version is hit[_version], etc
-         *
-         * if not one of the above, it looks for an existing item in hit[_source] (the document).
-         * e.g. title is hit[_source][title]
-         *
-         * if nothing resolves from above, it triggers a notice and returns null
-         */
         $article = $response[0];
-
         $this->assertEquals('Quick brown fox', $article->title);
 
         $this->assertEquals('<ul class="pagination">'.
