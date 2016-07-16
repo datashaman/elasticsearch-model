@@ -41,7 +41,7 @@ class PaginationTest extends TestCase
     {
         parent::setUp();
 
-        $search = m::mock(SearchRequest::class, [ ModelClass::class, '*' ], [
+        $search = m::mock(SearchRequest::class, [ModelClass::class, '*'], [
             'execute' => [
                 'hits' => [
                     'total' => 99,
