@@ -114,7 +114,7 @@ $response[0]->title;
 => "Fast black dogs"
 ```
 
-### Search results
+#### Search results
 
 The returned `response` object is a rich wrapper around the JSON returned from Elasticsearch, providing access to response metadata and the actual results (*hits*).
 
@@ -137,7 +137,7 @@ $response
 
 As you can see in the examples above, use the `Collection::all()` method to get a regular array.
 
-### Search results as database records
+#### Search results as database records
 
 Instead of returning documents from Elasticsearch, the records method will return a collection of model instances, fetched from the primary database, ordered by score:
 
@@ -190,11 +190,11 @@ $response
 
 Notice that adding an `orderBy` call to the query overrides the ordering of the records, so that it is no longer the same as the results.
 
-### Searching multiple models
+#### Searching multiple models
 
 **TODO** Implement a Facade for cross-model searching.
 
-### Pagination
+#### Pagination
 
 You can implement pagination with the `from` and `size` search parameters. However, search results can be automatically paginated much like Laravel does.
 
@@ -230,9 +230,11 @@ $response->page(2)->paginator()->render();
 
 The rendered HTML was tidied up slightly for readability.
 
-## The Elasticsearch DSL
+#### The Elasticsearch DSL
 
 **TODO** Integrate this with a query builder.
+
+### Index Configuration
 
 ## Attribution
 
