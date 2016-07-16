@@ -227,6 +227,7 @@ $response->page(2)->paginator()->render();
     <li><a href="/articles?page=3">3</a></li>
     <li><a href="/articles?page=3" rel="next">&raquo;</a></li>
 </ul>
+```
 
 The rendered HTML was tidied up slightly for readability.
 
