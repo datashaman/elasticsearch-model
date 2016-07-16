@@ -18,6 +18,7 @@ class ArrayDelegateMethodModel implements ArrayAccess
     public function &getArray()
     {
         $array = $this->array;
+
         return $array;
     }
 }

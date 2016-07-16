@@ -14,6 +14,7 @@ trait ArrayDelegateMethod
     public function offsetExists($offset)
     {
         $array = call_user_func([$this, static::$arrayDelegate]);
+
         return isset($array[$offset]);
     }
 
@@ -26,6 +27,7 @@ trait ArrayDelegateMethod
     {
         $array = call_user_func([$this, static::$arrayDelegate]);
         $item = $array[$offset];
+
         return $item;
     }
 }
