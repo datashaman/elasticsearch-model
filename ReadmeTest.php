@@ -40,7 +40,7 @@ class ReadmeTest extends TestCase
 
     public function tearDown()
     {
-        Article::elasticsearch()->deleteIndex();
+        // Article::elasticsearch()->deleteIndex();
         parent::tearDown();
     }
 
@@ -154,5 +154,58 @@ class ReadmeTest extends TestCase
         $this->assertEquals(1, $response->perPage());
         $this->assertEquals(2, $response->currentPage());
         $this->assertEquals(3, $response->lastPage());
+    }
+
+    public function testIndexConfiguration()
+    {
+        Article::settings(['index' => ['number_of_shards' => 1]], function ($s) {
+            $s['index'] = array_merge($s['index'], [
+                'number_of_replicas' => 4,
+            ]);
+        });
+
+        $this->assertEquals([
+            'index' => [
+                'number_of_shards' => 1,
+                'number_of_replicas' => 4,
+            ],
+        ], Article::settings()->toArray());
+
+        Article::mappings(['dynamic' => false], function ($m) {
+            $m->indexes('title', ['analyzer' => 'english', 'index_options' => 'offsets']);
+        });
+
+        $this->assertEquals([
+            "article" => [
+                "dynamic" => false,
+                "properties" => [
+                    "title" => [
+                        "analyzer" => "english",
+                        "index_options" => "offsets",
+                        "type" => "string",
+                    ],
+                ],
+            ],
+        ], Article::mappings()->toArray());
+
+        /** The long way */
+        Article::elasticsearch()->client()->indices()->delete(['index' => Article::indexName()]);
+        Article::elasticsearch()->client()->indices()->create([
+            'index' => Article::indexName(),
+            'body' => [
+                'settings' => Article::settings()->toArray(),
+                'mappings' => Article::mappings()->toArray(),
+            ],
+        ]);
+
+        /** The short way */
+        Article::elasticsearch()->createIndex([ 'force' => true ]);
+        Article::elasticsearch()->refreshIndex();
+
+        Article::indexName('articles-production');
+        Article::documentType('post');
+
+        $this->assertEquals('articles-production', Article::indexName());
+        $this->assertEquals('post', Article::documentType());
     }
 }

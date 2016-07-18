@@ -3,11 +3,12 @@
 namespace Datashaman\Elasticsearch\Model;
 
 use Elasticsearch\Common\Exceptions\Missing404Exception;
+use Illuminate\Contracts\Support\Arrayable;
 use Log;
 use Storage;
 use Symfony\Component\Yaml\Yaml;
 
-class Mappings
+class Mappings implements Arrayable
 {
     protected $type;
     protected $options;
@@ -124,7 +125,7 @@ trait Indexing
         return $this->mappings($options, $callable);
     }
 
-    public function settings($settings = null)
+    public function settings($settings = null, callable $callable = null)
     {
         if (! isset($this->settings)) {
             $this->settings = collect();
@@ -132,27 +133,23 @@ trait Indexing
 
         if (is_array($settings)) {
             $this->settings = $this->settings->merge($settings);
-
-            return $this->settings;
-        }
-
-        if (is_string($settings)) {
+        } elseif (is_string($settings)) {
             if (preg_match('/\.(yml|yaml)$/', $settings)) {
                 $contents = Storage::get($settings);
                 $fileSettings = Yaml::parse($contents);
                 $this->settings = $this->settings->merge($fileSettings);
-
-                return $this->settings;
-            }
-
-            if (preg_match('/\.(json)$/', $settings)) {
+            } elseif (preg_match('/\.(json)$/', $settings)) {
                 $contents = Storage::get($settings);
                 $fileSettings = json_decode($contents);
                 $this->settings = $this->settings->merge($fileSettings);
-
-                return $this->settings;
             }
         }
+
+        if (! is_callable($callable)) {
+            return $this->settings;
+        }
+
+        call_user_func($callable, $this->settings);
 
         return $this->settings;
     }

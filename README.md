@@ -256,6 +256,74 @@ The rendered HTML was tidied up slightly for readability.
 
 ### Index Configuration
 
+For proper search engine function, it's often necessary to configure the index properly. This package provides class methods to set up index settings and mappings.
+
+```php
+Article::settings(['index' => ['number_of_shards' => 1]], function ($s) {
+    $s['index'] = array_merge($s['index'], [
+        'number_of_replicas' => 4,
+    ]);
+});
+
+Article::settings->toArray();
+=> [ 'index' => [ 'number_of_shards' => 1, 'number_of_replicas' => 4 ] ]
+
+Article::mappings(['dynamic' => false], function ($m) {
+    $m->indexes('title', [
+        'analyzer' => 'english',
+        'index_options' => 'offsets'
+    ]);
+});
+
+Article::mappings()->toArray();
+=> [ "article" => [
+    "dynamic" => false,
+    "properties" => [
+        "title" => [
+            "analyzer" => "english",
+            "index_options" => "offsets",
+            "type" => "string",
+        ]
+    ]
+]]
+```
+
+You can use the defined settings and mappings to create an index with desired configuration:
+
+```php
+Article::elasticsearch()->client()->indices()->delete(['index' => Article::indexName()]);
+Article::elasticsearch()->client()->indices()->create([
+    'index' => Article::indexName(),
+    'body' => [
+        'settings' => Article::settings()->toArray(),
+        'mappings' => Article::mappings()->toArray(),
+    ],
+]);
+```
+
+There's a shortcut available for this common operation (convenient e.g. in tests):
+
+```php
+Article::elasticsearch()->createIndex(['force' => true]);
+Article::elasticsearch()->refreshIndex();
+```
+
+By default, index name and document type will be inferred from your class name, you can set it explicitely, however:
+
+```php
+class Article {
+    protected static $indexName = 'article-production';
+    protected static $documentType = 'post';
+}
+```
+
+Alternately, you can set them using the following static methods:
+
+```php
+Article::indexName('article-production');
+Article::documentType('post');
+```
+
 ## Attribution
 
 Original design from [elasticsearch-model](https://github.com/elastic/elasticsearch-rails/tree/master/elasticsearch-model) which is:

@@ -60,14 +60,14 @@ trait ElasticsearchModel
         return static::elasticsearch()->search($query, $options);
     }
 
-    public static function mappings($options = [], callable $callback = null)
+    public static function mappings($options = [], callable $callable = null)
     {
-        return static::elasticsearch()->mappings($options, $callback);
+        return static::elasticsearch()->mappings($options, $callable);
     }
 
-    public static function settings($settings = [])
+    public static function settings($settings = [], callable $callable = null)
     {
-        return static::elasticsearch()->settings($settings);
+        return static::elasticsearch()->settings($settings, $callable);
     }
 
     public static function indexName()
