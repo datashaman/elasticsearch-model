@@ -176,19 +176,19 @@ class ReadmeTest extends TestCase
         });
 
         $this->assertEquals([
-            "article" => [
-                "dynamic" => false,
-                "properties" => [
-                    "title" => [
-                        "analyzer" => "english",
-                        "index_options" => "offsets",
-                        "type" => "string",
+            'article' => [
+                'dynamic' => false,
+                'properties' => [
+                    'title' => [
+                        'analyzer' => 'english',
+                        'index_options' => 'offsets',
+                        'type' => 'string',
                     ],
                 ],
             ],
         ], Article::mappings()->toArray());
 
-        /** The long way */
+        /* The long way */
         Article::elasticsearch()->client()->indices()->delete(['index' => Article::indexName()]);
         Article::elasticsearch()->client()->indices()->create([
             'index' => Article::indexName(),
@@ -198,8 +198,8 @@ class ReadmeTest extends TestCase
             ],
         ]);
 
-        /** The short way */
-        Article::elasticsearch()->createIndex([ 'force' => true ]);
+        /* The short way */
+        Article::elasticsearch()->createIndex(['force' => true]);
         Article::elasticsearch()->refreshIndex();
 
         Article::indexName('articles-production');
