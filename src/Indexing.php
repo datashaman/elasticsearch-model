@@ -156,7 +156,7 @@ trait Indexing
 
     public function createIndex($options = [])
     {
-        $index = array_get($options, 'index', $this->indexName());
+        $index = array_pull($options, 'index', $this->indexName());
 
         if (array_get($options, 'force')) {
             $options['index'] = $index;
@@ -180,25 +180,5 @@ trait Indexing
         }
 
         return $this->client()->indices()->create(compact('index', 'body'));
-    }
-
-    public function getDocument($options = [])
-    {
-        return $this->client()->get($options);
-    }
-
-    public function deleteDocument($options = [])
-    {
-        return $this->client()->delete($options);
-    }
-
-    public function indexDocument($options = [])
-    {
-        return $this->client()->index($options);
-    }
-
-    public function updateDocument($options = [])
-    {
-        return $this->client()->update($options);
     }
 }

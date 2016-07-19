@@ -86,22 +86,21 @@ trait ElasticsearchModel
     {
         $options = static::instanceOptions($primaryKey, $options);
 
-        return static::elasticsearch()->getDocument($options);
+        return static::elasticsearch()->client()->get($options);
     }
 
     public function indexDocument($options = [])
     {
         $options = static::instanceOptions($this->id, $options);
         $options['body'] = $this->toIndexedArray();
-
-        return static::elasticsearch()->indexDocument($options);
+        return static::elasticsearch()->client()->index($options);
     }
 
     public function deleteDocument($options = [])
     {
         $options = static::instanceOptions($this->id, $options);
 
-        return static::elasticsearch()->deleteDocument($options);
+        return static::elasticsearch()->client()->delete($options);
     }
 
     public function updateDocument($options = [])
@@ -116,7 +115,7 @@ trait ElasticsearchModel
         $options = static::instanceOptions($this->id);
         $options['body'] = compact('doc');
 
-        return static::elasticsearch()->updateDocument($options);
+        return static::elasticsearch()->client()->update($options);
     }
 
     public function updateDocumentAttributes($doc, $options = [])
@@ -124,7 +123,7 @@ trait ElasticsearchModel
         $options = array_merge($options, static::instanceOptions($this->id));
         $options['body'] = compact('doc');
 
-        return static::elasticsearch()->updateDocument($options);
+        return static::elasticsearch()->client()->update($options);
     }
 
     protected static function getOrSet($name, $args)
@@ -136,13 +135,16 @@ trait ElasticsearchModel
         return static::elasticsearch()->$name($args[0]);
     }
 
-    public static function instanceOptions($primaryKey, $options = [])
+    public static function instanceOptions($id, $options = [])
     {
         $options = array_merge([
             'index' => static::indexName(),
             'type' => static::documentType(),
-            'id' => $primaryKey,
         ], $options);
+
+        if (!empty($id)) {
+            $options['id'] = $id;
+        }
 
         return $options;
     }

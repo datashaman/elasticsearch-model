@@ -29,6 +29,8 @@ class EloquentModel extends Model
 
 class EloquentModelTwo extends Model
 {
+    protected $table = 'eloquent_model_twos';
+
     use ElasticsearchModel;
     protected static $elasticsearch;
 
@@ -538,15 +540,23 @@ class IndexingTest extends TestCase
 
     public function testUpdateUnchangedDocumentByReindexing()
     {
-        $elastic = m::mock(Elasticsearch::class, [Models\Thing::class], [
+        $elastic = m::mock(Elasticsearch::class, [EloquentModelTwo::class], [
             'indexDocument' => '',
-            'indexName' => 'things',
-            'documentType' => 'thing',
+            'indexName' => 'eloquent-model-twos',
+            'documentType' => 'eloquent-model-two',
         ]);
 
-        Models\Thing::elasticsearch($elastic);
+        EloquentModelTwo::elasticsearch($elastic);
 
-        $instance = new Models\Thing;
+        $instance = m::mock(EloquentModelTwo::class, [
+            'indexDocument' => '',
+        ])->shouldDeferMissing();
+
+        $instance->id = 1;
+        $instance->title = 'Title';
+        $instance->description = 'A description';
+        $instance->save();
+
         $instance->updateDocument();
     }
 
