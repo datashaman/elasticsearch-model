@@ -93,6 +93,7 @@ trait ElasticsearchModel
     {
         $options = static::instanceOptions($this->id, $options);
         $options['body'] = $this->toIndexedArray();
+
         return static::elasticsearch()->client()->index($options);
     }
 
@@ -142,7 +143,7 @@ trait ElasticsearchModel
             'type' => static::documentType(),
         ], $options);
 
-        if (!empty($id)) {
+        if (! empty($id)) {
             $options['id'] = $id;
         }
 
