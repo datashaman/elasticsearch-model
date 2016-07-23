@@ -324,6 +324,136 @@ Article::indexName('article-production');
 Article::documentType('post');
 ```
 
+## Updating the Documents in the Index
+
+Usually, we need to update the Elasticsearch index when records in the database are created, updated or deleted; use the index_document, update_document and delete_document methods, respectively:
+
+```php
+Article::first()->indexDocument();
+=> [ 'ok' => true, ... "_version" => 2 ]
+
+Note that this implementation differs from the Ruby one, where the instance has an elasticsearch() method and proxy object. In this package, the instance methods are added directly to the model. Implementing the same pattern in PHP is not easy to do cleanly.
+
+### Automatic callbacks
+
+You can auomatically update the index whenever the record changes, by using the `Datashaman\\Elasticsearch\\Model\\Callbacks` trait in your model:
+
+```php
+use Datashaman\Elasticsearch\Model\ElasticsearchModel;
+use Datashaman\Elasticsearch\Model\Callbacks;
+
+class Article
+{
+    use ElasticsearchModel;
+    use Callbacks;
+}
+
+Article::first()->update([ 'title' => 'Updated!' ]);
+
+Article::search('*')->map(function ($r) { return $r->title; });
+=> [ 'Updated!', 'Fast black dogs', 'Swift green Frogs' ]
+```
+
+The automatic callback on record update keeps track of changes in your model (via Laravel's `getDirty` implementation), and performs a partial update when this support is available.
+
+The automatic callbacks are implemented in database adapters coming with this package. You can easily implement your own adapter: please see the relevant chapter below.
+
+### Custom Callbacks
+
+In case you would need more control of the indexing process, you can implement these callbacks yourself, by hooking into `created`, `saved`, `updated` or `deleted` events:
+
+```php
+Article::saved(function ($article) {
+    $result = $article->indexDocument();
+    Log::debug("Saved document", compact('result'));
+});
+
+Article::deleted(function ($article) {
+    $result = $article->deleteDocument();
+    Log::debug("Deleted document", compact('result'));
+});
+```
+
+Regrettably there are no `committed` events in `Eloquent` like in Ruby's `ActiveRecord`.
+
+### Asychronous Callbacks
+
+Of course, you're still performing an HTTP request during your database transaction, which is not optimal for large-scale applications. A better option would be to process the index operations in background, with Laravel's `Queue` facade:
+
+```php
+Article::saved(function ($article) {
+    Queue::pushOn('default', new Indexer('index', Article::class, $article->id));
+});
+```
+
+An example implementation of the `Indexer` class could look like this (source included in package):
+
+```php
+class Indexer implements SelfHandling, ShouldQueue
+{
+    use InteractsWithQueue, SerializesModels;
+
+    public function __construct($operation, $class, $id)
+    {
+        $this->operation = $operation;
+        $this->class = $class;
+        $this->id = $id;
+    }
+
+    public function handle()
+    {
+        $class = $this->class;
+
+        switch ($this->operation) {
+        case 'index':
+            $record = $class::find($this->id);
+            $class::elasticsearch()->client()->index([
+                'index' => $class::indexName(),
+                'type' => $class::documentType(),
+                'id' => $record->id,
+                'body' => $record->toIndexedArray(),
+            ]);
+            $record->indexDocument();
+            break;
+        case 'delete':
+            $class::elasticsearch()->client()->delete([
+                'index' => $class::indexName(),
+                'type' => $class::documentType(),
+                'id' => $this->id,
+            ]);
+            break;
+        default:
+            throw new Exception('Unknown operation: '.$this->operation);
+        }
+    }
+}
+```
+
+## Model Serialization
+
+By default, the model instance will be serialized to JSON using the output of the `toIndexedArray` method, which is defined automatically by the package:
+
+```php
+Article::first()->toIndexedArray();
+=> [ 'title' => 'Quick brown fox' ]
+```
+
+If you want to customize the serialization, just implement the `toIndexedArray` method yourself, for instance with the `toArray` method:
+
+```php
+class Article
+{
+    use ElasticsearchModel;
+
+    public function toIndexedArray($options = null)
+    {
+        return $this->toArray();
+    }
+}
+```
+
+The re-defined method will be used in the indexing methods, such as `indexDocument`.
+
 ## Attribution
 
 Original design from [elasticsearch-model](https://github.com/elastic/elasticsearch-rails/tree/master/elasticsearch-model) which is:
