@@ -55,6 +55,7 @@ trait Searching
     {
         $search = new SearchRequest($this->class, $query, $options);
         $response = new Response($search);
+
         return $response;
     }
 }

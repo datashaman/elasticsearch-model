@@ -26,6 +26,7 @@ class Records implements ArrayAccess
     protected function records()
     {
         $class = $this->response->search()->class;
+
         return $class::elasticsearch()->driverManager->records($this->response, $this->options, $this->callable);
     }
 

@@ -172,7 +172,8 @@ class EloquentDriverTest extends TestCase
 
         $driver->findInBatches(['preprocess' => function ($batch) {
             return $batch->map(function ($thing) {
-                $thing->title .= "!";
+                $thing->title .= '!';
+
                 return $thing;
             });
         }], function ($batch) {

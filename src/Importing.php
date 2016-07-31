@@ -4,7 +4,6 @@
  * Provides support for easily and efficiently importing large amounts of
  * records from the including class into the index.
  */
-
 namespace Datashaman\Elasticsearch\Model;
 
 use Exception;
@@ -132,7 +131,6 @@ trait Importing
      *          to try importing these records again
      *
      *    Article.import return: 'errors'
-     *
      */
     public function import($options = [], callable $callable = null)
     {

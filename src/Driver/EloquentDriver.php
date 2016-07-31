@@ -45,12 +45,12 @@ class EloquentDriver extends Base
 
         $builder = empty($scope) ? (new $class)->newQuery() : $class::$scope();
 
-        if (!empty($query)) {
+        if (! empty($query)) {
             call_user_func($query, $builder);
         }
 
         $builder->chunk($chunkSize, function ($chunk) use ($preprocess, $callable) {
-            if (!empty($preprocess)) {
+            if (! empty($preprocess)) {
                 $chunk = call_user_func($preprocess, $chunk);
             }
 
