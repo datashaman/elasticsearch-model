@@ -29,6 +29,7 @@ class Thing extends Eloquent
     {
         return $chunk->map(function ($thing) {
             $thing->title .= '!';
+
             return $thing;
         });
     }
