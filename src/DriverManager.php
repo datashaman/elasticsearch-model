@@ -6,15 +6,12 @@ use Illuminate\Support\Manager;
 
 class DriverManager extends Manager
 {
-    private $response;
-    private $options;
+    public $class;
 
-    public function __construct($response, $options = [], callable $callable = null)
+    public function __construct($class)
     {
         parent::__construct(null);
-        $this->response = $response;
-        $this->options = $options;
-        $this->callable = $callable;
+        $this->class = $class;
     }
 
     public function getDefaultDriver()
@@ -24,6 +21,6 @@ class DriverManager extends Manager
 
     public function createEloquentDriver()
     {
-        return new Driver\EloquentDriver($this->response, $this->options, $this->callable);
+        return new Driver\EloquentDriver($this);
     }
 }

@@ -3,31 +3,35 @@
 namespace Datashaman\Elasticsearch\Model\Response;
 
 use ArrayAccess;
-use Datashaman\Elasticsearch\Model\DriverManager;
-use Datashaman\Elasticsearch\Model\ArrayDelegate;
+use Datashaman\Elasticsearch\Model\ArrayDelegateMethod;
 use Illuminate\Support\Collection;
 
 class Records implements ArrayAccess
 {
-    use ArrayDelegate;
+    use ArrayDelegateMethod;
     protected static $arrayDelegate = 'records';
 
     protected $response;
     protected $options;
     protected $callable;
+    protected $driverManager;
 
     public function __construct($response, $options = [], callable $callable = null)
     {
         $this->response = $response;
         $this->options = $options;
         $this->callable = $callable;
-        $this->driverManager = new DriverManager($response, $options, $callable);
-        $this->records = $this->driverManager->records();
+    }
+
+    protected function records()
+    {
+        $class = $this->response->search()->class;
+        return $class::elasticsearch()->driverManager->records($this->response, $this->options, $this->callable);
     }
 
     public function __call($name, $args)
     {
-        return call_user_func_array([$this->records, $name], $args);
+        return call_user_func_array([$this->records(), $name], $args);
     }
 
     public function realZip($second)
@@ -35,7 +39,7 @@ class Records implements ArrayAccess
         /* Collection::zip produces incorrect results, believe it or not */
         $zipped = collect();
 
-        $this->records->each(function ($item, $key) use ($second, &$zipped) {
+        $this->records()->each(function ($item, $key) use ($second, &$zipped) {
             $zipped->push([$item, $second[$key]]);
         });
 

@@ -2,6 +2,8 @@
 
 namespace Datashaman\Elasticsearch\Model\Tests\Driver;
 
+use Datashaman\Elasticsearch\Model\DriverManager;
+use Datashaman\Elasticsearch\Model\Driver\EloquentDriver;
 use Datashaman\Elasticsearch\Model\Elasticsearch;
 use Datashaman\Elasticsearch\Model\Tests\TestCase;
 use Datashaman\Elasticsearch\Model\Tests\Models\Thing;
@@ -78,7 +80,7 @@ class EloquentDriverTest extends TestCase
             'category_id' => 1,
         ]);
 
-        $this->assertEquals([1, 2], Thing::all()->lists('id')->all());
+        $this->assertEquals([1, 2, 3], Thing::all()->lists('id')->all());
 
         $response = Thing::search('Thing');
         $this->assertEquals([2, 1], $response->getCollection()->map(function ($r) {
@@ -125,7 +127,7 @@ class EloquentDriverTest extends TestCase
             'category_id' => 1,
         ]);
 
-        $this->assertEquals([1, 2], Thing::all()->lists('id')->all());
+        $this->assertEquals([1, 2, 3], Thing::all()->lists('id')->all());
 
         $response = Thing::search('Thing');
         $this->assertEquals([2, 1], $response->ids()->all());
@@ -137,5 +139,46 @@ class EloquentDriverTest extends TestCase
         $this->assertEquals([1, 2], $records->map(function ($r) {
             return $r->id;
         })->all());
+    }
+
+    public function testLimitToASpecificScope()
+    {
+        $driverManager = new DriverManager(Thing::class);
+        $driver = new EloquentDriver($driverManager);
+
+        $driver->findInBatches(['scope' => 'online'], function ($batch) {
+            $this->assertCount(1, $batch);
+            $this->assertEquals('online', $batch[0]->status);
+        });
+    }
+
+    public function testLimitToASpecificQuery()
+    {
+        $driverManager = new DriverManager(Thing::class);
+        $driver = new EloquentDriver($driverManager);
+
+        $driver->findInBatches(['query' => function ($q) {
+            $q->whereStatus('online');
+        }], function ($batch) {
+            $this->assertCount(1, $batch);
+            $this->assertEquals('online', $batch[0]->status);
+        });
+    }
+
+    public function testPreprocessIfProvided()
+    {
+        $driverManager = new DriverManager(Thing::class);
+        $driver = new EloquentDriver($driverManager);
+
+        $driver->findInBatches(['preprocess' => function ($batch) {
+            return $batch->map(function ($thing) {
+                $thing->title .= "!";
+                return $thing;
+            });
+        }], function ($batch) {
+            $batch->each(function ($thing) {
+                $this->assertEquals('!', substr($thing->title, -1));
+            });
+        });
     }
 }

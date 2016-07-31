@@ -56,6 +56,13 @@ class TestCase extends \Orchestra\Testbench\TestCase
             'description' => 'This is the best thing.',
             'status' => 'online',
         ]);
+
+        DB::table('things')->insert([
+            'category_id' => 1,
+            'title' => 'Another Thing',
+            'description' => 'This is another thing.',
+            'status' => 'offline',
+        ]);
     }
 
     public function tearDown()

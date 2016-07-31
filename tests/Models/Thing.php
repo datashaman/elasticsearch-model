@@ -19,4 +19,9 @@ class Thing extends Eloquent
     {
         return 33;
     }
+
+    public function scopeOnline($query)
+    {
+        return $query->whereStatus('online');
+    }
 }

@@ -4,19 +4,19 @@ namespace Datashaman\Elasticsearch\Model\Driver;
 
 class EloquentDriver extends Base
 {
-    public function records()
+    public function records($response, $options = [], callable $callable = null)
     {
-        $ids = $this->response->ids();
+        $ids = $response->ids();
 
-        $class = $this->response->search()->class;
+        $class = $this->driverManager->class;
         $builder = $class::whereIn('id', $ids);
 
-        if (array_has($this->options, 'with')) {
-            call_user_func_array([$builder, 'with'], $this->options['with']);
+        if (array_has($options, 'with')) {
+            call_user_func_array([$builder, 'with'], $options['with']);
         }
 
-        if (is_callable($this->callable)) {
-            call_user_func($this->callable, $builder);
+        if (is_callable($callable)) {
+            call_user_func($callable, $builder);
         }
 
         if (empty($builder->getQuery()->orders)) {
@@ -32,5 +32,29 @@ class EloquentDriver extends Base
         }
 
         return $builder->get();
+    }
+
+    public function findInBatches($options = [], callable $callable = null)
+    {
+        $query = array_pull($options, 'query');
+        $scope = array_pull($options, 'scope');
+        $preprocess = array_pull($options, 'preprocess');
+        $chunkSize = array_pull($options, 'chunkSize', 1000);
+
+        $class = $this->driverManager->class;
+
+        $builder = empty($scope) ? (new $class)->newQuery() : $class::$scope();
+
+        if (!empty($query)) {
+            call_user_func($query, $builder);
+        }
+
+        $builder->chunk($chunkSize, function ($chunk) use ($preprocess, $callable) {
+            if (!empty($preprocess)) {
+                $chunk = call_user_func($preprocess, $chunk);
+            }
+
+            call_user_func($callable, $chunk);
+        });
     }
 }

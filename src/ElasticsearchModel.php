@@ -6,9 +6,9 @@ use Elasticsearch\ClientBuilder;
 
 class Elasticsearch extends GetOrSet
 {
-    use Searching;
     use Importing;
     use Indexing;
+    use Searching;
 
     protected $class;
 
@@ -25,13 +25,13 @@ class Elasticsearch extends GetOrSet
         parent::__construct($attributes);
 
         $this->class = $class;
+        $this->driverManager = new DriverManager($class);
     }
 }
 
 trait ElasticsearchModel
 {
     use Serializing;
-    use Importing;
 
     public static function resetElasticsearch()
     {

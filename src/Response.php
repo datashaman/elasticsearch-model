@@ -16,6 +16,7 @@ class Response implements ArrayAccess
     protected $search;
     protected $attributes;
 
+
     /**
      * Create a response instance.
      *

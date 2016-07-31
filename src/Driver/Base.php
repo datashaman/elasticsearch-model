@@ -4,14 +4,10 @@ namespace Datashaman\Elasticsearch\Model\Driver;
 
 class Base
 {
-    public $response;
-    public $options;
-    public $callable;
+    public $driverManager;
 
-    public function __construct($response, $options = [], callable $callable = null)
+    public function __construct($driverManager)
     {
-        $this->response = $response;
-        $this->options = $options;
-        $this->callable = $callable;
+        $this->driverManager = $driverManager;
     }
 }
