@@ -4,7 +4,6 @@ namespace Datashaman\Elasticsearch\Model\Tests;
 
 use Datashaman\Elasticsearch\Model\SearchRequest;
 use Elasticsearch\Client;
-use Illuminate\Database\Query\Builder;
 use Mockery as m;
 
 class SearchingModel

@@ -4,7 +4,6 @@
  * Provides support for easily and efficiently importing large amounts of
  * records from the including class into the index.
  */
-
 namespace Datashaman\Elasticsearch\Model;
 
 use Exception;
