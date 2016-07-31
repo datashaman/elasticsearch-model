@@ -34,7 +34,7 @@ class EloquentDriver extends Base
         return $builder->get();
     }
 
-    public function findInBatches($options = [], callable $callable = null)
+    public function findInChunks($options = [], callable $callable = null)
     {
         $query = array_pull($options, 'query');
         $scope = array_pull($options, 'scope');
@@ -49,9 +49,9 @@ class EloquentDriver extends Base
             call_user_func($query, $builder);
         }
 
-        $builder->chunk($chunkSize, function ($chunk) use ($preprocess, $callable) {
+        $builder->chunk($chunkSize, function ($chunk) use ($preprocess, $callable, $class) {
             if (!empty($preprocess)) {
-                $chunk = call_user_func($preprocess, $chunk);
+                $chunk = call_user_func([$class, $preprocess], $chunk);
             }
 
             call_user_func($callable, $chunk);

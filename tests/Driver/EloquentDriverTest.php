@@ -146,9 +146,9 @@ class EloquentDriverTest extends TestCase
         $driverManager = new DriverManager(Thing::class);
         $driver = new EloquentDriver($driverManager);
 
-        $driver->findInBatches(['scope' => 'online'], function ($batch) {
-            $this->assertCount(1, $batch);
-            $this->assertEquals('online', $batch[0]->status);
+        $driver->findInChunks(['scope' => 'online'], function ($chunk) {
+            $this->assertCount(1, $chunk);
+            $this->assertEquals('online', $chunk[0]->status);
         });
     }
 
@@ -157,11 +157,11 @@ class EloquentDriverTest extends TestCase
         $driverManager = new DriverManager(Thing::class);
         $driver = new EloquentDriver($driverManager);
 
-        $driver->findInBatches(['query' => function ($q) {
+        $driver->findInChunks(['query' => function ($q) {
             $q->whereStatus('online');
-        }], function ($batch) {
-            $this->assertCount(1, $batch);
-            $this->assertEquals('online', $batch[0]->status);
+        }], function ($chunk) {
+            $this->assertCount(1, $chunk);
+            $this->assertEquals('online', $chunk[0]->status);
         });
     }
 
@@ -170,13 +170,8 @@ class EloquentDriverTest extends TestCase
         $driverManager = new DriverManager(Thing::class);
         $driver = new EloquentDriver($driverManager);
 
-        $driver->findInBatches(['preprocess' => function ($batch) {
-            return $batch->map(function ($thing) {
-                $thing->title .= "!";
-                return $thing;
-            });
-        }], function ($batch) {
-            $batch->each(function ($thing) {
+        $driver->findInChunks(['preprocess' => 'enrich'], function ($chunk) {
+            $chunk->each(function ($thing) {
                 $this->assertEquals('!', substr($thing->title, -1));
             });
         });

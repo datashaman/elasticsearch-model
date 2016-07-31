@@ -69,16 +69,15 @@ trait Importing
     /**
      * Import all model records into the index.
      *
-     * The method will pick up correct strategy based on the `Importing` module
-     * defined in the corresponding adapter.
+     * The method will pick up correct strategy based on the driver manager.
      *
      * Import all records into the index
      *
      *     Article::elasticsearch()->import();
      *
-     * Set the batch size to 100
+     * Set the chunk size to 100
      *
-     *     Article::elasticsearch()->import(['batch_size' => 100]);
+     *     Article::elasticsearch()->import(['chunkSize' => 100]);
      *
      * Process the response from Elasticsearch
      *
@@ -88,51 +87,75 @@ trait Importing
      *
      * Delete and create the index with appropriate settings and mappings
      *
-     *    Article::elasticsearch()->import(['force' => true]);
+     *     Article::elasticsearch()->import(['force' => true]);
      *
-     * Refresh the index after importing all batches
+     * Refresh the index after importing all chunks
      *
-     *    Article::elasticsearch()->import(['refresh' => true]);
+     *     Article::elasticsearch()->import(['refresh' => true]);
      *
      * Import the records into a different index/type than the default one
      *
-     *    Article::elasticsearch()->import(['index' => 'my-new-name', 'type' => 'my-other-type']);
+     *     Article::elasticsearch()->import(['index' => 'my-new-name', 'type' => 'my-other-type']);
      *
      * Pass an Eloquent scope to limit the imported records
      *
-     *    Article::elasticsearch()->import(['scope' => 'published']);
+     *     Article::elasticsearch()->import(['scope' => 'published']);
      *
-     * Pass an ActiveRecord query to limit the imported records
+     * Pass a query callable to alter the query used
      *
-     *    Article.import query: -> { where(author_id: author_id) }
+     *     Article::elasticsearch()->import(['query' => function ($q) {
+     *         $q->where('author_id', author_id);
+     *     });
      *
-     * Transform records during the import with a lambda
+     * Transform records during the import with a callable
      *
-     *    transform = lambda do |a|
-     *      {index: {_id: a.id, _parent: a.author_id, data: a.__elasticsearch__.as_indexed_json}}
-     *    end
+     *     $transform = function ($a) {
+     *         return [
+     *             'index' => [
+     *                 '_id' => $a->id,
+     *                 '_parent' => $a->author_id,
+     *                 'data' => $a->toIndexedArray(),
+     *             ],
+     *         ];
+     *     };
      *
-     *    Article.import transform: transform
+     *     Article::elasticsearch()->import(['transform' => $transform]);
      *
-     * Update the batch before yielding it
+     * Update the chunk before importing it:
      *
-     *     class Article
-     *       # ...
-     *       def self.enrich(batch)
-     *         batch.each do |item|
-     *           item.metadata = MyAPI.get_metadata(item.id)
-     *         end
-     *         batch
-     *       end
-     *     end
+     *      class Article
+     *      {
+     *        ...
+     *        public static function enrich($chunk)
+     *        {
+     *          return $chunk->map(function ($item) {
+     *            $item->metadata = MyAPI::get_metadata($item->id);
+     *            return $item;
+     *          });
+     *        }
+     *        ...
+     *      }
      *
-     *    Article.import preprocess: :enrich
+     *      Article::elasticsearch()->import(['preprocess' => 'enrich']);
      *
      * Return an array of error elements instead of the number of errors, eg.
      *          to try importing these records again
      *
-     *    Article.import return: 'errors'
+     *      Article::elasticsearch()->import(['return' => 'errors']);
      *
+     * @param array $options Options used during the import process
+     *
+     * * boolean  *force*     Create the index while importing if it does not exist. Recreate it if it does.
+     * * integer  *chunkSize* Size of the chunk when importing. Default *1000*.
+     * * boolean  *refresh*   Refresh the index after importing. Default *false*.
+     * * string   *index*     Use a custom index name. Defaults to *indexName* of the model class.
+     * * string   *type*      Use a custom document type. Defaults to *documentType* of the model class.
+     * * callable *transform* Custom transformation of records into bulk API format. Defaults this classes' *transform* method.
+     * * string   *return*    Return *count* or *errors* from the import method. Default *count*.
+     *
+     * @param callable $callable Optional callable to process response
+     *
+     * @return mixed Returns count of errors by default, can be configured to return array of errors. Use *return* in options to configure this.
      */
     public function import($options = [], callable $callable = null)
     {
@@ -143,7 +166,6 @@ trait Importing
         $targetType = array_pull($options, 'type', $this->documentType());
         $transform = array_pull($options, 'transform', [$this, 'transform']);
         $returnValue = array_pull($options, 'return', 'count');
-        $wait = array_pull($options, 'wait', false);
 
         if (! is_callable($transform)) {
             throw new Exception(sprintf('Pass a callable as the transform option, %s given', $transform));
@@ -155,16 +177,12 @@ trait Importing
             throw new Exception(sprintf("%s does not exist to be imported into. Use createIndex() or the 'force' option to create it.", $targetIndex));
         }
 
-        $this->driverManager->findInBatches($options, function ($chunk) use ($targetIndex, $targetType, $transform, $callable, &$errors, $wait) {
+        $this->driverManager->findInChunks($options, function ($chunk) use ($targetIndex, $targetType, $transform, $callable, &$errors) {
             $args = [
                 'index' => $targetIndex,
                 'type' => $targetType,
                 'body' => $this->chunkToBulk($chunk, call_user_func($transform)),
             ];
-
-            if ($wait) {
-                $args['client'] = ['future' => 'lazy'];
-            }
 
             $response = $this->client()->bulk($args);
 

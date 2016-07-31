@@ -24,4 +24,12 @@ class Thing extends Eloquent
     {
         return $query->whereStatus('online');
     }
+
+    public static function enrich($chunk)
+    {
+        return $chunk->map(function ($thing) {
+            $thing->title .= '!';
+            return $thing;
+        });
+    }
 }
