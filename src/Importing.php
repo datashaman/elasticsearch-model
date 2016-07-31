@@ -81,7 +81,7 @@ trait Importing
      * Process the response from Elasticsearch
      *
      *     Article::elasticsearch()->import([], function ($response) {
-     *       echo "Got " . $response->map(function ($i) { return $i['index']['error'] })->count() . " errors"
+     *       echo "Got " . $response->map(function ($i) { return $i['index']['error']; })->count() . " errors"
      *     });
      *
      * Delete and create the index with appropriate settings and mappings
