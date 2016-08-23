@@ -1,7 +1,13 @@
 {
     "name": "datashaman/elasticsearch-model",
     "description": "Laravel/Eloquent integration with Elasticsearch",
-    "keywords": ["elasticsearch"],
+    "keywords": [
+        "elasticsearch",
+        "eloquent",
+        "facets",
+        "laravel",
+        "search"
+    ],
     "license": "Apache-2.0",
     "type": "library",
     "authors": [
