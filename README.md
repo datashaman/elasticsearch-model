@@ -7,23 +7,16 @@ Laravel-oriented implementation of [elasticsearch-model](https://github.com/elas
 [![Code Climate](https://codeclimate.com/github/datashaman/elasticsearch-model/badges/gpa.svg)](https://codeclimate.com/github/datashaman/elasticsearch-model)
 [![Test Coverage](https://codeclimate.com/github/datashaman/elasticsearch-model/badges/coverage.svg)](https://codeclimate.com/github/datashaman/elasticsearch-model/coverage)
 
+*NB* This is currently *BETA* quality software. Use on production at your own risk, and be aware that there might some
+further simplifications of the API in the next version or two.
+
+The idea is to stay fairly faithful to the *Ruby on Rails* implementation, but housed in *Laravel*.
+
 ## Installation
 
-Install the package from packagist.org by editing composer.json to include the following (only published on github for now):
+Install the package using composer:
 
-    {
-        "repositories": [
-            {
-                "type": "vcs",
-                "url": "https://github.com/datashaman/elasticsearch-model"
-            }
-        ],
-        "require": {
-            "datashaman/elasticsearch-model": "dev-master"
-        }
-    }
-
-*NB* This is currently *ALPHA* quality software. Not for production use yet.
+    composer require datashaman/elasticsearch-model
 
 ## Usage
 
