@@ -271,6 +271,11 @@ class PaginationTest extends TestCase
         $this->assertEquals(2, $results->currentPage());
 
         $results->setPath('/articles');
-        $this->assertEquals('<ul class="pagination"><li><a href="/articles?page=1" rel="prev">&laquo;</a></li> <li><a href="/articles?page=1">1</a></li><li class="active"><span>2</span></li><li><a href="/articles?page=3">3</a></li> <li><a href="/articles?page=3" rel="next">&raquo;</a></li></ul>', $results->render());
+
+        $rendered = (string) $results->render();
+
+        $this->assertContains('<ul class="pagination">', $rendered);
+        $this->assertContains('<a href="/articles?page=1" rel="prev">&laquo;</a>', $rendered);
+        $this->assertContains('<a href="/articles?page=3" rel="next">&raquo;</a>', $rendered);
     }
 }
