@@ -80,7 +80,7 @@ class EloquentDriverTest extends TestCase
             'category_id' => 1,
         ]);
 
-        $this->assertEquals([1, 2, 3], Thing::lists('id')->all());
+        $this->assertEquals([1, 2, 3], Thing::query()->pluck('id')->all());
 
         $response = Thing::search('Thing');
         $this->assertEquals([2, 1], $response->getCollection()->map(function ($r) {
@@ -127,7 +127,7 @@ class EloquentDriverTest extends TestCase
             'category_id' => 1,
         ]);
 
-        $this->assertEquals([1, 2, 3], Thing::lists('id')->all());
+        $this->assertEquals([1, 2, 3], Thing::query()->pluck('id')->all());
 
         $response = Thing::search('Thing');
         $this->assertEquals([2, 1], $response->ids()->all());
