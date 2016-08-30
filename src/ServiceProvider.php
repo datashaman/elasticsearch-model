@@ -18,8 +18,7 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
      */
     public function register()
     {
-        $configPath = __DIR__.'/../config/elasticsearch.php';
-        $this->mergeConfigFrom($configPath, 'elasticsearch');
+        //
     }
 
     /**
