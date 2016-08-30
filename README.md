@@ -18,6 +18,12 @@ Install the package using composer:
 
     composer require datashaman/elasticsearch-model
 
+Copy base config into your applicatin:
+
+    php artisan vendor:publish --tag=config --provider='Datashaman\Elasticsearch\Model\ServiceProvider'
+
+Edit `config/elasticsearch.php` to your liking, setting `ELASTICSEARCH_HOSTS` (comma-delimited definition of host:port)  in `.env` should cover most use cases.
+
 ## Usage
 
 Let's suppose you have an `Article` model:

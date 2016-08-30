@@ -17,6 +17,11 @@ class TestCase extends \Orchestra\Testbench\TestCase
             'database' => ':memory:',
             'prefix' => '',
         ]);
+        $app['config']->set('elasticsearch', [
+            'hosts' => [
+                'localhost:9200',
+            ],
+        ]);
     }
 
     public function setUp()
