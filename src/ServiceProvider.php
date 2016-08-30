@@ -2,9 +2,6 @@
 
 namespace Datashaman\Elasticsearch\Model;
 
-use Illuminate\Routing\Router;
-use Illuminate\Session\SessionManager;
-
 class ServiceProvider extends \Illuminate\Support\ServiceProvider
 {
     /**
@@ -21,7 +18,7 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
      */
     public function register()
     {
-        $configPath = __DIR__ . '/../config/elasticsearch.php';
+        $configPath = __DIR__.'/../config/elasticsearch.php';
         $this->mergeConfigFrom($configPath, 'elasticsearch');
     }
 
@@ -32,7 +29,7 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
      */
     public function boot()
     {
-        $configPath = __DIR__ . '/../config/elasticsearch.php';
+        $configPath = __DIR__.'/../config/elasticsearch.php';
         $this->publishes([$configPath => config_path('elasticsearch.php')], 'config');
     }
 
