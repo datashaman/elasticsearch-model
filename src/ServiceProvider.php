@@ -2,6 +2,8 @@
 
 namespace Datashaman\Elasticsearch\Model;
 
+use Elasticsearch\ClientBuilder;
+
 class ServiceProvider extends \Illuminate\Support\ServiceProvider
 {
     /**
@@ -9,7 +11,7 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
      *
      * @var bool
      */
-    protected $defer = false;
+    protected $defer = true;
 
     /**
      * Register the service provider.
@@ -18,7 +20,22 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
      */
     public function register()
     {
-        //
+        $configPath = __DIR__.'/../config/elasticsearch.php';
+        $this->mergeConfigFrom($configPath, 'elasticsearch');
+
+        $this->app->singleton('elasticsearch', function ($app) {
+            $config = array_get(
+                $app['config'],
+                'elasticsearch',
+                [
+                    'hosts' => '127.0.0.1:9200',
+                ]
+            );
+
+            $client = ClientBuilder::fromConfig($config, true);
+
+            return $client;
+        });
     }
 
     /**
@@ -39,7 +56,6 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
      */
     public function provides()
     {
-        return [
-        ];
+        return ['elasticsearch'];
     }
 }

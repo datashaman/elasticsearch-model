@@ -16,12 +16,8 @@ class Elasticsearch extends GetOrSet
     {
         $name = preg_replace('/([A-Z])/', ' \1', class_basename($class));
 
-        $config = config('elasticsearch', [
-            'hosts' => '127.0.0.1:9200',
-        ]);
-
         $attributes = [
-            'client' => ClientBuilder::fromConfig(config('elasticsearch'), true),
+            'client' => app('elasticsearch'),
             'documentType' => isset($class::$documentType) ? $class::$documentType : str_slug($name),
             'indexName' => isset($class::$indexName) ? $class::$indexName : str_slug(str_plural($name)),
         ];

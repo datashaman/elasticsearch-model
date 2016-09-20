@@ -18,6 +18,22 @@ Install the package using composer:
 
     composer require datashaman/elasticsearch-model
 
+Configure the service provider in `config/app.php`:
+
+```
+...
+Datashaman\Elasticsearch\Model\ServiceProvider::class,
+...
+```
+
+Configure the alias in `config.app.php`:
+
+```
+...
+'Elasticsearch' => Datashaman\Elasticsearch\Model\ElasticsearchFacade::class,
+...
+```
+
 Copy base config into your applicatin:
 
     php artisan vendor:publish --tag=config --provider='Datashaman\Elasticsearch\Model\ServiceProvider'

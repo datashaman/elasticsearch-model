@@ -6,7 +6,11 @@ trait HasProperties
 {
     public function getPropertiesAttribute()
     {
-        return json_decode(array_get($this->attributes, 'properties', '{}'), true);
+        $properties = array_get($this->attributes, 'properties', '{}');
+        if (empty($properties)) {
+            $properties = '{}';
+        }
+        return json_decode($properties, true);
     }
 
     public function setPropertiesAttribute($value)
