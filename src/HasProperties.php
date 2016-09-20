@@ -10,6 +10,7 @@ trait HasProperties
         if (empty($properties)) {
             $properties = '{}';
         }
+
         return json_decode($properties, true);
     }
 

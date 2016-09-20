@@ -2,8 +2,6 @@
 
 namespace Datashaman\Elasticsearch\Model;
 
-use Elasticsearch\ClientBuilder;
-
 class Elasticsearch extends GetOrSet
 {
     use Importing;
