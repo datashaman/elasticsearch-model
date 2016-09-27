@@ -9,6 +9,13 @@ use Schema;
 
 class TestCase extends \Orchestra\Testbench\TestCase
 {
+    protected function getPackageProviders($app)
+    {
+        return [
+            'Datashaman\Elasticsearch\Model\ServiceProvider',
+        ];
+    }
+
     protected function getEnvironmentSetup($app)
     {
         $app['config']->set('database.default', 'testbench');
