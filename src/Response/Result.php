@@ -38,6 +38,18 @@ class Result implements Arrayable
             E_USER_NOTICE);
     }
 
+    public function has($name)
+    {
+        return
+            in_array($name, ['index', 'type', 'id', 'score', 'source'])
+            && array_has($this->hit, "_$name")
+            ||
+            array_has($this->hit, $name)
+            ||
+            array_has($this->hit, '_source')
+            && array_has($this->hit['_source'], $name);
+    }
+
     public function toArray()
     {
         return $this->hit;
