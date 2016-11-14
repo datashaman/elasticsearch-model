@@ -38,7 +38,7 @@ class Result implements Arrayable
             E_USER_NOTICE);
     }
 
-    public function has($name)
+    public function __isset($name)
     {
         return
             in_array($name, ['index', 'type', 'id', 'score', 'source'])
@@ -48,6 +48,20 @@ class Result implements Arrayable
             ||
             array_has($this->hit, '_source')
             && array_has($this->hit['_source'], $name);
+    }
+
+    public function get($name, $default = null)
+    {
+        if (!isset($this->$name)) {
+            return $default;
+        }
+
+        return $this->$name;
+    }
+
+    public function has($name)
+    {
+        return isset($this->$name);
     }
 
     public function toArray()
