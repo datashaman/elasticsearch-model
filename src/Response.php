@@ -4,6 +4,7 @@ namespace Datashaman\Elasticsearch\Model;
 
 use ArrayAccess;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 class Response implements ArrayAccess
 {
@@ -95,5 +96,13 @@ class Response implements ArrayAccess
     public function suggestions()
     {
         return array_has($this->response(), 'suggest') ? new Response\Suggestions(array_get($this->response(), 'suggest')) : null;
+    }
+
+    /**
+     * @return Collection
+     */
+    public function getAttributes()
+    {
+        return $this->attributes;
     }
 }
