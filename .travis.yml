@@ -9,7 +9,6 @@ sudo: false
 
 before_script:
 - phpenv config-rm xdebug.ini
-- composer self-update
 - composer install --no-interaction --prefer-dist
 - composer require symfony/yaml --no-interaction --prefer-dist
 
