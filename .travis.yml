@@ -7,8 +7,10 @@ php:
 
 sudo: false
 
-install:
+before_script:
 - phpenv config-rm xdebug.ini
+
+install:
 - travis_retry composer self-update
 - travis_retry composer install --no-interaction --prefer-dist
 - travis_retry composer require symfony/yaml --no-interaction --prefer-dist
