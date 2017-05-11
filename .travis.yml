@@ -10,7 +10,7 @@ sudo: false
 before_script:
 - phpenv config-rm xdebug.ini
 - composer global require hirak/prestissimo
-- composer install --no-interaction --prefer-dist --verbose
+- composer install --no-interaction --prefer-dist -vv
 - composer require symfony/yaml --no-interaction --prefer-dist
 
 script: composer run coverage
