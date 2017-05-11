@@ -54,7 +54,7 @@ trait Searching
     public function search($query, $options = [])
     {
         $search = new SearchRequest($this->class, $query, $options);
-        $response = new Response($search);
+        $response = new Response($search, $options);
 
         return $response;
     }

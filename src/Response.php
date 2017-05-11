@@ -15,17 +15,19 @@ class Response implements ArrayAccess
     use Response\Delegates;
 
     protected $search;
+    protected $options;
     protected $attributes;
 
     /**
      * Create a response instance.
      *
      * @param  SearchRequest $search
-     * @param  array         $response Dummy response (used by testing)
+     * @param  array         $options
      */
-    public function __construct(SearchRequest $search)
+    public function __construct(SearchRequest $search, array $options = [])
     {
         $this->search = $search;
+        $this->options = $options;
         $this->attributes = collect();
     }
 
@@ -46,10 +48,11 @@ class Response implements ArrayAccess
     public function results()
     {
         if (! $this->attributes->has('results')) {
+            $className = array_get($this->options, 'resultClass', Response\Result::class);
             $response = $this->response();
 
-            $results = collect($response['hits']['hits'])->map(function ($hit) {
-                return new Response\Result($hit);
+            $results = collect($response['hits']['hits'])->map(function ($hit) use ($className) {
+                return new $className($hit);
             });
 
             /*

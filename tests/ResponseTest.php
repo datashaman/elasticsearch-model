@@ -8,6 +8,10 @@ use Datashaman\Elasticsearch\Model\Response\Result;
 use Datashaman\Elasticsearch\Model\SearchRequest;
 use Mockery as m;
 
+class TestResult extends Result
+{
+}
+
 class ResponseTest extends TestCase
 {
     protected static $mockResponse = [
@@ -74,5 +78,18 @@ class ResponseTest extends TestCase
         $records = $response->records();
         $this->assertInstanceOf(Records::class, $records);
         $this->assertEquals(1, count($records));
+    }
+
+    public function testResponseResultClass()
+    {
+        $this->createThings();
+
+        $search = m::mock(SearchRequest::class, [Models\Thing::class, '*'], [
+            'execute' => static::$mockResponse,
+        ]);
+
+        $response = new Response($search, ['resultClass' => TestResult::class]);
+        $result = $response[0];
+        $this->assertInstanceOf(TestResult::class, $result);
     }
 }
