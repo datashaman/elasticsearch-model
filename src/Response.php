@@ -45,15 +45,43 @@ class Response implements ArrayAccess
         return $this->attributes->get('response');
     }
 
+    /**
+     * Extracted out for type-checking.
+     *
+     * @param callable $resultFactory
+     * @param array $hit
+     *
+     * @return Response/Result
+     */
+    public function createResult(
+        callable $resultFactory,
+        array $hit
+    ): Response\Result {
+        return call_user_func($resultFactory, $hit);
+    }
+
     public function results()
     {
         if (! $this->attributes->has('results')) {
-            $className = array_get($this->options, 'resultClass', Response\Result::class);
+            $resultFactory = array_get($this->options, 'resultFactory', Response\Result::class);
+
+            // If we are given a string, create a callable that
+            // creates a new object from the class name
+            if (is_string($resultFactory)) {
+                $className = $resultFactory;
+                $resultFactory = function ($hit) use ($className) {
+                    return new $className($hit);
+                };
+            }
+
             $response = $this->response();
 
-            $results = collect($response['hits']['hits'])->map(function ($hit) use ($className) {
-                return new $className($hit);
-            });
+            $results = collect($response['hits']['hits'])
+                ->map(
+                    function ($hit) use ($resultFactory) {
+                        return $this->createResult($resultFactory, $hit);
+                    }
+                );
 
             /*
              * Must calculate current page manually here, can't use method because it uses the paginator for its result (infinite loop)

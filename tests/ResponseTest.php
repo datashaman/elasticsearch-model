@@ -80,7 +80,7 @@ class ResponseTest extends TestCase
         $this->assertEquals(1, count($records));
     }
 
-    public function testResponseResultClass()
+    public function testResponseResultByClass()
     {
         $this->createThings();
 
@@ -88,7 +88,28 @@ class ResponseTest extends TestCase
             'execute' => static::$mockResponse,
         ]);
 
-        $response = new Response($search, ['resultClass' => TestResult::class]);
+        $response = new Response($search, ['resultFactory' => TestResult::class]);
+        $result = $response[0];
+        $this->assertInstanceOf(TestResult::class, $result);
+    }
+
+    public function testResponseResultByFactory()
+    {
+        $this->createThings();
+
+        $search = m::mock(SearchRequest::class, [Models\Thing::class, '*'], [
+            'execute' => static::$mockResponse,
+        ]);
+
+        $response = new Response(
+            $search,
+            [
+                'resultFactory' => function ($hit) {
+                    return new TestResult($hit);
+                }
+            ]
+        );
+
         $result = $response[0];
         $this->assertInstanceOf(TestResult::class, $result);
     }
