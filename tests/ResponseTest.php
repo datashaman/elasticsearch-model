@@ -157,4 +157,23 @@ class ResponseTest extends TestCase
         $this->expectException(TypeError::class);
         $result = $response[0];
     }
+
+    public function testResponseResultUsingPreviousConfig()
+    {
+        $this->createThings();
+
+        $search = m::mock(SearchRequest::class, [Models\Thing::class, '*'], [
+            'execute' => static::$mockResponse,
+        ]);
+
+        $response = new Response(
+            $search,
+            [
+                'resultClass' => TestResult::class,
+            ]
+        );
+
+        $result = $response[0];
+        $this->assertInstanceOf(TestResult::class, $result);
+    }
 }

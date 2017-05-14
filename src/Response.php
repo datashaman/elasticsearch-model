@@ -49,7 +49,13 @@ class Response implements ArrayAccess
     public function results()
     {
         if (! $this->attributes->has('results')) {
-            $resultFactory = array_get($this->options, 'resultFactory', Response\Result::class);
+            $resultClass = array_get($this->options, 'resultClass');
+
+            if (empty($resultClass)) {
+                $resultFactory = array_get($this->options, 'resultFactory', Response\Result::class);
+            } else {
+                $resultFactory = $resultClass;
+            }
 
             // If we are given a string, create a callable that
             // creates a new object from the class name
