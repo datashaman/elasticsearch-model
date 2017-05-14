@@ -5,6 +5,7 @@ namespace Datashaman\Elasticsearch\Model;
 use ArrayAccess;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use TypeError;
 
 class Response implements ArrayAccess
 {
@@ -45,21 +46,6 @@ class Response implements ArrayAccess
         return $this->attributes->get('response');
     }
 
-    /**
-     * Extracted out for type-checking.
-     *
-     * @param callable $resultFactory
-     * @param array $hit
-     *
-     * @return Response/Result
-     */
-    public function createResult(
-        callable $resultFactory,
-        array $hit
-    ): Response\Result {
-        return call_user_func($resultFactory, $hit);
-    }
-
     public function results()
     {
         if (! $this->attributes->has('results')) {
@@ -79,7 +65,16 @@ class Response implements ArrayAccess
             $results = collect($response['hits']['hits'])
                 ->map(
                     function ($hit) use ($resultFactory) {
-                        return $this->createResult($resultFactory, $hit);
+                        $result = call_user_func($resultFactory, $hit);
+
+                        if (!is_object($result)) {
+                            throw new TypeError('Return value of resultFactory must be an instance of Datashaman\Elasticsearch\Model\Result');
+                        }
+
+                        if (!$result instanceof Response\Result) {
+                            throw new TypeError('Return value of resultFactory must be an instance of Datashaman\Elasticsearch\Model\Result, instance of ' . get_class($result) . ' returned');
+                        }
+                        return $result;
                     }
                 );
 
