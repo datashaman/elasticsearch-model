@@ -12,6 +12,16 @@ install:
 - travis_retry composer install --no-interaction --prefer-dist
 - travis_retry composer require symfony/yaml --no-interaction --prefer-dist
 
+env:
+- ILLUMINATE_VERSION=5.1.*
+- ILLUMINATE_VERSION=5.2.*
+- ILLUMINATE_VERSION=5.3.*
+- ILLUMINATE_VERSION=5.4.*
+- ILLUMINATE_VERSION=dev-master
+
+before_script:
+  - composer require illuminate/support:${ILLUMINATE_VERSION}
+
 script: composer run coverage
 
 after_script:
