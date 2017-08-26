@@ -17,17 +17,15 @@ env:
 - ILLUMINATE_VERSION=^5.2 TESTBENCH_VERSION=^3.2 ELASTICSEARCH_VERSION=^2
 - ILLUMINATE_VERSION=^5.3 TESTBENCH_VERSION=^3.3 ELASTICSEARCH_VERSION=^2
 - ILLUMINATE_VERSION=^5.4 TESTBENCH_VERSION=^3.4 ELASTICSEARCH_VERSION=^2
-- ILLUMINATE_VERSION=^5.5@dev TESTBENCH_VERSION=^3.5@dev ELASTICSEARCH_VERSION=^2
 - ILLUMINATE_VERSION=^5.1 TESTBENCH_VERSION=^3.1 ELASTICSEARCH_VERSION=^5
 - ILLUMINATE_VERSION=^5.2 TESTBENCH_VERSION=^3.2 ELASTICSEARCH_VERSION=^5
 - ILLUMINATE_VERSION=^5.3 TESTBENCH_VERSION=^3.3 ELASTICSEARCH_VERSION=^5
 - ILLUMINATE_VERSION=^5.4 TESTBENCH_VERSION=^3.4 ELASTICSEARCH_VERSION=^5
-- ILLUMINATE_VERSION=^5.5@dev TESTBENCH_VERSION=^3.5@dev ELASTICSEARCH_VERSION=^5
 
 before_script:
-  - composer remove elasticsearch/elasticsearch illuminate/contracts illuminate/support
+  - composer remove elasticsearch/elasticsearch illuminate/support
   - composer remove --dev orchestra/testbench
-  - composer require elasticsearch/elasticsearch:${ELASTICSEARCH_VERSION} illuminate/contracts:${ILLUMINATE_VERSION} illuminate/support:${ILLUMINATE_VERSION}
+  - composer require elasticsearch/elasticsearch:${ELASTICSEARCH_VERSION} illuminate/support:${ILLUMINATE_VERSION}
   - composer require --dev orchestra/testbench:${TESTBENCH_VERSION}
 
 script: composer run coverage
