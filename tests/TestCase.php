@@ -9,7 +9,7 @@ use Schema;
 
 class TestCase extends \Orchestra\Testbench\TestCase
 {
-    protected function getPackageProviders()
+    protected function getPackageProviders($app)
     {
         return [
             'Datashaman\Elasticsearch\Model\ServiceProvider',
