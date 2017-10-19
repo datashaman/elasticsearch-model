@@ -5,10 +5,13 @@ namespace Datashaman\Elasticsearch\Model\Tests;
 use DB;
 use Eloquent;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Schema;
 
 class TestCase extends \Orchestra\Testbench\TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected function getPackageProviders($app)
     {
         return [
@@ -75,11 +78,5 @@ class TestCase extends \Orchestra\Testbench\TestCase
             'description' => 'This is another thing.',
             'status' => 'offline',
         ]);
-    }
-
-    public function tearDown()
-    {
-        m::close();
-        parent::tearDown();
     }
 }
