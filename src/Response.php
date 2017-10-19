@@ -3,9 +3,9 @@
 namespace Datashaman\Elasticsearch\Model;
 
 use ArrayAccess;
+use Exception;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
-use TypeError;
 
 class Response implements ArrayAccess
 {
@@ -49,40 +49,31 @@ class Response implements ArrayAccess
     public function results()
     {
         if (! $this->attributes->has('results')) {
-            $resultClass = array_get($this->options, 'resultClass');
+            $resultFactory = array_get($this->options, 'resultFactory')
+                ?: config('elasticsearch.resultFactory');
 
-            if (empty($resultClass)) {
-                $resultFactory = array_get($this->options, 'resultFactory', Response\Result::class);
-            } else {
-                $resultFactory = $resultClass;
-            }
-
-            // If we are given a string, create a callable that
-            // creates a new object from the class name
-            if (is_string($resultFactory)) {
-                $className = $resultFactory;
-                $resultFactory = function ($hit) use ($className) {
-                    return new $className($hit);
+            if (empty($resultFactory)) {
+                $resultFactory = function ($hit) {
+                    $resultClass = array_get(
+                        $this->options,
+                        'resultClass',
+                        config(
+                            'elasticsearch.resultClass',
+                            Response\Result::class
+                        )
+                    );
+                    return new $resultClass($hit);
                 };
+            } else {
+                if (!is_callable($resultFactory)) {
+                    throw new Exception('Result factory must be callable');
+                }
             }
 
             $response = $this->response();
 
             $results = collect($response['hits']['hits'])
-                ->map(
-                    function ($hit) use ($resultFactory) {
-                        $result = call_user_func($resultFactory, $hit);
-
-                        if (!is_object($result)) {
-                            throw new TypeError('Return value of resultFactory must be an instance of Datashaman\Elasticsearch\Model\Result');
-                        }
-
-                        if (!$result instanceof Response\Result) {
-                            throw new TypeError('Return value of resultFactory must be an instance of Datashaman\Elasticsearch\Model\Result, instance of ' . get_class($result) . ' returned');
-                        }
-                        return $result;
-                    }
-                );
+                ->map($resultFactory);
 
             /*
              * Must calculate current page manually here, can't use method because it uses the paginator for its result (infinite loop)

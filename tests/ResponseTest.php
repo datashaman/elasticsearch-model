@@ -14,6 +14,14 @@ class TestResult extends Result
 {
 }
 
+class TestResultFactory
+{
+    public static function createResult(array $hit): Result
+    {
+        return new TestResult($hit);
+    }
+}
+
 class ResponseTest extends TestCase
 {
     protected static $mockResponse = [
@@ -82,7 +90,7 @@ class ResponseTest extends TestCase
         $this->assertEquals(1, count($records));
     }
 
-    public function testResponseResultByClass()
+    public function testResponseResultByFactoryClass()
     {
         $this->createThings();
 
@@ -90,7 +98,15 @@ class ResponseTest extends TestCase
             'execute' => static::$mockResponse,
         ]);
 
-        $response = new Response($search, ['resultFactory' => TestResult::class]);
+        $response = new Response(
+            $search,
+            [
+                'resultFactory' => [
+                    TestResultFactory::class,
+                    'createResult'
+                ],
+            ]
+        );
         $result = $response[0];
         $this->assertInstanceOf(TestResult::class, $result);
     }
@@ -114,48 +130,6 @@ class ResponseTest extends TestCase
 
         $result = $response[0];
         $this->assertInstanceOf(TestResult::class, $result);
-    }
-
-    public function testResponseResultString()
-    {
-        $this->createThings();
-
-        $search = m::mock(SearchRequest::class, [Models\Thing::class, '*'], [
-            'execute' => static::$mockResponse,
-        ]);
-
-        $response = new Response(
-            $search,
-            [
-                'resultFactory' => function ($hit) {
-                    return '';
-                }
-            ]
-        );
-
-        $this->expectException(TypeError::class);
-        $result = $response[0];
-    }
-
-    public function testResponseResultObject()
-    {
-        $this->createThings();
-
-        $search = m::mock(SearchRequest::class, [Models\Thing::class, '*'], [
-            'execute' => static::$mockResponse,
-        ]);
-
-        $response = new Response(
-            $search,
-            [
-                'resultFactory' => function ($hit) {
-                    return new stdClass();
-                }
-            ]
-        );
-
-        $this->expectException(TypeError::class);
-        $result = $response[0];
     }
 
     public function testResponseResultUsingPreviousConfig()

@@ -7,4 +7,13 @@ return [
 
     // Optionally specify global retries for operations, defaults to number of nodes in cluster.
     // 'retries' => 3,
+
+    // Specify the result class to be used globally. Defaults to Datashaman\ElasticsearchModel\Response\Result.
+    // 'resultClass' => '',
+
+    // Use a factory callable for creating the result globally. Accepts hit from Elasticsearch response as the only parameter.
+    // 'resultFactory' => [
+    //     App\ResultFactory::class,
+    //     'createResult'
+    // ],
 ];
