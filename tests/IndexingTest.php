@@ -395,7 +395,9 @@ class IndexingTest extends TestCase
             'indexName' => 'indexing-test-models',
         ])->shouldDeferMissing();
 
-        $this->setExpectedException(Missing404Exception::class, 'Index is missing');
+        $this->expectException(Missing404Exception::class);
+        $this->expectExceptionMessage('Index is missing');
+
         $elastic->deleteIndex();
     }
 
