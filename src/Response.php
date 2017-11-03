@@ -81,6 +81,11 @@ class Response implements ArrayAccess
             $from = $this->from();
             $perPage = $this->perPage();
 
+            // We can't let perPage of 0 through, it causes division by zero error in paginator.
+            if ($perPage === 0) {
+                $perPage = $results->count();
+            }
+
             $currentPage = (! is_null($from) && ! empty($perPage)) ? $from / $perPage + 1 : null;
 
             $this->attributes->put('results', new LengthAwarePaginator($results, $this->total(), $perPage, $currentPage));
