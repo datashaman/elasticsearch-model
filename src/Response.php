@@ -3,11 +3,12 @@
 namespace Datashaman\Elasticsearch\Model;
 
 use ArrayAccess;
+use Countable;
 use Exception;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
-class Response implements ArrayAccess
+class Response implements ArrayAccess, Countable
 {
     use ArrayDelegateMethod;
     protected static $arrayDelegate = 'results';

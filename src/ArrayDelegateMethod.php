@@ -30,4 +30,11 @@ trait ArrayDelegateMethod
 
         return $item;
     }
+
+    public function count()
+    {
+        $array = call_user_func([$this, static::$arrayDelegate]);
+
+        return count($array);
+    }
 }

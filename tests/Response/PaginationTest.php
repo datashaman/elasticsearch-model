@@ -274,8 +274,8 @@ class PaginationTest extends TestCase
 
         $rendered = (string) $results->render();
 
-        $this->assertContains('<ul class="pagination">', $rendered);
-        $this->assertContains('<a href="/articles?page=1" rel="prev">&laquo;</a>', $rendered);
-        $this->assertContains('<a href="/articles?page=3" rel="next">&raquo;</a>', $rendered);
+        $this->assertContains('ul class="pagination"', $rendered);
+        $this->assertContains('href="/articles?page=1" rel="prev"', $rendered);
+        $this->assertContains('href="/articles?page=3" rel="next"', $rendered);
     }
 }
