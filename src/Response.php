@@ -72,21 +72,28 @@ class Response implements ArrayAccess, Countable
             }
 
             $response = $this->response();
+            $hits = $response['hits']['hits'];
 
-            $results = collect($response['hits']['hits'])
-                ->map($resultFactory);
-
-            /*
-             * Must calculate current page manually here, can't use method because it uses the paginator for its result (infinite loop)
-             */
-            $from = $this->from();
+            // If perPage is 0, then this is a count search type.
+            // No results will be returned (and perPage of 0 triggers
+            // a Division by Zero error), so return a dummy paginator
+            // with no items and a default perPage size.
             $perPage = $this->perPage();
+
+            if ($perPage === 0 && count($hits) === 0) {
+                return new LengthAwarePaginator([], 0, 10);
+            }
+
+            $results = collect($hits)->map($resultFactory);
 
             // We can't let perPage of 0 through, it causes division by zero error in paginator.
             if ($perPage === 0) {
                 $perPage = $results->count();
             }
 
+            // Must calculate current page manually here, can't use method
+            // because it uses the paginator for its result (infinite loop)
+            $from = $this->from();
             $currentPage = (! is_null($from) && ! empty($perPage)) ? $from / $perPage + 1 : null;
 
             $this->attributes->put('results', new LengthAwarePaginator($results, $this->total(), $perPage, $currentPage));

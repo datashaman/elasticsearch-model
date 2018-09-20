@@ -2,10 +2,12 @@
 
 Laravel-oriented implementation of [elasticsearch-model](https://github.com/elastic/elasticsearch-rails/tree/master/elasticsearch-model).
 
+Supports Laravel 5.4 and higher on PHP 7.0/7.1. PHP 7.2 will be supported and tested once Travis directly supports it.
+
+Note that at least PHP 7.1 is required for Laravel 5.6+.
+
 [![Build Status](https://travis-ci.org/datashaman/elasticsearch-model.svg?branch=master)](https://travis-ci.org/datashaman/elasticsearch-model)
 [![StyleCI](https://styleci.io/repos/61363628/shield?style=flat)](https://styleci.io/repos/61363628)
-[![Code Climate](https://codeclimate.com/github/datashaman/elasticsearch-model/badges/gpa.svg)](https://codeclimate.com/github/datashaman/elasticsearch-model)
-[![Test Coverage](https://codeclimate.com/github/datashaman/elasticsearch-model/badges/coverage.svg)](https://codeclimate.com/github/datashaman/elasticsearch-model/coverage)
 
 *NB* This is currently *BETA* quality software. Use on production at your own risk, and be aware that there might some
 further simplifications of the API in the next version or two.
