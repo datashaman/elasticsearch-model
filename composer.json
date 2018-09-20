@@ -19,11 +19,11 @@
     "require": {
         "php": ">=7.0",
         "elasticsearch/elasticsearch": ">=2",
-        "illuminate/support": ">=5.1"
+        "illuminate/support": ">=5.4"
     },
     "require-dev": {
         "mockery/mockery": "*",
-        "orchestra/testbench": ">=3.1",
+        "orchestra/testbench": ">=3.4",
         "phpunit/phpunit": "*",
         "symfony/yaml": "*",
         "ext-sqlite3": "*"
