@@ -92,7 +92,8 @@ trait Indexing
             return $this->client()->indices()->delete(compact('index'));
         } catch (Missing404Exception $e) {
             if (array_get($options, 'force')) {
-                Log::error($e->getMessage(), compact('index'));
+                // Ignore a missing index, but return false
+                // to indicate that the delete didn't happen
 
                 return false;
             }
