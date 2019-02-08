@@ -1,8 +1,9 @@
 /build/
-/reports/
-/vendor/
-/composer.phar
 /composer.lock
+/composer.phar
 .DS_Store
 .env
+/reports/
 Thumbs.db
+/travis.log
+/vendor/

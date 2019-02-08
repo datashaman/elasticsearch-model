@@ -50,26 +50,7 @@ class Response implements ArrayAccess, Countable
     public function results()
     {
         if (! $this->attributes->has('results')) {
-            $resultFactory = array_get($this->options, 'resultFactory')
-                ?: config('elasticsearch.resultFactory');
-
-            if (empty($resultFactory)) {
-                $resultFactory = function ($hit) {
-                    $resultClass = array_get(
-                        $this->options,
-                        'resultClass',
-                        config(
-                            'elasticsearch.resultClass',
-                            Response\Result::class
-                        )
-                    );
-                    return new $resultClass($hit);
-                };
-            } else {
-                if (!is_callable($resultFactory)) {
-                    throw new Exception('Result factory must be callable');
-                }
-            }
+            $resultFactory = $this->resultFactory();
 
             $response = $this->response();
             $hits = $response['hits']['hits'];
@@ -140,5 +121,31 @@ class Response implements ArrayAccess, Countable
     public function getAttributes()
     {
         return $this->attributes;
+    }
+
+    protected function resultFactory()
+    {
+        $resultFactory = array_get($this->options, 'resultFactory')
+            ?: config('elasticsearch.resultFactory');
+
+        if (empty($resultFactory)) {
+            $resultFactory = function ($hit) {
+                $resultClass = array_get(
+                    $this->options,
+                    'resultClass',
+                    config(
+                        'elasticsearch.resultClass',
+                        Response\Result::class
+                    )
+                );
+                return new $resultClass($hit);
+            };
+        } else {
+            if (!is_callable($resultFactory)) {
+                throw new Exception('Result factory must be callable');
+            }
+        }
+
+        return $resultFactory;
     }
 }

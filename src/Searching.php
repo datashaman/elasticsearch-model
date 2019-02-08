@@ -49,12 +49,39 @@ class SearchRequest
     }
 }
 
+class MultiSearchRequest extends SearchRequest
+{
+    public function __construct($class, $body, $options = [])
+    {
+        $this->class = $class;
+        $this->options = $options;
+
+        $this->definition = array_merge(compact('body'), $options);
+    }
+
+    public function execute()
+    {
+        $class = $this->class;
+        $result = $class::elasticsearch()->client()->msearch($this->definition);
+
+        return $result;
+    }
+}
+
 trait Searching
 {
     public function search($query, $options = [])
     {
         $search = new SearchRequest($this->class, $query, $options);
         $response = new Response($search, $options);
+
+        return $response;
+    }
+
+    public function msearch($queries, $options = [])
+    {
+        $search = new MultiSearchRequest($this->class, $queries, $options);
+        $response = new MultiResponse($search, $options);
 
         return $response;
     }

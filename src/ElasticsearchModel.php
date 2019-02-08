@@ -58,6 +58,11 @@ trait ElasticsearchModel
         return static::elasticsearch()->search($query, $options);
     }
 
+    public static function msearch($queries, $options = [])
+    {
+        return static::elasticsearch()->msearch($queries, $options);
+    }
+
     public static function mappings($options = [], callable $callable = null)
     {
         return static::elasticsearch()->mappings($options, $callable);
