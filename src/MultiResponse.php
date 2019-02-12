@@ -65,4 +65,18 @@ class MultiResponse extends Response
 
         return $this->attributes->get('results');
     }
+
+    /**
+     * @return array
+     */
+    public function aggregations()
+    {
+        return collect($this->responses())
+            ->map(
+                function ($response) {
+                    return array_get($response, 'aggregations');
+                }
+            )
+            ->all();
+    }
 }
