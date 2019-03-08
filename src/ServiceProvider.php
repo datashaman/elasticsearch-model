@@ -23,8 +23,8 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
 
         $this->app->singleton('elasticsearch', function ($app) {
             $clientFactory = array_get(
-                $app,
-                'config.clientFactory',
+                $app['config'],
+                'elasticsearch.clientFactory',
                 [
                     ClientFactory::class,
                     'make'
