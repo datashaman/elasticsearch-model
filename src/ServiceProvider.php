@@ -2,8 +2,6 @@
 
 namespace Datashaman\Elasticsearch\Model;
 
-use Elasticsearch\ClientBuilder;
-
 class ServiceProvider extends \Illuminate\Support\ServiceProvider
 {
     /**
@@ -24,17 +22,16 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
         $this->mergeConfigFrom($configPath, 'elasticsearch');
 
         $this->app->singleton('elasticsearch', function ($app) {
-            $config = array_get(
-                $app['config'],
-                'elasticsearch',
+            $clientFactory = array_get(
+                $app,
+                'config.clientFactory',
                 [
-                    'hosts' => '127.0.0.1:9200',
+                    ClientFactory::class,
+                    'make'
                 ]
             );
 
-            $client = ClientBuilder::fromConfig($config, true);
-
-            return $client;
+            return call_user_func($clientFactory, $app);
         });
     }
 

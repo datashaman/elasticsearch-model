@@ -6,3 +6,4 @@
 .DS_Store
 .env
 Thumbs.db
+/travis.log
