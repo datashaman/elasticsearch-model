@@ -6,7 +6,7 @@ use Elasticsearch\ClientBuilder;
 
 class ClientFactory
 {
-    public function make($app)
+    public static function make($app)
     {
         $config = array_get(
             $app['config'],
