@@ -18,7 +18,7 @@ class ImportingTestModel extends Model
 
 class ImportingTest extends TestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 

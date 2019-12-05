@@ -176,7 +176,7 @@ trait Importing
             throw new Exception(sprintf("%s does not exist to be imported into. Use createIndex() or the 'force' option to create it.", $targetIndex));
         }
 
-        $this->driverManager->findInChunks($options, function ($chunk) use ($targetIndex, $targetType, $transform, $callable, &$errors) {
+        $this->findInChunks($options, function ($chunk) use ($targetIndex, $targetType, $transform, $callable, &$errors) {
             $args = [
                 'index' => $targetIndex,
                 'type' => $targetType,

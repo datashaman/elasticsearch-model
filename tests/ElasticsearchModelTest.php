@@ -1,17 +1,15 @@
 <?php
 
-namespace Datashaman\Elasticsearch\Model\Tests\Driver;
+namespace Datashaman\Elasticsearch\Model\Tests;
 
-use Datashaman\Elasticsearch\Model\DriverManager;
-use Datashaman\Elasticsearch\Model\Driver\EloquentDriver;
 use Datashaman\Elasticsearch\Model\Elasticsearch;
 use Datashaman\Elasticsearch\Model\Tests\TestCase;
 use Datashaman\Elasticsearch\Model\Tests\Models\Thing;
 use Mockery as m;
 
-class EloquentDriverTest extends TestCase
+class ElasticsearchModelTest extends TestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $this->createThings();
@@ -143,10 +141,7 @@ class EloquentDriverTest extends TestCase
 
     public function testLimitToASpecificScope()
     {
-        $driverManager = new DriverManager(Thing::class);
-        $driver = new EloquentDriver($driverManager);
-
-        $driver->findInChunks(['scope' => 'online'], function ($chunk) {
+        Thing::elasticsearch()->findInChunks(['scope' => 'online'], function ($chunk) {
             $this->assertCount(1, $chunk);
             $this->assertEquals('online', $chunk[0]->status);
         });
@@ -154,10 +149,7 @@ class EloquentDriverTest extends TestCase
 
     public function testLimitToASpecificQuery()
     {
-        $driverManager = new DriverManager(Thing::class);
-        $driver = new EloquentDriver($driverManager);
-
-        $driver->findInChunks(['query' => function ($q) {
+        Thing::elasticsearch()->findInChunks(['query' => function ($q) {
             $q->whereStatus('online');
         }], function ($chunk) {
             $this->assertCount(1, $chunk);
@@ -167,10 +159,7 @@ class EloquentDriverTest extends TestCase
 
     public function testPreprocessIfProvided()
     {
-        $driverManager = new DriverManager(Thing::class);
-        $driver = new EloquentDriver($driverManager);
-
-        $driver->findInChunks(['preprocess' => 'enrich'], function ($chunk) {
+        Thing::elasticsearch()->findInChunks(['preprocess' => 'enrich'], function ($chunk) {
             $chunk->each(function ($thing) {
                 $this->assertEquals('!', substr($thing->title, -1));
             });

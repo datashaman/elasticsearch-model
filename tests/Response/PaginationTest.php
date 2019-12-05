@@ -36,7 +36,7 @@ for ($index = 1; $index <= 100; $index++) {
 
 class PaginationTest extends TestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 
@@ -52,7 +52,7 @@ class PaginationTest extends TestCase
         $this->response = new Response($search);
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         ModelClass::resetElasticsearch();
         parent::tearDown();
