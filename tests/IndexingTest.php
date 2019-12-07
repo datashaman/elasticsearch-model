@@ -45,7 +45,7 @@ class EloquentModelTwo extends Model
 
 class IndexingTest extends TestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $this->createThings();

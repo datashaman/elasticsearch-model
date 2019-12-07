@@ -9,7 +9,7 @@ use Mockery as m;
 
 class ElasticsearchModelTest extends TestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $this->createThings();
