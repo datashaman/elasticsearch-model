@@ -34,8 +34,7 @@ before_install:
 - travis_retry composer global require hirak/prestissimo
 
 install:
-- cp "lockfiles/php-${TRAVIS_PHP_VERSION}-laravel-${LARAVEL}-es-${ELASTICSEARCH}.lock" composer.lock
-- composer update --lock
+- travis_retry composer require elasticsearch/elasticsearch:^${ELASTICSEARCH} illuminate/support:^${LARAVEL} orchestra/testbench:^${TESTBENCH} --dev --prefer-dist --no-interaction --no-suggest
 
 script: composer run test
 
