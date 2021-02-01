@@ -16,7 +16,7 @@ class SearchRequest
         $index = array_get($options, 'index', $class::indexName());
         $type = array_get($options, 'type', $class::documentType());
 
-        if (method_exists($query, 'toArray')) {
+        if (is_object($query) && method_exists($query, 'toArray')) {
             $body = $query->toArray();
         } elseif (is_array($query)) {
             $body = $query;
