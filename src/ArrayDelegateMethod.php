@@ -6,24 +6,24 @@ use Exception;
 
 trait ArrayDelegateMethod
 {
-    public function offsetSet($offset, $value)
+    public function offsetSet(mixed $offset, mixed $value): void
     {
         throw new Exception('Not implemented');
     }
 
-    public function offsetExists($offset)
+    public function offsetExists(mixed $offset): bool
     {
         $array = call_user_func([$this, static::$arrayDelegate]);
 
         return isset($array[$offset]);
     }
 
-    public function offsetUnset($offset)
+    public function offsetUnset(mixed $offset): void
     {
         throw new Exception('Not implemented');
     }
 
-    public function offsetGet($offset)
+    public function offsetGet(mixed $offset): mixed
     {
         $array = call_user_func([$this, static::$arrayDelegate]);
         $item = $array[$offset];
@@ -31,7 +31,7 @@ trait ArrayDelegateMethod
         return $item;
     }
 
-    public function count()
+    public function count(): int
     {
         $array = call_user_func([$this, static::$arrayDelegate]);
 
