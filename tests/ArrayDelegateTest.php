@@ -18,12 +18,12 @@ class ArrayDelegateModel implements ArrayAccess
 
 class ArrayDelegateTest extends TestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         $this->subject = new ArrayDelegateModel;
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         // Do nothing
     }

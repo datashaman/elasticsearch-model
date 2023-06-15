@@ -50,7 +50,7 @@ class RecordsTest extends TestCase
     protected $search;
     protected $response;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         // $this->createThings();

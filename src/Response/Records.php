@@ -15,7 +15,6 @@ class Records implements ArrayAccess, Countable
     protected $response;
     protected $options;
     protected $callable;
-    protected $driverManager;
 
     public function __construct($response, $options = [], callable $callable = null)
     {
@@ -28,7 +27,7 @@ class Records implements ArrayAccess, Countable
     {
         $class = $this->response->search()->class;
 
-        return $class::elasticsearch()->driverManager->records($this->response, $this->options, $this->callable);
+        return $class::elasticsearch()->records($this->response, $this->options, $this->callable);
     }
 
     public function __call($name, $args)
