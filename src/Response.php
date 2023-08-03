@@ -141,4 +141,11 @@ class Response implements ArrayAccess, Countable
     {
         return $this->attributes;
     }
+
+    public function withResults(LengthAwarePaginator $results): self
+    {
+        $this->attributes->put('results', $results);
+
+        return $this;
+    }
 }
