@@ -2,6 +2,8 @@
 
 namespace Datashaman\Elasticsearch\Model\Response;
 
+use Illuminate\Support\Collection;
+
 trait Delegates
 {
     /**
@@ -40,6 +42,11 @@ trait Delegates
     public function aggregations()
     {
         return array_get($this->response(), 'aggregations');
+    }
+
+    public function buckets(string $name): Collection
+    {
+        return collect(array_get($this->response(), "aggregations.{$name}.buckets", []));
     }
 
     public function total()
